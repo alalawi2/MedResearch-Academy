@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, Download } from "lucide-react";
 
 export default function Programs() {
   const virtualSeries = {
@@ -121,6 +121,54 @@ export default function Programs() {
             </CardHeader>
             
             <CardContent className="space-y-8 pt-6">
+              {/* Schedule & Zoom Details */}
+              <div className="bg-background border border-border rounded-xl p-6 shadow-sm">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Upcoming Session Details
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground font-medium">Next Meeting</p>
+                    <p className="font-bold text-lg">Dec 31, 2025</p>
+                    <p className="text-sm text-muted-foreground">Every 14 days</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground font-medium">Time</p>
+                    <p className="font-bold text-lg">8:00 PM - 9:00 PM</p>
+                    <p className="text-sm text-muted-foreground">Muscat Time</p>
+                  </div>
+                  <div className="space-y-3">
+                    <a 
+                      href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                        <Video className="mr-2 h-4 w-4" />
+                        Join Zoom Meeting
+                      </Button>
+                    </a>
+                    <div className="text-xs text-muted-foreground text-center">
+                      <span className="font-mono bg-muted px-1 py-0.5 rounded">ID: 864 7984 0360</span>
+                      <span className="mx-2">•</span>
+                      <span className="font-mono bg-muted px-1 py-0.5 rounded">Pass: 857478</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6 pt-4 border-t border-border/50 flex justify-center">
+                  <a 
+                    href="https://us02web.zoom.us/meeting/tZIpcOCgqjspHNRZs5jxGPeRoi0ke9tUY3ew/ics?icsToken=DJnHm43htTyGrgiZvgAALAAAAPh0_NHeVAmTv7jYnKeCJE0iivclYlPmE516nmsAzCZf7YIyWKt9jlQQBef-Mh7febWMUHOdkQ432uf72TAwMDAwMQ&meetingMasterEventId=91mxO4X8SRSwFEzvqa7KtA"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-accent hover:underline font-medium"
+                  >
+                    <Download className="h-4 w-4" />
+                    Add Series to Calendar (.ics)
+                  </a>
+                </div>
+              </div>
+
               {/* Video Preview */}
               <div className="relative aspect-video md:aspect-[21/9] bg-black/5 rounded-xl overflow-hidden border border-border/50 group cursor-pointer">
                 <div className="absolute inset-0 flex items-center justify-center z-10">
