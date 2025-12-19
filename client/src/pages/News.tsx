@@ -2,9 +2,15 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar, ArrowRight, ExternalLink, Search, Loader2 } from "lucide-react";
+import { Calendar, ArrowRight, ExternalLink, Search, Loader2, Share2 } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function News() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,6 +99,27 @@ export default function News() {
     setVisibleCount(6);
   }, [searchQuery]);
 
+  const shareNews = (platform: string, item: typeof newsItems[0]) => {
+    const text = encodeURIComponent(`${item.title} - MedResearch Academy`);
+    const url = encodeURIComponent(item.link);
+    
+    let shareUrl = "";
+    
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        break;
+    }
+    
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
   return (
     <Layout>
       <section className="bg-primary text-primary-foreground py-16 md:py-24">
@@ -155,12 +182,32 @@ export default function News() {
                         {item.summary}
                       </p>
                     </CardContent>
-                    <CardFooter>
-                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="w-full">
+                    <CardFooter className="flex gap-2">
+                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex-grow">
                         <Button variant="outline" className="w-full gap-2">
                           Read More <ExternalLink className="h-4 w-4" />
                         </Button>
                       </a>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="shrink-0">
+                            <Share2 className="h-4 w-4" />
+                            <span className="sr-only">Share</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => shareNews("whatsapp", item)}>
+                            Share on WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => shareNews("linkedin", item)}>
+                            Share on LinkedIn
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => shareNews("twitter", item)}>
+                            Share on X (Twitter)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </CardFooter>
                   </Card>
                 ))}
