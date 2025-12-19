@@ -11,8 +11,24 @@ export default function News() {
       title: "Annual Forum for Medical Specialties Highlights Career and Research Pathways",
       date: "February 2025",
       summary: "The Oman Medical Specialty Board (OMSB) organized the Annual Forum for Career Guidance and Scientific Research 2025/2026 at the Oman Convention and Exhibition Centre. The event showcased research achievements and honored winners of scientific research and poster competitions.",
-      image: "/images/news-omsb-forum.jpg", // Placeholder, we might need to find a generic image or use a color block
+      image: "/images/news-omsb-forum.jpg", // Placeholder
       link: "https://www.omandaily.om/عمان-اليوم/na/الملتقى-السنوي-للاختصاصات-الطبية-يستعرض-المسارات-المهنية-والبحثية"
+    },
+    {
+      id: 2,
+      title: "First Annual Scientific Research Day at Khoula Hospital",
+      date: "November 2025",
+      summary: "Khoula Hospital hosted its First Annual Scientific Research Day, emphasizing the importance of research in advancing healthcare services. The event featured presentations on various medical studies and highlighted the hospital's commitment to fostering a culture of scientific inquiry.",
+      image: "/images/news-khoula-research.jpg", // Placeholder
+      link: "https://x.com/omantvnews/status/1988914446681465147"
+    },
+    {
+      id: 3,
+      title: "Winners of the 'Forsatak' Program Announced",
+      date: "October 2025",
+      summary: "The Innovation & Technology Transfer Center at Sultan Qaboos University congratulated the winners of the 'Forsatak' program. This achievement highlights the continued excellence and success of participants in fostering innovation and entrepreneurship within the university community.",
+      image: "/images/news-squ-innovation.jpg", // Placeholder
+      link: "https://x.com/ITTC_SQU/status/1983150366012387536"
     }
   ];
 
