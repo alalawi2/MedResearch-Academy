@@ -1,6 +1,8 @@
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 export default function Research() {
   const researchAreas = [
@@ -72,11 +74,11 @@ export default function Research() {
           <p className="text-muted-foreground">
             I am always open to collaborative research opportunities with fellow academics, institutions, and medical professionals.
           </p>
-          <a href="/contact" className="inline-block">
-            <Badge variant="outline" className="text-lg py-2 px-6 cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors">
+          <Link href="/contact">
+            <Button variant="outline" size="lg" className="text-lg px-8 h-12">
               Get in Touch
-            </Badge>
-          </a>
+            </Button>
+          </Link>
         </div>
       </section>
     </Layout>
