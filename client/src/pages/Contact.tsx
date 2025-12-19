@@ -47,8 +47,8 @@ export default function Contact() {
                     </div>
                     <div>
                       <h3 className="font-bold mb-1">Email</h3>
-                      <p className="text-muted-foreground text-sm">contact@dralalawi.om</p>
-                      <p className="text-muted-foreground text-sm">abdullah.alalawi@squ.edu.om</p>
+                      <p className="text-muted-foreground text-sm">Dr.Abdullahalalawi@gmail.com</p>
+                      <p className="text-muted-foreground text-sm">Dr.Abdullahalalawi@gmail.com</p>
                     </div>
                   </CardContent>
                 </Card>

@@ -1,3 +1,4 @@
-- [ ] Add Twitter and LinkedIn share buttons to blog post cards in `client/src/pages/Blog.tsx`
-- [ ] Implement share URL generation logic
-- [ ] Verify the buttons open the correct share dialogs
+- [ ] Search for old email addresses in the codebase
+- [ ] Update `client/src/pages/Contact.tsx` with `Dr.Abdullahalalawi@gmail.com`
+- [ ] Update `client/src/components/Layout.tsx` (Footer) with `Dr.Abdullahalalawi@gmail.com`
+- [ ] Verify the email link works correctly (mailto:)
