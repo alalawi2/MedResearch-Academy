@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Award, BookOpen, Users, Stethoscope } from "lucide-react";
+import { ArrowRight, Award, BookOpen, Users, FileText } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
@@ -107,10 +107,10 @@ export default function Home() {
             </div>
             <div className="text-center space-y-2">
               <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
-                <Stethoscope className="h-6 w-6" />
+                <FileText className="h-6 w-6" />
               </div>
-              <h3 className="text-3xl font-bold font-serif">100%</h3>
-              <p className="text-muted-foreground">Commitment</p>
+              <h3 className="text-3xl font-bold font-serif">20+</h3>
+              <p className="text-muted-foreground">Research Grants</p>
             </div>
           </div>
           
