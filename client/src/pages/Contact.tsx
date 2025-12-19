@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { Mail, MapPin, Phone, Twitter, Linkedin, BookOpen } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -68,6 +68,30 @@ export default function Contact() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <div className="pt-4">
+                  <h3 className="font-bold mb-4">Social Profiles</h3>
+                  <div className="flex gap-4">
+                    <a href="https://x.com/alalawi_dr" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="icon" className="rounded-full hover:text-primary hover:border-primary transition-colors">
+                        <Twitter className="h-5 w-5" />
+                        <span className="sr-only">Twitter</span>
+                      </Button>
+                    </a>
+                    <a href="https://www.linkedin.com/in/abdullah-al-alawi-4" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="icon" className="rounded-full hover:text-primary hover:border-primary transition-colors">
+                        <Linkedin className="h-5 w-5" />
+                        <span className="sr-only">LinkedIn</span>
+                      </Button>
+                    </a>
+                    <a href="https://www.researchgate.net/profile/Abdullah-Al-Alawi-4" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="icon" className="rounded-full hover:text-primary hover:border-primary transition-colors">
+                        <BookOpen className="h-5 w-5" />
+                        <span className="sr-only">ResearchGate</span>
+                      </Button>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
 

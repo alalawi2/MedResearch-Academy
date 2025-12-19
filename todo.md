@@ -1,4 +1,4 @@
-- [ ] Copy user photo to `client/public/images/dr-alawi.jpg`
-- [ ] Update `client/src/pages/Home.tsx` to use the new photo
-- [ ] Update `client/src/pages/About.tsx` to use the new photo
-- [ ] Verify the photo appears correctly on both pages
+- [ ] Search for Dr. Abdullah Al Alawi's public Twitter handle
+- [ ] Update `client/src/components/Layout.tsx` (Footer) with the Twitter link
+- [ ] Update `client/src/pages/Contact.tsx` with the Twitter link
+- [ ] Verify the link works correctly
