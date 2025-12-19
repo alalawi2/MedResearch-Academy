@@ -1,7 +1,9 @@
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User, Share2, Linkedin, Twitter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function Blog() {
   const posts = [
@@ -76,8 +78,51 @@ export default function Blog() {
                     {post.excerpt}
                   </p>
                 </CardContent>
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-0 flex justify-between items-center">
                   <span className="text-sm font-medium text-accent group-hover:underline">Read More &rarr;</span>
+                  <div className="flex gap-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
+                          >
+                            <Twitter className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Share on Twitter</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-700"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`, '_blank');
+                            }}
+                          >
+                            <Linkedin className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Share on LinkedIn</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </CardFooter>
               </Card>
             ))}
