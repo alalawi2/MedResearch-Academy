@@ -72,21 +72,7 @@ export default function Contact() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-border/50 shadow-sm">
-                  <CardContent className="flex items-start gap-4 p-6">
-                    <div className="bg-primary/10 p-3 rounded-full text-primary">
-                      <MapPin className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold mb-1">Office Location</h3>
-                      <p className="text-muted-foreground text-sm">
-                        Department of Medicine<br />
-                        Sultan Qaboos University Hospital<br />
-                        Al Khoudh, Muscat, Oman
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+
 
                 <div className="pt-4">
                   <h3 className="font-bold mb-4">Social Profiles</h3>
