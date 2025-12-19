@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText } from "lucide-react";
 
 export default function Programs() {
   const virtualSeries = {
@@ -56,19 +56,28 @@ export default function Programs() {
 
   const researchFocusAreas = [
     {
-      title: "Metabolic & Electrolyte Disorders",
-      description: "Investigating magnesium homeostasis (dysmagnesemia) and its impact on human health, alongside rare metabolic conditions like lactation ketoacidosis.",
-      tags: ["Magnesium", "Electrolytes", "Metabolism"]
+      title: "Magnesium & Electrolyte Disorders",
+      description: "Investigating the clinical impact of dysmagnesemia (ionized vs. total magnesium) on outcomes in ICU, diabetes, and hospitalized patients.",
+      icon: <Activity className="h-6 w-6" />,
+      tags: ["Ionized Magnesium", "Diabetes Outcomes", "ICU Prognosis"]
     },
     {
-      title: "Liver Disease & AI Prediction",
-      description: "Developing machine learning models to predict mortality in patients with acute decompensation of liver cirrhosis to improve prognostic accuracy.",
-      tags: ["Hepatology", "AI in Medicine", "Prognosis"]
+      title: "AI & Machine Learning in Medicine",
+      description: "Developing predictive models for hospital readmission, delirium prevention, and mortality risk in liver cirrhosis using advanced machine learning algorithms.",
+      icon: <Brain className="h-6 w-6" />,
+      tags: ["Readmission Prediction", "Delirium Models", "Liver Cirrhosis"]
     },
     {
-      title: "Hospital Medicine Quality",
-      description: "Analyzing appropriateness of hospital stays, length of stay, and patient outcomes in general medicine units to drive systemic improvements.",
-      tags: ["Quality Improvement", "Patient Safety", "Health Systems"]
+      title: "Medical Education & Residency Training",
+      description: "Evaluating factors influencing residency program choices, resident burnout, and the impact of programmatic interventions on academic performance.",
+      icon: <GraduationCap className="h-6 w-6" />,
+      tags: ["Resident Burnout", "Program Choice", "Academic Performance"]
+    },
+    {
+      title: "Clinical Trials & Interventions",
+      description: "Leading randomized controlled trials (RCTs) on melatonin for delirium prevention and lung ultrasound-guided diuretic therapy for heart failure.",
+      icon: <FileText className="h-6 w-6" />,
+      tags: ["Melatonin RCT", "Heart Failure", "Ultrasound Therapy"]
     }
   ];
 
@@ -174,22 +183,22 @@ export default function Programs() {
             <h2 className="text-3xl font-serif font-bold text-primary">Current Research Focus</h2>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {researchFocusAreas.map((area, index) => (
-              <Card key={index} className="border-border/50 hover:shadow-md transition-all">
+              <Card key={index} className="border-border/50 hover:shadow-md transition-all flex flex-col">
                 <CardHeader>
                   <div className="mb-4 p-3 bg-primary/10 w-fit rounded-lg text-primary">
-                    <Microscope className="h-6 w-6" />
+                    {area.icon}
                   </div>
-                  <CardTitle className="font-serif text-xl">{area.title}</CardTitle>
+                  <CardTitle className="font-serif text-lg leading-tight">{area.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 flex-grow">
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {area.description}
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-auto">
                     {area.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs font-normal">
+                      <Badge key={tag} variant="outline" className="text-[10px] font-normal px-2 py-0.5">
                         {tag}
                       </Badge>
                     ))}
