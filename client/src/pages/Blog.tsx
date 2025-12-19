@@ -6,24 +6,24 @@ import { Calendar, User } from "lucide-react";
 export default function Blog() {
   const posts = [
     {
-      title: "Understanding Dysmagnesemia in Hospitalized Patients",
-      excerpt: "Magnesium disorders are common yet often overlooked in clinical settings. This article explores the incidence and implications of dysmagnesemia...",
-      date: "October 15, 2024",
-      category: "Clinical Insights",
+      title: "Awarded Best Poster at 6th QIIM Conference",
+      excerpt: "Honored to receive the Best Poster Award at the 6th Qatar International Internal Medicine Conference in Doha for our research on hospital outcomes.",
+      date: "October 2024",
+      category: "Awards",
       image: "/images/blog-placeholder.png"
     },
     {
-      title: "The Future of Internal Medicine Residency in Oman",
-      excerpt: "As we adapt to new educational models, the residency program at OMSB is evolving to meet international standards while addressing local healthcare needs...",
-      date: "September 2, 2024",
-      category: "Medical Education",
+      title: "National Research Award Winner 2023 & 2024",
+      excerpt: "Proud to be recognized with the National Research Award for two consecutive years, highlighting our team's commitment to advancing medical research in Oman.",
+      date: "December 2024",
+      category: "Achievements",
       image: "/images/blog-placeholder.png"
     },
     {
-      title: "AI in Predicting Liver Cirrhosis Outcomes",
-      excerpt: "Machine learning offers promising tools for prognostication. Our recent study demonstrates how AI can improve mortality prediction in acute liver decompensation...",
-      date: "August 10, 2024",
-      category: "Research Update",
+      title: "New Publication: Magnesium and Human Health",
+      excerpt: "Our latest comprehensive review on Magnesium and Human Health has been published, exploring perspectives and future research directions.",
+      date: "August 2024",
+      category: "Research",
       image: "/images/blog-placeholder.png"
     }
   ];

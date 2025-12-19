@@ -1,2 +1,3 @@
-- [ ] Add 'Follow on ResearchGate' button to `client/src/pages/Home.tsx` in the Key Stats section
-- [ ] Verify the button links correctly to the ResearchGate profile
+- [ ] Search for recent activities on Twitter (@alalawi_dr) and cross-reference with CV
+- [ ] Create blog posts in `client/src/pages/Blog.tsx` for key events (e.g., National Research Award, QIIM Conference)
+- [ ] Verify the Blog page displays the new posts correctly
