@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { GraduationCap, Briefcase, Award, Building2, BookOpen, PenTool } from "lucide-react";
+import { GraduationCap, Briefcase, Award, Building2, BookOpen, PenTool, Users } from "lucide-react";
 
 export default function About() {
   return (
@@ -16,57 +16,13 @@ export default function About() {
       </section>
 
       <section className="py-20">
-        <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12">
-          {/* Sidebar / Quick Info */}
-          <div className="lg:col-span-4 space-y-8 order-2 lg:order-1">
-            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
-              <div className="aspect-square rounded-lg bg-muted mb-6 overflow-hidden relative">
-                 <img 
-                   src="/images/dr-alawi.jpg" 
-                   alt="Dr. Abdullah M. Al Alawi" 
-                   className="w-full h-full object-cover"
-                 />
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-bold text-lg">Dr. Abdullah M. Al Alawi</h3>
-                  <p className="text-sm text-muted-foreground">Founder & Lead Mentor</p>
-                </div>
-                <Separator />
-                <div className="space-y-3 text-sm">
-                  <div className="flex items-start gap-3">
-                    <Building2 className="h-4 w-4 text-primary mt-1 shrink-0" />
-                    <span>Sultan Qaboos University Hospital, Oman</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <Briefcase className="h-4 w-4 text-primary mt-1 shrink-0" />
-                    <span>Senior Consultant & Program Director (OMSB)</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
-                    <span>Associate Editor, SQUMJ</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
-                    <span>Associate Editor, World Advances in Renal Medicine</span>
-                  </div>
-                </div>
-                <div className="pt-4 flex flex-wrap gap-2">
-                  <Badge variant="secondary">Research Methodology</Badge>
-                  <Badge variant="secondary">Biostatistics</Badge>
-                  <Badge variant="secondary">Scientific Writing</Badge>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-8 space-y-12 order-1 lg:order-2">
-            
-            {/* Vision */}
-            <div className="space-y-6">
+        <div className="container space-y-20">
+          
+          {/* Vision Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="lg:col-span-12 space-y-6">
               <h2 className="text-3xl font-serif font-bold text-primary">Our Vision</h2>
-              <div className="prose prose-lg text-muted-foreground">
+              <div className="prose prose-lg text-muted-foreground max-w-none">
                 <p>
                   At MedResearch Academy, we believe that research is not just an academic exercise but a vital tool for improving patient care and health outcomes. We envision a future where every healthcare professional in Oman is empowered to contribute to the global body of medical knowledge.
                 </p>
@@ -78,89 +34,138 @@ export default function About() {
                 </p>
               </div>
             </div>
-
-            {/* Founder Bio */}
-            <div className="space-y-6 pt-8 border-t border-border">
-              <div className="flex items-center gap-3">
-                <Briefcase className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Meet the Founder</h2>
-              </div>
-              <div className="prose prose-lg text-muted-foreground">
-                <p>
-                  Dr. Abdullah M. Al Alawi is a distinguished Senior Consultant in General Medicine at Sultan Qaboos University Hospital (SQUH) and the Program Director of the Internal Medicine Residency Program at the Oman Medical Specialty Board (OMSB). With a career spanning over 15 years, he has established himself as a leader in both clinical practice and medical education.
-                </p>
-                <p>
-                  He completed his medical degree (MD) with distinction at Sultan Qaboos University before pursuing advanced training in Australia. He is a Fellow of the Royal Australasian College of Physicians (FRACP) and the American College of Physicians (FACP). His academic journey includes a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia.
-                </p>
-                <p>
-                  Dr. Al Alawi is a prolific researcher with over <strong>80+ peer-reviewed publications</strong> in high-impact journals. He serves as an <strong>Associate Editor for the Sultan Qaboos University Medical Journal (SQUMJ)</strong> and <strong>World Advances in Renal Medicine</strong>. His research focuses on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement.
-                </p>
-                <p>
-                  As a dedicated educator, he has led numerous workshops covering <strong>Research Methodology, Biostatistics, Grant Writing, and Critical Appraisal</strong>, empowering hundreds of trainees to navigate the complex world of medical research.
-                </p>
-              </div>
-            </div>
-
-            {/* Education */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <GraduationCap className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Founder's Qualifications</h2>
-              </div>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="bg-card p-5 rounded-lg border border-border/50">
-                  <h3 className="font-bold">Master of Health Research (M.Sc.)</h3>
-                  <p className="text-sm text-muted-foreground">Charles Darwin University, Australia (Current)</p>
-                </div>
-                <div className="bg-card p-5 rounded-lg border border-border/50">
-                  <h3 className="font-bold">Master of Clinical Epidemiology</h3>
-                  <p className="text-sm text-muted-foreground">University of Newcastle, Australia (2018)</p>
-                  <Badge variant="outline" className="mt-2">With Distinction</Badge>
-                </div>
-                <div className="bg-card p-5 rounded-lg border border-border/50">
-                  <h3 className="font-bold">Fellowship (FRACP)</h3>
-                  <p className="text-sm text-muted-foreground">Royal Australasian College of Physicians (2017)</p>
-                </div>
-                <div className="bg-card p-5 rounded-lg border border-border/50">
-                  <h3 className="font-bold">Doctor of Medicine (MD)</h3>
-                  <p className="text-sm text-muted-foreground">Sultan Qaboos University, Oman (2008)</p>
-                  <Badge variant="outline" className="mt-2">With Distinction</Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* Awards */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Award className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Recognition</h2>
-              </div>
-              <ul className="space-y-4">
-                <li className="flex gap-4 items-start">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0"></div>
-                  <div>
-                    <p className="font-bold">Best Poster Presentation</p>
-                    <p className="text-sm text-muted-foreground">6th QIIM Conference, Doha, Qatar (2025)</p>
-                  </div>
-                </li>
-                <li className="flex gap-4 items-start">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0"></div>
-                  <div>
-                    <p className="font-bold">National Research Award</p>
-                    <p className="text-sm text-muted-foreground">Best Published Research - Health & Community Service (2023 & 2024)</p>
-                  </div>
-                </li>
-                <li className="flex gap-4 items-start">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0"></div>
-                  <div>
-                    <p className="font-bold">Best Trainer Award</p>
-                    <p className="text-sm text-muted-foreground">Internal Medicine Residency Program, OMSB (2022)</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
           </div>
+
+          <Separator />
+
+          {/* Leadership Team Section */}
+          <div className="space-y-12">
+            <div className="flex items-center gap-3">
+              <Users className="h-8 w-8 text-accent" />
+              <h2 className="text-3xl font-serif font-bold">Leadership Team</h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              
+              {/* Founder Profile */}
+              <div className="space-y-8">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+                  <div className="aspect-[4/3] rounded-lg bg-muted mb-6 overflow-hidden relative">
+                     <img 
+                       src="/images/dr-alawi.jpg" 
+                       alt="Dr. Abdullah M. Al Alawi" 
+                       className="w-full h-full object-cover object-top"
+                     />
+                  </div>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-bold text-2xl font-serif">Dr. Abdullah M. Al Alawi</h3>
+                      <p className="text-primary font-medium">Founder & Lead Mentor</p>
+                    </div>
+                    
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <div className="flex items-start gap-3">
+                        <Building2 className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>Senior Consultant, General Medicine (SQUH)</span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Briefcase className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>Program Director, Internal Medicine Residency (OMSB)</span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>Associate Editor, SQUMJ & World Advances in Renal Medicine</span>
+                      </div>
+                    </div>
+
+                    <p className="text-muted-foreground leading-relaxed">
+                      A distinguished clinician and educator with over 15 years of experience. Dr. Al Alawi holds a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia. He is a prolific researcher with <strong>80+ peer-reviewed publications</strong> focusing on magnesium homeostasis and liver cirrhosis.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Research Methodology</Badge>
+                      <Badge variant="secondary">Biostatistics</Badge>
+                      <Badge variant="secondary">Scientific Writing</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Co-Founder Profile */}
+              <div className="space-y-8">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+                  <div className="aspect-[4/3] rounded-lg bg-muted mb-6 overflow-hidden relative">
+                     <img 
+                       src="/images/dr-rawahi.jpg" 
+                       alt="Dr. Mohamed Al Rawahi" 
+                       className="w-full h-full object-cover object-top"
+                     />
+                  </div>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-bold text-2xl font-serif">Dr. Mohamed Al Rawahi</h3>
+                      <p className="text-primary font-medium">Co-Founder & Senior Mentor</p>
+                    </div>
+                    
+                    <div className="space-y-3 text-sm text-muted-foreground">
+                      <div className="flex items-start gap-3">
+                        <Building2 className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>Senior Consultant, Cardiac Electrophysiologist (SQUH & Royal Hospital)</span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Briefcase className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>Associate Program Director, Internal Medicine Residency (OMSB)</span>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Award className="h-4 w-4 text-primary mt-1 shrink-0" />
+                        <span>First American Board Certified Cardiac Electrophysiologist in Oman</span>
+                      </div>
+                    </div>
+
+                    <p className="text-muted-foreground leading-relaxed">
+                      A pioneer in cardiac electrophysiology in Oman, Dr. Al Rawahi holds a Master of Experimental Medicine from McGill University, Canada. He is currently pursuing a PhD in Cardiac Electrophysiology at Maastricht University. He leads groundbreaking research in arrhythmia management and AI applications in cardiology.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary">Cardiac Electrophysiology</Badge>
+                      <Badge variant="secondary">AI in Medicine</Badge>
+                      <Badge variant="secondary">Clinical Trials</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Shared Qualifications Section */}
+          <div className="space-y-8 pt-8 border-t border-border">
+            <div className="flex items-center gap-3">
+              <GraduationCap className="h-6 w-6 text-accent" />
+              <h2 className="text-2xl font-serif font-bold">Our Combined Expertise</h2>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              <div className="bg-card p-6 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+                <h3 className="font-bold text-lg mb-2">Advanced Degrees</h3>
+                <p className="text-sm text-muted-foreground">
+                  Masters in Clinical Epidemiology (Australia) and Experimental Medicine (Canada), combining rigorous statistical training with translational research skills.
+                </p>
+              </div>
+              <div className="bg-card p-6 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+                <h3 className="font-bold text-lg mb-2">Global Certification</h3>
+                <p className="text-sm text-muted-foreground">
+                  Fellowships from Royal Australasian College of Physicians (FRACP), Royal College of Physicians of Canada (FRCPC), and American Boards (ABIM).
+                </p>
+              </div>
+              <div className="bg-card p-6 rounded-lg border border-border/50 hover:border-primary/50 transition-colors">
+                <h3 className="font-bold text-lg mb-2">Research Impact</h3>
+                <p className="text-sm text-muted-foreground">
+                  Over 100+ combined peer-reviewed publications, national research awards, and leadership in major clinical trials and registries in Oman.
+                </p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
     </Layout>
