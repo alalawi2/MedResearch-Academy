@@ -10,7 +10,7 @@ export default function About() {
         <div className="container">
           <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">About MedResearch Academy</h1>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed">
-            Our mission is to build a robust research ecosystem in Oman by equipping healthcare professionals with the skills, mentorship, and resources needed to conduct world-class research.
+            Our mission is to serve the community by building a robust research ecosystem in Oman. As a non-profit initiative, we are dedicated to equipping healthcare professionals with the skills, mentorship, and open-access resources needed to conduct world-class research for the public good.
           </p>
         </div>
       </section>

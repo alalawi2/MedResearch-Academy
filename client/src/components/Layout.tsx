@@ -92,7 +92,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               MedResearch Academy
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Empowering the next generation of medical researchers through world-class education, mentorship, and resources.
+              A non-profit initiative dedicated to advancing medical research in Oman and beyond through open education, mentorship, and community service.
             </p>
           </div>
           
