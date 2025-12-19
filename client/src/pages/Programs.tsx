@@ -3,19 +3,57 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar, Video, PlayCircle } from "lucide-react";
+import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar, Video, PlayCircle, CheckCircle2 } from "lucide-react";
 
 export default function Programs() {
   const programs = [
     {
       title: "Virtual Research Series",
-      description: "A comprehensive virtual training program covering the entire research lifecycle. Designed for flexibility, this series brings expert mentorship directly to your screen.",
+      description: "A comprehensive 16-week virtual training program covering the entire research lifecycle. Designed for flexibility, this series brings expert mentorship directly to your screen.",
       icon: <Video className="h-8 w-8 text-accent" />,
-      duration: "Ongoing",
+      duration: "16 Weeks",
       level: "All Levels",
-      topics: ["Research Methodology", "Biostatistics", "Scientific Writing", "Virtual Mentorship"],
+      topics: ["Research Foundations", "Research Methods", "Data Analysis", "Publication & Advanced Topics"],
       featured: true,
-      hasVideo: true
+      hasVideo: true,
+      curriculum: [
+        {
+          phase: "Phase 1: Research Foundations (Weeks 1-5)",
+          modules: [
+            "Research Question Formulation and PICO Framework",
+            "Literature Search and Critical Appraisal",
+            "Study Designs: Observational vs Interventional",
+            "How to Write a Case Report",
+            "Ethical Approval and IRB Process"
+          ]
+        },
+        {
+          phase: "Phase 2: Research Methods (Weeks 6-10)",
+          modules: [
+            "Sampling, Bias, and Confounding",
+            "Data Collection Tools and Management (REDCap, surveys)",
+            "Qualitative Research for Clinicians",
+            "Introduction to Systematic Reviews and Meta-Analysis",
+            "Introduction to Clinical Trial Design"
+          ]
+        },
+        {
+          phase: "Phase 3: Data Analysis (Weeks 11-13)",
+          modules: [
+            "Introduction to Biostatistics",
+            "Regression Models in Clinical Research",
+            "Data Visualization and Presentation"
+          ]
+        },
+        {
+          phase: "Phase 4: Publication and Advanced Topics (Weeks 14-16)",
+          modules: [
+            "How to Write and Structure a Research Manuscript",
+            "Choosing the Right Journal & Responding to Reviewers",
+            "Research Integrity, AI Tools, and Grant Writing Basics"
+          ]
+        }
+      ]
     },
     {
       title: "Research Methodology Workshop",
@@ -107,6 +145,28 @@ export default function Programs() {
                         <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-sm">
                           Watch Preview
                         </Badge>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Curriculum Display for Featured Program */}
+                  {program.curriculum && (
+                    <div className="space-y-6 mt-6 border-t border-border/50 pt-6">
+                      <h3 className="font-serif font-bold text-lg">Program Curriculum</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {program.curriculum.map((phase, i) => (
+                          <div key={i} className="space-y-3">
+                            <h4 className="font-semibold text-primary text-sm uppercase tracking-wider">{phase.phase}</h4>
+                            <ul className="space-y-2">
+                              {phase.modules.map((module, j) => (
+                                <li key={j} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                  <CheckCircle2 className="h-4 w-4 text-accent shrink-0 mt-0.5" />
+                                  <span>{module}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
