@@ -1,0 +1,6 @@
+- [ ] Create a utility function to fetch data from NCBI E-utilities API
+- [ ] Update `client/src/pages/Publications.tsx` to use the fetching utility
+- [ ] Implement a loading state while fetching publications
+- [ ] Implement error handling for API failures
+- [ ] Style the dynamically fetched publications to match the existing design
+- [ ] Verify the integration works by checking the preview
