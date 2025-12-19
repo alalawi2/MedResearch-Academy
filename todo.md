@@ -1,4 +1,8 @@
-- [ ] Search for old email addresses in the codebase
-- [ ] Update `client/src/pages/Contact.tsx` with `Dr.Abdullahalalawi@gmail.com`
-- [ ] Update `client/src/components/Layout.tsx` (Footer) with `Dr.Abdullahalalawi@gmail.com`
-- [ ] Verify the email link works correctly (mailto:)
+- [ ] Update `index.html` title to "MedResearch Academy"
+- [ ] Update `Layout.tsx` branding to "MedResearch Academy"
+- [ ] Update `Home.tsx` hero section for educational focus
+- [ ] Update `About.tsx` to include Mission and Founder sections
+- [ ] Rename `Research.tsx` to `Programs.tsx` and update content
+- [ ] Rename `Publications.tsx` to `Resources.tsx` and update content
+- [ ] Update `App.tsx` routes to reflect new page names
+- [ ] Update `Layout.tsx` navigation links to match new routes

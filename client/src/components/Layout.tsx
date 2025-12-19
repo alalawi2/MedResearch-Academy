@@ -11,8 +11,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { label: "Home", path: "/" },
     { label: "About", path: "/about" },
-    { label: "Research", path: "/research" },
-    { label: "Publications", path: "/publications" },
+    { label: "Programs", path: "/programs" },
+    { label: "Resources", path: "/resources" },
     { label: "Blog", path: "/blog" },
     { label: "Contact", path: "/contact" },
   ];
@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/">
             <a className="flex items-center space-x-2">
               <span className="font-serif text-xl font-bold text-primary tracking-tight">
-                Dr. Abdullah M. Al Alawi
+                MedResearch Academy
               </span>
             </a>
           </Link>
@@ -89,18 +89,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-4">
             <h3 className="font-serif text-lg font-bold text-primary">
-              Dr. Abdullah M. Al Alawi
+              MedResearch Academy
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Senior Consultant in General Medicine dedicated to advancing patient care through research and education.
+              Empowering the next generation of medical researchers through world-class education, mentorship, and resources.
             </p>
           </div>
           
           <div className="space-y-4">
             <h4 className="font-semibold text-sm uppercase tracking-wider text-foreground/80">Quick Links</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/research"><a className="hover:text-primary">Research Areas</a></Link></li>
-              <li><Link href="/publications"><a className="hover:text-primary">Publications</a></Link></li>
+              <li><Link href="/programs"><a className="hover:text-primary">Our Programs</a></Link></li>
+              <li><Link href="/resources"><a className="hover:text-primary">Resources</a></Link></li>
               <li><Link href="/blog"><a className="hover:text-primary">Latest Insights</a></Link></li>
             </ul>
           </div>
@@ -126,7 +126,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </a>
             </div>
             <p className="text-xs text-muted-foreground mt-4">
-              © {new Date().getFullYear()} Dr. Abdullah M. Al Alawi. All rights reserved.
+              © {new Date().getFullYear()} MedResearch Academy. All rights reserved.
             </p>
           </div>
         </div>

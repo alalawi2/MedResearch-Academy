@@ -8,9 +8,9 @@ export default function About() {
     <Layout>
       <section className="bg-muted/30 py-16 md:py-24 border-b border-border/40">
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">About Dr. Al Alawi</h1>
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">About MedResearch Academy</h1>
           <p className="text-xl text-muted-foreground max-w-3xl leading-relaxed">
-            A dedicated Senior Consultant and Medical Researcher with a focus on General Medicine, Metabolic Disorders, and Medical Education.
+            Our mission is to build a robust research ecosystem in Oman by equipping healthcare professionals with the skills, mentorship, and resources needed to conduct world-class research.
           </p>
         </div>
       </section>
@@ -18,7 +18,7 @@ export default function About() {
       <section className="py-20">
         <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Sidebar / Quick Info */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-8 order-2 lg:order-1">
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
               <div className="aspect-square rounded-lg bg-muted mb-6 overflow-hidden relative">
                  <img 
@@ -30,7 +30,7 @@ export default function About() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-bold text-lg">Dr. Abdullah M. Al Alawi</h3>
-                  <p className="text-sm text-muted-foreground">BSc, MD, MSc, FRACP, FACP</p>
+                  <p className="text-sm text-muted-foreground">Founder & Lead Mentor</p>
                 </div>
                 <Separator />
                 <div className="space-y-3 text-sm">
@@ -44,26 +44,45 @@ export default function About() {
                   </div>
                 </div>
                 <div className="pt-4 flex flex-wrap gap-2">
-                  <Badge variant="secondary">General Medicine</Badge>
-                  <Badge variant="secondary">Metabolic Disorders</Badge>
-                  <Badge variant="secondary">Medical Education</Badge>
+                  <Badge variant="secondary">Research Methodology</Badge>
+                  <Badge variant="secondary">Biostatistics</Badge>
+                  <Badge variant="secondary">Scientific Writing</Badge>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-8 space-y-12">
+          <div className="lg:col-span-8 space-y-12 order-1 lg:order-2">
             
-            {/* Biography */}
+            {/* Vision */}
             <div className="space-y-6">
-              <h2 className="text-3xl font-serif font-bold text-primary">Biography</h2>
+              <h2 className="text-3xl font-serif font-bold text-primary">Our Vision</h2>
+              <div className="prose prose-lg text-muted-foreground">
+                <p>
+                  At MedResearch Academy, we believe that research is not just an academic exercise but a vital tool for improving patient care and health outcomes. We envision a future where every healthcare professional in Oman is empowered to contribute to the global body of medical knowledge.
+                </p>
+                <p>
+                  Our academy provides a structured pathway for research development, offering comprehensive training programs in research methodology, biostatistics, scientific writing, and critical appraisal. We bridge the gap between theoretical knowledge and practical application.
+                </p>
+                <p>
+                  Through mentorship and collaboration, we aim to foster a culture of inquiry and innovation. Whether you are a medical student taking your first steps in research or a seasoned clinician looking to refine your skills, MedResearch Academy is your partner in academic excellence.
+                </p>
+              </div>
+            </div>
+
+            {/* Founder Bio */}
+            <div className="space-y-6 pt-8 border-t border-border">
+              <div className="flex items-center gap-3">
+                <Briefcase className="h-6 w-6 text-accent" />
+                <h2 className="text-2xl font-serif font-bold">Meet the Founder</h2>
+              </div>
               <div className="prose prose-lg text-muted-foreground">
                 <p>
                   Dr. Abdullah M. Al Alawi is a distinguished Senior Consultant in General Medicine at Sultan Qaboos University Hospital (SQUH) and the Program Director of the Internal Medicine Residency Program at the Oman Medical Specialty Board (OMSB). With a career spanning over 15 years, he has established himself as a leader in both clinical practice and medical education.
                 </p>
                 <p>
-                  He completed his medical degree (MD) with distinction at Sultan Qaboos University before pursuing advanced training in Australia. He is a Fellow of the Royal Australasian College of Physicians (FRACP) and the American College of Physicians (FACP). His academic journey includes a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia, and he is currently pursuing a Master of Health Research at Charles Darwin University.
+                  He completed his medical degree (MD) with distinction at Sultan Qaboos University before pursuing advanced training in Australia. He is a Fellow of the Royal Australasian College of Physicians (FRACP) and the American College of Physicians (FACP). His academic journey includes a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia.
                 </p>
                 <p>
                   Dr. Al Alawi is deeply committed to research, with a specific focus on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement. He serves on multiple high-level committees, including the Higher Medical Committee at the Ministry of Health and the Research Committee at the College of Medicine and Health Sciences.
@@ -71,45 +90,11 @@ export default function About() {
               </div>
             </div>
 
-            {/* Experience Timeline */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3">
-                <Briefcase className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Professional Experience</h2>
-              </div>
-              <div className="border-l-2 border-border pl-8 space-y-10 relative">
-                <div className="relative">
-                  <span className="absolute -left-[39px] top-1 h-5 w-5 rounded-full border-4 border-background bg-accent"></span>
-                  <h3 className="font-bold text-lg">Senior Consultant</h3>
-                  <p className="text-primary font-medium">Sultan Qaboos University Hospital, Oman</p>
-                  <p className="text-sm text-muted-foreground">2022 - Present</p>
-                </div>
-                <div className="relative">
-                  <span className="absolute -left-[39px] top-1 h-5 w-5 rounded-full border-4 border-background bg-muted-foreground"></span>
-                  <h3 className="font-bold text-lg">Program Director, Internal Medicine Residency</h3>
-                  <p className="text-primary font-medium">Oman Medical Specialty Board (OMSB)</p>
-                  <p className="text-sm text-muted-foreground">2022 - Present</p>
-                </div>
-                <div className="relative">
-                  <span className="absolute -left-[39px] top-1 h-5 w-5 rounded-full border-4 border-background bg-muted-foreground"></span>
-                  <h3 className="font-bold text-lg">General Medicine Consultant</h3>
-                  <p className="text-primary font-medium">Various Hospitals, Australia</p>
-                  <p className="text-sm text-muted-foreground">2019 - Present</p>
-                </div>
-                <div className="relative">
-                  <span className="absolute -left-[39px] top-1 h-5 w-5 rounded-full border-4 border-background bg-muted-foreground"></span>
-                  <h3 className="font-bold text-lg">General Medicine Consultant</h3>
-                  <p className="text-primary font-medium">Royal Darwin Hospital, Australia</p>
-                  <p className="text-sm text-muted-foreground">2017 - 2018</p>
-                </div>
-              </div>
-            </div>
-
             {/* Education */}
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <GraduationCap className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Education & Qualifications</h2>
+                <h2 className="text-2xl font-serif font-bold">Founder's Qualifications</h2>
               </div>
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="bg-card p-5 rounded-lg border border-border/50">
@@ -137,7 +122,7 @@ export default function About() {
             <div className="space-y-6">
               <div className="flex items-center gap-3">
                 <Award className="h-6 w-6 text-accent" />
-                <h2 className="text-2xl font-serif font-bold">Honors & Awards</h2>
+                <h2 className="text-2xl font-serif font-bold">Recognition</h2>
               </div>
               <ul className="space-y-4">
                 <li className="flex gap-4 items-start">
@@ -159,13 +144,6 @@ export default function About() {
                   <div>
                     <p className="font-bold">Best Trainer Award</p>
                     <p className="text-sm text-muted-foreground">Internal Medicine Residency Program, OMSB (2022)</p>
-                  </div>
-                </li>
-                <li className="flex gap-4 items-start">
-                  <div className="h-2 w-2 rounded-full bg-primary mt-2 shrink-0"></div>
-                  <div>
-                    <p className="font-bold">Best Researcher Award</p>
-                    <p className="text-sm text-muted-foreground">Sultan Qaboos University Hospital (2022)</p>
                   </div>
                 </li>
               </ul>
