@@ -1,4 +1,3 @@
-- [ ] Search for Dr. Abdullah Al Alawi's public Twitter handle
-- [ ] Update `client/src/components/Layout.tsx` (Footer) with the Twitter link
-- [ ] Update `client/src/pages/Contact.tsx` with the Twitter link
-- [ ] Verify the link works correctly
+- [ ] Retrieve latest stats from ResearchGate (Publications, Citations, Conferences)
+- [ ] Update `client/src/pages/Home.tsx` with the new numbers
+- [ ] Verify the Home page displays the correct stats
