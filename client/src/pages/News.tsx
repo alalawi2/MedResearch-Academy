@@ -81,6 +81,30 @@ export default function News() {
       summary: "The University Medical City (UMC) congratulated Dr. Raja Al Farsi from OMSB for winning the National Research Award (Health and Community Service Sector) for her scientific paper on 'Delirium in Patients Admitted to the Internal Medicine Department: Prevalence, Recognition, and Risk Factors'.",
       image: "/images/news-umc-raja-award.jpg",
       link: "https://x.com/UMC_OMAN/status/1731914315454717976"
+    },
+    {
+      id: 9,
+      title: "Dr. Mohamed Al Rawahi Mentors Medical Students in Research",
+      date: "December 2025",
+      summary: "Dr. Mohamed Al Rawahi highlights the impact of student-led research on hypertrophic cardiomyopathy in Oman. This achievement reflects the true role of education: sharing knowledge, building research skills, and inspiring the next generation to aim higher.",
+      image: "/images/news/linkedin_post_1.webp",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7405297235590213632/"
+    },
+    {
+      id: 10,
+      title: "Graduation from EHRA Level 3 Leadership Program",
+      date: "September 2025",
+      summary: "Dr. Mohamed Al Rawahi graduated from the EHRA Level 3 – Leadership and Innovation in Cardiac Arrhythmia Management (DAS-CAM) program at Maastricht University. This prestigious program strengthens leadership skills and broadens perspectives on innovation in electrophysiology.",
+      image: "/images/news/linkedin_post_2.webp",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7403831930363961344/"
+    },
+    {
+      id: 11,
+      title: "Participation in Gulf Arrhythmia Forum",
+      date: "September 2023",
+      summary: "Dr. Mohamed Al Rawahi participated in the Gulf Arrhythmia Forum held in Salalah. The event brought together outstanding individuals in the field of electrophysiology to discuss ventricular arrhythmias and other cardiac conditions.",
+      image: "/images/news/linkedin_post_3.webp",
+      link: "https://www.linkedin.com/feed/update/urn:li:activity:7104288117586558976/"
     }
   ];
 
