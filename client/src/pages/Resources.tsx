@@ -105,9 +105,12 @@ export default function Resources() {
               </div>
             )}
             
-            <div className="text-center pt-4">
+            <div className="flex flex-col md:flex-row gap-4 justify-center pt-4">
                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al+Alawi+AM" target="_blank" rel="noopener noreferrer">
-                <Button variant="outline">View All Publications on PubMed</Button>
+                <Button variant="outline">Dr. Al Alawi's Publications</Button>
+               </a>
+               <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al-Rawahi+M&sort=date" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline">Dr. Al Rawahi's Publications</Button>
                </a>
             </div>
           </div>

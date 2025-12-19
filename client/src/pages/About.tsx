@@ -1,7 +1,8 @@
 import Layout from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { GraduationCap, Briefcase, Award, Building2, BookOpen, PenTool, Users } from "lucide-react";
+import { GraduationCap, Briefcase, Award, Building2, BookOpen, PenTool, Users, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function About() {
   return (
@@ -49,7 +50,7 @@ export default function About() {
               
               {/* Founder Profile */}
               <div className="space-y-8">
-                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full flex flex-col">
                   <div className="aspect-[3/4] rounded-lg bg-secondary/30 border border-border/50 mb-6 overflow-hidden relative">
                      <img 
                        src="/images/dr-alawi.jpg" 
@@ -57,7 +58,7 @@ export default function About() {
                        className="w-full h-full object-cover object-center"
                      />
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-grow">
                     <div>
                       <h3 className="font-bold text-2xl font-serif">Dr. Abdullah M. Al Alawi</h3>
                       <p className="text-primary font-medium">Founder & Lead Mentor</p>
@@ -88,12 +89,20 @@ export default function About() {
                       <Badge variant="secondary">Scientific Writing</Badge>
                     </div>
                   </div>
+                  
+                  <div className="pt-6 mt-auto">
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al+Alawi+AM" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className="w-full gap-2">
+                        View Publications <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  </div>
                 </div>
               </div>
 
               {/* Co-Founder Profile */}
               <div className="space-y-8">
-                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full flex flex-col">
                   <div className="aspect-[3/4] rounded-lg bg-secondary/30 border border-border/50 mb-6 overflow-hidden relative">
                      <img 
                        src="/images/dr-rawahi.jpg" 
@@ -101,7 +110,7 @@ export default function About() {
                        className="w-full h-full object-cover object-center"
                      />
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-grow">
                     <div>
                       <h3 className="font-bold text-2xl font-serif">Dr. Mohamed Al Rawahi</h3>
                       <p className="text-primary font-medium">Co-Founder & Senior Mentor</p>
@@ -131,6 +140,14 @@ export default function About() {
                       <Badge variant="secondary">AI in Medicine</Badge>
                       <Badge variant="secondary">Clinical Trials</Badge>
                     </div>
+                  </div>
+
+                  <div className="pt-6 mt-auto">
+                    <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al-Rawahi+M&sort=date" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm" className="w-full gap-2">
+                        View Publications <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
                   </div>
                 </div>
               </div>
