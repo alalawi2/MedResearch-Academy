@@ -15,6 +15,14 @@ export default function News() {
       link: "https://www.omandaily.om/عمان-اليوم/na/الملتقى-السنوي-للاختصاصات-الطبية-يستعرض-المسارات-المهنية-والبحثية"
     },
     {
+      id: 4,
+      title: "UMC Congratulates Dr. Aisha Al Huraizi and Team on National Research Award",
+      date: "December 2024",
+      summary: "The University Medical City (UMC) congratulated Dr. Aisha Al Huraizi and her research team, led by Dr. Abdullah Al Alawi and Dr. Khalfan Al Zaidi, for winning the National Research Award in the Young Researchers category at the Annual Forum for Researchers.",
+      image: "/images/news-umc-award.jpg",
+      link: "https://x.com/UMC_OMAN/status/1866122329937350820"
+    },
+    {
       id: 2,
       title: "First Annual Scientific Research Day at Khoula Hospital",
       date: "November 2025",
@@ -23,12 +31,36 @@ export default function News() {
       link: "https://x.com/omantvnews/status/1988914446681465147"
     },
     {
+      id: 5,
+      title: "Internal Medicine Program Organizes 'Scientific Research Day'",
+      date: "October 2025",
+      summary: "The Internal Medicine Program at OMSB organized a 'Scientific Research Day' bringing together residents and faculty members to present and discuss their scientific research, fostering a collaborative environment for academic growth.",
+      image: "/images/news-omsb-internal-med-oct.jpg",
+      link: "https://x.com/OMSB_OM/status/1981972765268967804"
+    },
+    {
       id: 3,
       title: "Winners of the 'Forsatak' Program Announced",
       date: "October 2025",
       summary: "The Innovation & Technology Transfer Center at Sultan Qaboos University congratulated the winners of the 'Forsatak' program. This achievement highlights the continued excellence and success of participants in fostering innovation and entrepreneurship within the university community.",
       image: "/images/news-squ.jpg",
       link: "https://x.com/ITTC_SQU/status/1983150366012387536"
+    },
+    {
+      id: 7,
+      title: "Internal Medicine Program Research Day Presentations",
+      date: "October 2024",
+      summary: "Another successful 'Scientific Research Day' was held by the Internal Medicine Program, where residents and faculty gathered to showcase their latest research findings and discuss advancements in the field.",
+      image: "/images/news-omsb-research-day-oct5.jpg",
+      link: "https://x.com/OMSB_OM/status/1842467280526962892"
+    },
+    {
+      id: 6,
+      title: "Internal Medicine Program Annual Gathering",
+      date: "May 2025",
+      summary: "The Internal Medicine Program held its annual gathering with residents, trainers, and faculty to discuss training challenges and exchange ideas on leveraging diverse skills to overcome them.",
+      image: "/images/news-omsb-internal-med-may.jpg",
+      link: "https://x.com/OMSB_OM/status/1924140013576433825"
     }
   ];
 
