@@ -1,2 +1,4 @@
-- [ ] Fix nested anchor tag error in `client/src/pages/Research.tsx`
-- [ ] Verify the fix by checking the Research page
+- [ ] Copy user photo to `client/public/images/dr-alawi.jpg`
+- [ ] Update `client/src/pages/Home.tsx` to use the new photo
+- [ ] Update `client/src/pages/About.tsx` to use the new photo
+- [ ] Verify the photo appears correctly on both pages

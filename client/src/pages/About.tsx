@@ -22,10 +22,11 @@ export default function About() {
           <div className="lg:col-span-4 space-y-8">
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
               <div className="aspect-square rounded-lg bg-muted mb-6 overflow-hidden relative">
-                 {/* Placeholder for headshot */}
-                 <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/30">
-                   <span className="text-6xl font-serif">AA</span>
-                 </div>
+                 <img 
+                   src="/images/dr-alawi.jpg" 
+                   alt="Dr. Abdullah M. Al Alawi" 
+                   className="w-full h-full object-cover"
+                 />
               </div>
               <div className="space-y-4">
                 <div>

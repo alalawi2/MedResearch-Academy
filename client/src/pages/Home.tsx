@@ -43,14 +43,17 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Profile Image Placeholder / Graphic */}
+          {/* Profile Image */}
           <div className="relative hidden md:block animate-in slide-in-from-right duration-700 delay-200">
             <div className="relative w-80 h-80 mx-auto">
               <div className="absolute inset-0 rounded-full border-2 border-accent/30 animate-[spin_10s_linear_infinite]" />
               <div className="absolute inset-4 rounded-full border-2 border-primary-foreground/20 animate-[spin_15s_linear_infinite_reverse]" />
-              <div className="absolute inset-0 rounded-full overflow-hidden bg-muted flex items-center justify-center shadow-2xl">
-                 {/* Ideally this would be the doctor's photo, using a placeholder icon for now if photo not available */}
-                 <Users className="h-32 w-32 text-primary/40" />
+              <div className="absolute inset-6 rounded-full overflow-hidden bg-muted flex items-center justify-center shadow-2xl border-4 border-background">
+                 <img 
+                   src="/images/dr-alawi.jpg" 
+                   alt="Dr. Abdullah M. Al Alawi" 
+                   className="w-full h-full object-cover"
+                 />
               </div>
             </div>
           </div>
