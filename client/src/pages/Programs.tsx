@@ -4,13 +4,38 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, Download, Bell, Mail } from "lucide-react";
-import { useState } from "react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, Download, Bell, Mail, Timer } from "lucide-react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export default function Programs() {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    // Target date: Dec 31, 2025 20:00:00 Muscat Time (GMT+4)
+    const targetDate = new Date("2025-12-31T20:00:00+04:00").getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance < 0) {
+        clearInterval(interval);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,10 +166,23 @@ export default function Programs() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Session Info Card */}
                 <div className="lg:col-span-2 bg-background border border-border rounded-xl p-6 shadow-sm">
-                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-primary" />
-                    Upcoming Session Details
-                  </h3>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Upcoming Session Details
+                    </h3>
+                    <div className="hidden md:flex items-center gap-2 bg-accent/10 px-3 py-1 rounded-full text-accent-foreground text-sm font-medium">
+                      <Timer className="h-4 w-4" />
+                      <span>Starts in: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</span>
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Timer (visible only on small screens) */}
+                  <div className="md:hidden mb-6 bg-accent/10 px-4 py-2 rounded-lg text-accent-foreground text-center font-medium">
+                    <p className="text-xs uppercase tracking-wider opacity-70 mb-1">Next Session Starts In</p>
+                    <p className="text-xl font-mono">{timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground font-medium">Next Meeting</p>
