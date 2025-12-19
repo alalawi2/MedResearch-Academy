@@ -93,7 +93,7 @@ export default function About() {
                   He completed his medical degree (MD) with distinction at Sultan Qaboos University before pursuing advanced training in Australia. He is a Fellow of the Royal Australasian College of Physicians (FRACP) and the American College of Physicians (FACP). His academic journey includes a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia.
                 </p>
                 <p>
-                  Dr. Al Alawi is a prolific researcher with over <strong>25 peer-reviewed publications</strong> in high-impact journals. He serves as an <strong>Associate Editor for the Sultan Qaboos University Medical Journal (SQUMJ)</strong> and <strong>World Advances in Renal Medicine</strong>. His research focuses on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement.
+                  Dr. Al Alawi is a prolific researcher with over <strong>80+ peer-reviewed publications</strong> in high-impact journals. He serves as an <strong>Associate Editor for the Sultan Qaboos University Medical Journal (SQUMJ)</strong> and <strong>World Advances in Renal Medicine</strong>. His research focuses on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement.
                 </p>
                 <p>
                   As a dedicated educator, he has led numerous workshops covering <strong>Research Methodology, Biostatistics, Grant Writing, and Critical Appraisal</strong>, empowering hundreds of trainees to navigate the complex world of medical research.
