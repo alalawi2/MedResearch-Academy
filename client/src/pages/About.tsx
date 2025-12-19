@@ -1,7 +1,7 @@
 import Layout from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { GraduationCap, Briefcase, Award, Building2 } from "lucide-react";
+import { GraduationCap, Briefcase, Award, Building2, BookOpen, PenTool } from "lucide-react";
 
 export default function About() {
   return (
@@ -41,6 +41,14 @@ export default function About() {
                   <div className="flex items-start gap-3">
                     <Briefcase className="h-4 w-4 text-primary mt-1 shrink-0" />
                     <span>Senior Consultant & Program Director (OMSB)</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
+                    <span>Associate Editor, SQUMJ</span>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
+                    <span>Associate Editor, World Advances in Renal Medicine</span>
                   </div>
                 </div>
                 <div className="pt-4 flex flex-wrap gap-2">
@@ -85,7 +93,10 @@ export default function About() {
                   He completed his medical degree (MD) with distinction at Sultan Qaboos University before pursuing advanced training in Australia. He is a Fellow of the Royal Australasian College of Physicians (FRACP) and the American College of Physicians (FACP). His academic journey includes a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia.
                 </p>
                 <p>
-                  Dr. Al Alawi is deeply committed to research, with a specific focus on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement. He serves on multiple high-level committees, including the Higher Medical Committee at the Ministry of Health and the Research Committee at the College of Medicine and Health Sciences.
+                  Dr. Al Alawi is a prolific researcher with over <strong>25 peer-reviewed publications</strong> in high-impact journals. He serves as an <strong>Associate Editor for the Sultan Qaboos University Medical Journal (SQUMJ)</strong> and <strong>World Advances in Renal Medicine</strong>. His research focuses on magnesium homeostasis, liver cirrhosis mortality prediction, and hospital quality improvement.
+                </p>
+                <p>
+                  As a dedicated educator, he has led numerous workshops covering <strong>Research Methodology, Biostatistics, Grant Writing, and Critical Appraisal</strong>, empowering hundreds of trainees to navigate the complex world of medical research.
                 </p>
               </div>
             </div>
