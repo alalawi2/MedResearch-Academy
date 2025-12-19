@@ -2,12 +2,14 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Calendar, ArrowRight, ExternalLink, Search } from "lucide-react";
+import { Calendar, ArrowRight, ExternalLink, Search, Loader2 } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function News() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(6); // Initial number of items to show
+  const ITEMS_PER_PAGE = 3; // Number of items to add when clicking "Load More"
 
   const newsItems = [
     {
@@ -68,10 +70,28 @@ export default function News() {
     }
   ];
 
-  const filteredNews = newsItems.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.summary.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter items based on search query
+  const filteredNews = useMemo(() => {
+    return newsItems.filter(item => 
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.summary.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  // Get the items to display based on visible count
+  const displayedNews = filteredNews.slice(0, visibleCount);
+  
+  // Check if there are more items to load
+  const hasMore = visibleCount < filteredNews.length;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + ITEMS_PER_PAGE);
+  };
+
+  // Reset visible count when search query changes
+  useMemo(() => {
+    setVisibleCount(6);
+  }, [searchQuery]);
 
   return (
     <Layout>
@@ -101,49 +121,64 @@ export default function News() {
 
       <section className="py-12 pb-24">
         <div className="container">
-          {filteredNews.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredNews.map((item) => (
-                <Card key={item.id} className="flex flex-col h-full border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                  <div className="h-48 w-full relative overflow-hidden bg-muted">
-                     <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                      onError={(e) => {
-                        // Fallback if image fails to load
-                        e.currentTarget.style.display = 'none';
-                        e.currentTarget.parentElement?.classList.add('flex', 'items-center', 'justify-center');
-                        const icon = document.createElement('div');
-                        icon.innerHTML = '<svg class="h-12 w-12 opacity-20" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>';
-                        e.currentTarget.parentElement?.appendChild(icon);
-                      }}
-                     />
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-center text-sm text-muted-foreground mb-2">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {item.date}
+          {displayedNews.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {displayedNews.map((item) => (
+                  <Card key={item.id} className="flex flex-col h-full border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <div className="h-48 w-full relative overflow-hidden bg-muted">
+                       <img 
+                        src={item.image} 
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement?.classList.add('flex', 'items-center', 'justify-center');
+                          const icon = document.createElement('div');
+                          icon.innerHTML = '<svg class="h-12 w-12 opacity-20" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>';
+                          e.currentTarget.parentElement?.appendChild(icon);
+                        }}
+                       />
                     </div>
-                    <CardTitle className="font-serif text-xl leading-tight">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {item.summary}
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="w-full">
-                      <Button variant="outline" className="w-full gap-2">
-                        Read More <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </a>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
+                    <CardHeader>
+                      <div className="flex items-center text-sm text-muted-foreground mb-2">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        {item.date}
+                      </div>
+                      <CardTitle className="font-serif text-xl leading-tight">
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <p className="text-muted-foreground text-sm leading-relaxed">
+                        {item.summary}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
+                      <a href={item.link} target="_blank" rel="noopener noreferrer" className="w-full">
+                        <Button variant="outline" className="w-full gap-2">
+                          Read More <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </a>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+              
+              {hasMore && (
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={handleLoadMore} 
+                    size="lg" 
+                    variant="secondary"
+                    className="min-w-[200px]"
+                  >
+                    Load More News
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground text-lg">No news items found matching your search.</p>
