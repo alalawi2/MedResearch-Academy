@@ -14,6 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: "Programs", path: "/programs" },
     { label: "Resources", path: "/resources" },
     { label: "Blog", path: "/blog" },
+    { label: "News", path: "/news" },
     { label: "Contact", path: "/contact" },
   ];
 
@@ -101,6 +102,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/programs"><a className="hover:text-primary">Our Programs</a></Link></li>
               <li><Link href="/resources"><a className="hover:text-primary">Resources</a></Link></li>
+              <li><Link href="/news"><a className="hover:text-primary">News</a></Link></li>
               <li><Link href="/blog"><a className="hover:text-primary">Latest Insights</a></Link></li>
             </ul>
           </div>

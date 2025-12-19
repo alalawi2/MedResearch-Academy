@@ -10,6 +10,7 @@ import Programs from "@/pages/Programs";
 import Resources from "@/pages/Resources";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
+import News from "./pages/News";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/programs" component={Programs} />
       <Route path="/resources" component={Resources} />
       <Route path="/blog" component={Blog} />
+      <Route path="/news" component={News} />
       <Route path="/contact" component={Contact} />
       <Route component={NotFound} />
     </Switch>
