@@ -50,11 +50,11 @@ export default function About() {
               {/* Founder Profile */}
               <div className="space-y-8">
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
-                  <div className="aspect-[4/3] rounded-lg bg-muted mb-6 overflow-hidden relative">
+                  <div className="aspect-[3/4] rounded-lg bg-secondary/30 border border-border/50 mb-6 overflow-hidden relative">
                      <img 
                        src="/images/dr-alawi.jpg" 
                        alt="Dr. Abdullah M. Al Alawi" 
-                       className="w-full h-full object-cover object-top"
+                       className="w-full h-full object-cover object-center"
                      />
                   </div>
                   <div className="space-y-6">
@@ -94,11 +94,11 @@ export default function About() {
               {/* Co-Founder Profile */}
               <div className="space-y-8">
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full">
-                  <div className="aspect-[4/3] rounded-lg bg-muted mb-6 overflow-hidden relative">
+                  <div className="aspect-[3/4] rounded-lg bg-secondary/30 border border-border/50 mb-6 overflow-hidden relative">
                      <img 
                        src="/images/dr-rawahi.jpg" 
                        alt="Dr. Mohamed Al Rawahi" 
-                       className="w-full h-full object-cover object-top"
+                       className="w-full h-full object-cover object-center"
                      />
                   </div>
                   <div className="space-y-6">
