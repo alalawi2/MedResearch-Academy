@@ -89,6 +89,15 @@ export default function Home() {
               <p className="text-muted-foreground">Years Experience</p>
             </div>
           </div>
+          
+          <div className="mt-12 text-center">
+            <a href="https://www.researchgate.net/profile/Abdullah-Al-Alawi-4" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" className="gap-2 border-primary/20 hover:border-primary hover:bg-primary/5">
+                <BookOpen className="h-4 w-4" />
+                Follow on ResearchGate
+              </Button>
+            </a>
+          </div>
         </div>
       </section>
 

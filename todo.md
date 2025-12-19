@@ -1,3 +1,2 @@
-- [ ] Retrieve latest stats from ResearchGate (Publications, Citations, Conferences)
-- [ ] Update `client/src/pages/Home.tsx` with the new numbers
-- [ ] Verify the Home page displays the correct stats
+- [ ] Add 'Follow on ResearchGate' button to `client/src/pages/Home.tsx` in the Key Stats section
+- [ ] Verify the button links correctly to the ResearchGate profile
