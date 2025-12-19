@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar, Video } from "lucide-react";
+import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar, Video, PlayCircle } from "lucide-react";
 
 export default function Programs() {
   const programs = [
@@ -14,7 +14,8 @@ export default function Programs() {
       duration: "Ongoing",
       level: "All Levels",
       topics: ["Research Methodology", "Biostatistics", "Scientific Writing", "Virtual Mentorship"],
-      featured: true
+      featured: true,
+      hasVideo: true
     },
     {
       title: "Research Methodology Workshop",
@@ -88,6 +89,28 @@ export default function Programs() {
                   <p className="text-muted-foreground leading-relaxed">
                     {program.description}
                   </p>
+                  
+                  {/* Video Preview Section for Featured Program */}
+                  {program.hasVideo && (
+                    <div className="my-6 relative aspect-video bg-black/5 rounded-xl overflow-hidden border border-border/50 group cursor-pointer">
+                      <div className="absolute inset-0 flex items-center justify-center z-10">
+                        <div className="h-16 w-16 rounded-full bg-accent/90 text-accent-foreground flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <PlayCircle className="h-8 w-8 ml-1" />
+                        </div>
+                      </div>
+                      <img 
+                        src="/images/research-lab-abstract.png" 
+                        alt="Virtual Series Preview" 
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
+                      />
+                      <div className="absolute bottom-4 left-4 z-10">
+                        <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-sm">
+                          Watch Preview
+                        </Badge>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex flex-wrap gap-2">
                     {program.topics.map((topic) => (
                       <Badge key={topic} variant="secondary" className="bg-secondary text-secondary-foreground hover:bg-secondary/80">
