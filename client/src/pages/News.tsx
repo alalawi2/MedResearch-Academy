@@ -73,16 +73,39 @@ export default function News() {
       summary: "The Internal Medicine Program held its annual gathering with residents, trainers, and faculty to discuss training challenges and exchange ideas on leveraging diverse skills to overcome them.",
       image: "/images/news-omsb-internal-med-may.jpg",
       link: "https://x.com/OMSB_OM/status/1924140013576433825"
+    },
+    {
+      id: 8,
+      title: "Dr. Raja Al Farsi Wins National Research Award",
+      date: "December 2023",
+      summary: "The University Medical City (UMC) congratulated Dr. Raja Al Farsi from OMSB for winning the National Research Award (Health and Community Service Sector) for her scientific paper on 'Delirium in Patients Admitted to the Internal Medicine Department: Prevalence, Recognition, and Risk Factors'.",
+      image: "/images/news-umc-raja-award.jpg",
+      link: "https://x.com/UMC_OMAN/status/1731914315454717976"
     }
   ];
 
+  // Helper function to parse date strings like "February 2025" into Date objects
+  const parseDate = (dateString: string) => {
+    const parts = dateString.split(' ');
+    if (parts.length !== 2) return new Date(); // Fallback
+    const monthName = parts[0];
+    const year = parseInt(parts[1]);
+    const monthIndex = new Date(`${monthName} 1, 2000`).getMonth();
+    return new Date(year, monthIndex);
+  };
+
+  // Sort news items by date (newest first)
+  const sortedNewsItems = [...newsItems].sort((a, b) => {
+    return parseDate(b.date).getTime() - parseDate(a.date).getTime();
+  });
+
   // Filter items based on search query
   const filteredNews = useMemo(() => {
-    return newsItems.filter(item => 
+    return sortedNewsItems.filter(item => 
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.summary.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery]);
+  }, [searchQuery, sortedNewsItems]);
 
   // Get the items to display based on visible count
   const displayedNews = filteredNews.slice(0, visibleCount);
