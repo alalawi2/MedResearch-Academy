@@ -142,10 +142,15 @@ export default function About() {
                     </div>
                   </div>
 
-                  <div className="pt-6 mt-auto">
+                  <div className="pt-6 mt-auto flex flex-col gap-2">
                     <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al-Rawahi+M&sort=date" target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="sm" className="w-full gap-2">
                         View Publications <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    </a>
+                    <a href="https://www.linkedin.com/in/mohamed-al-rawahi-40b76130/" target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm" className="w-full gap-2 text-muted-foreground hover:text-primary">
+                        LinkedIn Profile <ExternalLink className="h-4 w-4" />
                       </Button>
                     </a>
                   </div>

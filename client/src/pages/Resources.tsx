@@ -112,6 +112,9 @@ export default function Resources() {
                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al-Rawahi+M&sort=date" target="_blank" rel="noopener noreferrer">
                 <Button variant="outline">Dr. Al Rawahi's Publications</Button>
                </a>
+               <a href="https://www.linkedin.com/in/mohamed-al-rawahi-40b76130/" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline">Dr. Al Rawahi's LinkedIn</Button>
+               </a>
             </div>
           </div>
 
