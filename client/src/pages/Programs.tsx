@@ -3,10 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar } from "lucide-react";
+import { BookOpen, BarChart, PenTool, Stethoscope, Clock, Calendar, Video } from "lucide-react";
 
 export default function Programs() {
   const programs = [
+    {
+      title: "Virtual Research Series",
+      description: "A comprehensive virtual training program covering the entire research lifecycle. Designed for flexibility, this series brings expert mentorship directly to your screen.",
+      icon: <Video className="h-8 w-8 text-accent" />,
+      duration: "Ongoing",
+      level: "All Levels",
+      topics: ["Research Methodology", "Biostatistics", "Scientific Writing", "Virtual Mentorship"],
+      featured: true
+    },
     {
       title: "Research Methodology Workshop",
       description: "A comprehensive introduction to the fundamentals of medical research. Learn how to formulate research questions, design studies, and navigate the ethical approval process.",
@@ -59,13 +68,16 @@ export default function Programs() {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {programs.map((program, index) => (
-              <Card key={index} className="border-border/50 shadow-sm hover:shadow-md transition-all flex flex-col">
+              <Card key={index} className={`border-border/50 shadow-sm hover:shadow-md transition-all flex flex-col ${program.featured ? 'border-accent/50 bg-accent/5 md:col-span-2' : ''}`}>
                 <CardHeader className="flex flex-row items-start gap-4 space-y-0">
                   <div className="p-3 bg-primary/5 rounded-lg shrink-0">
                     {program.icon}
                   </div>
                   <div>
-                    <CardTitle className="font-serif text-2xl text-primary mb-2">{program.title}</CardTitle>
+                    <div className="flex items-center gap-3 mb-2">
+                      <CardTitle className="font-serif text-2xl text-primary">{program.title}</CardTitle>
+                      {program.featured && <Badge className="bg-accent text-accent-foreground hover:bg-accent/90">Featured Program</Badge>}
+                    </div>
                     <div className="flex gap-3 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {program.duration}</span>
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {program.level}</span>
@@ -86,7 +98,9 @@ export default function Programs() {
                 </CardContent>
                 <CardFooter className="pt-0">
                   <Link href="/contact">
-                    <Button className="w-full">Register Interest</Button>
+                    <Button className={`w-full ${program.featured ? 'bg-accent text-accent-foreground hover:bg-accent/90' : ''}`}>
+                      {program.featured ? 'Join Virtual Series' : 'Register Interest'}
+                    </Button>
                   </Link>
                 </CardFooter>
               </Card>
