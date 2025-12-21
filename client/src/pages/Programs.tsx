@@ -183,6 +183,74 @@ export default function Programs() {
                     <p className="text-xl font-mono">{timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</p>
                   </div>
 
+                  {/* Week 1 Flyer Integration */}
+                  <div className="mb-8 rounded-lg overflow-hidden border border-border/50 shadow-sm">
+                    <img 
+                      src="/images/week1-flyer.png" 
+                      alt="Week 1: From Clinical Observation to Research Question - Dr. Abdullah Al Alawi" 
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground font-medium">Topic</p>
+                      <p className="font-bold text-lg leading-tight">From Clinical Observation to Research Question</p>
+                      <p className="text-sm text-muted-foreground">Week 1 Session</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground font-medium">Speaker</p>
+                      <p className="font-bold text-lg">Dr. Abdullah Al Alawi</p>
+                      <p className="text-sm text-muted-foreground">Senior Consultant</p>
+                    </div>
+                    <div className="space-y-3">
+                      <a 
+                        href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                          <Video className="mr-2 h-4 w-4" />
+                          Join Zoom Meeting
+                        </Button>
+                      </a>
+                      <div className="text-xs text-muted-foreground text-center">
+                        <span className="font-mono bg-muted px-1 py-0.5 rounded">ID: 864 7984 0360</span>
+                        <span className="mx-2">•</span>
+                        <span className="font-mono bg-muted px-1 py-0.5 rounded">Pass: 857478</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 pt-4 border-t border-border/50 flex justify-center">
+                    <a 
+                      href="https://us02web.zoom.us/meeting/tZIpcOCgqjspHNRZs5jxGPeRoi0ke9tUY3ew/ics?icsToken=DJnHm43htTyGrgiZvgAALAAAAPh0_NHeVAmTv7jYnKeCJE0iivclYlPmE516nmsAzCZf7YIyWKt9jlQQBef-Mh7febWMUHOdkQ432uf72TAwMDAwMQ&meetingMasterEventId=91mxO4X8SRSwFEzvqa7KtA"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-accent hover:underline font-medium"
+                    >
+                      <Download className="h-4 w-4" />
+                      Add Series to Calendar (.ics)
+                    </a>
+                  </div>
+                </div>
+                <div className="lg:col-span-2 bg-background border border-border rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Upcoming Session Details
+                    </h3>
+                    <div className="hidden md:flex items-center gap-2 bg-accent/10 px-3 py-1 rounded-full text-accent-foreground text-sm font-medium">
+                      <Timer className="h-4 w-4" />
+                      <span>Starts in: {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</span>
+                    </div>
+                  </div>
+                  
+                  {/* Mobile Timer (visible only on small screens) */}
+                  <div className="md:hidden mb-6 bg-accent/10 px-4 py-2 rounded-lg text-accent-foreground text-center font-medium">
+                    <p className="text-xs uppercase tracking-wider opacity-70 mb-1">Next Session Starts In</p>
+                    <p className="text-xl font-mono">{timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s</p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-1">
                       <p className="text-sm text-muted-foreground font-medium">Next Meeting</p>
