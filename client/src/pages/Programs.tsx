@@ -153,7 +153,7 @@ export default function Programs() {
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
                   <CardTitle className="font-serif text-3xl text-primary">{virtualSeries.title}</CardTitle>
-                  <Badge className="bg-accent text-accent-foreground hover:bg-accent/90 text-sm px-3 py-1">Open for Registration</Badge>
+                  <Badge className="bg-green-600 text-white hover:bg-green-700 text-sm px-3 py-1">No Registration Required</Badge>
                 </div>
                 <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
                   {virtualSeries.description}
@@ -204,6 +204,9 @@ export default function Programs() {
                       <p className="text-sm text-muted-foreground">Senior Consultant</p>
                     </div>
                     <div className="space-y-3">
+                      <p className="text-xs text-center text-muted-foreground mb-1">
+                        Click the link below to join directly
+                      </p>
                       <a 
                         href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" 
                         target="_blank" 
@@ -263,6 +266,9 @@ export default function Programs() {
                       <p className="text-sm text-muted-foreground">Muscat Time</p>
                     </div>
                     <div className="space-y-3">
+                      <p className="text-xs text-center text-muted-foreground mb-1">
+                        Click the link below to join directly
+                      </p>
                       <a 
                         href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" 
                         target="_blank" 
