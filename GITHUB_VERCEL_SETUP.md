@@ -1,74 +1,81 @@
 # GitHub + Vercel Setup Guide
 **Project:** MedResearch Academy Website
-**Date:** December 20, 2025
+**Domain:** `medresearch-academy.om`
+**Date:** December 21, 2025
 
-This guide will help you set up the **"Automated Update"** workflow. Once completed, updating your website will be as simple as asking Manus to make a change and then clicking one button.
+This guide explains how to host your website for free using GitHub and Vercel, and how to connect your newly approved domain **medresearch-academy.om**.
 
 ---
 
 ## Phase 1: Create Your "Code Vault" (GitHub)
 
-GitHub is where your website's source code will live permanently. It is private, secure, and industry-standard.
+GitHub is where your website's source code will live permanently.
 
 1.  **Sign Up:** Go to [github.com](https://github.com) and create a free account.
 2.  **Create Repository:**
-    *   Click the **+** icon in the top right corner and select **"New repository"**.
-    *   **Repository name:** `med-research-academy` (or similar).
-    *   **Visibility:** Choose **Public** (free and easy) or **Private** (if you want to hide the code).
+    *   Click the **+** icon (top right) -> **"New repository"**.
+    *   **Repository name:** `medresearch-academy`
+    *   **Visibility:** **Public** (easiest) or **Private**.
     *   Click **"Create repository"**.
-3.  **Get the Link:** You will see a URL like `https://github.com/your-username/med-research-academy.git`. **Copy this link.**
+3.  **Copy URL:** Copy the HTTPS link (e.g., `https://github.com/your-username/medresearch-academy.git`).
 
 ---
 
 ## Phase 2: Upload Your Code
 
-Now we need to move the code from Manus to your new GitHub repository.
-
-1.  **Download Code:** In the Manus interface, go to the **"Code"** tab (file icon) and click **"Download All"**. This gives you a ZIP file.
-2.  **Unzip:** Extract the folder on your computer.
-3.  **Upload to GitHub:**
-    *   Go back to your GitHub repository page.
+1.  **Download:** In Manus, go to the **"Code"** tab -> **"Download All"**.
+2.  **Unzip:** Extract the ZIP file on your computer.
+3.  **Upload:**
+    *   Go to your new GitHub repository page.
     *   Click **"uploading an existing file"**.
-    *   Drag and drop all the files from the unzipped folder into the browser window.
-    *   **Important:** Wait for them to upload, then scroll down and click the green **"Commit changes"** button.
-
-*(Note: For a more professional setup, you can use the "Git" command line tool, but the drag-and-drop method works fine for the initial upload.)*
+    *   Drag & drop all files from the unzipped folder.
+    *   Click the green **"Commit changes"** button.
 
 ---
 
 ## Phase 3: Connect the "Engine" (Vercel)
 
-Vercel will take the code from GitHub and turn it into a live website.
+Vercel will build and host your site automatically.
 
-1.  **Sign Up:** Go to [vercel.com](https://vercel.com) and sign up using **"Continue with GitHub"**.
-2.  **Import Project:**
-    *   On your Vercel dashboard, click **"Add New..."** -> **"Project"**.
-    *   You will see your `med-research-academy` repository listed. Click **"Import"**.
-3.  **Configure:**
-    *   **Framework Preset:** It should auto-detect "Vite" or "React". If not, select **Vite**.
-    *   **Root Directory:** Ensure it points to the main folder (where `package.json` is).
+1.  **Sign Up:** Go to [vercel.com](https://vercel.com) -> **"Continue with GitHub"**.
+2.  **Import:**
+    *   Click **"Add New..."** -> **"Project"**.
+    *   Find `medresearch-academy` and click **"Import"**.
+3.  **Deploy:**
+    *   **Framework Preset:** Select **Vite**.
+    *   **Root Directory:** `./` (default).
     *   Click **"Deploy"**.
 
-**Success!** Vercel will build your site and give you a live URL (e.g., `med-research-academy.vercel.app`).
+---
+
+## Phase 4: Connect Your Domain (`medresearch-academy.om`)
+
+This is the final step to make your site live at your professional address.
+
+1.  **Vercel Settings:**
+    *   Go to your project dashboard on Vercel.
+    *   Click **Settings** -> **Domains**.
+    *   Enter `medresearch-academy.om` and click **Add**.
+    *   (Recommended) Also add `www.medresearch-academy.om` and click **Add**.
+
+2.  **DNS Configuration (At your Domain Registrar):**
+    Log in to your domain provider (e.g., Oman Data Park, Ooredoo) and find the **DNS Management** section. Add the following records:
+
+    | Type | Name (Host) | Value (Points to) | TTL |
+    | :--- | :--- | :--- | :--- |
+    | **A** | `@` (or blank) | `76.76.21.21` | 3600 |
+    | **CNAME** | `www` | `cname.vercel-dns.com` | 3600 |
+
+    *Note: If you have existing A or CNAME records for `@` or `www`, delete them first.*
+
+3.  **Verification:**
+    Vercel will automatically check these records. It may take **1 to 24 hours** for the `.om` domain to propagate globally, but often it works within minutes.
 
 ---
 
-## Phase 4: Connect Your Domain
+## How to Update Content
 
-Finally, make your professional domain (`med-research.om`) point to this new Vercel site.
-
-1.  In Vercel, go to **Settings** -> **Domains**.
-2.  Type your domain (e.g., `www.med-research.om`) and click **Add**.
-3.  Vercel will show you some **DNS Records** (usually an A Record and a CNAME).
-4.  Log in to where you bought your domain (e.g., Oman Data Park) and add these records.
-
----
-
-## How to Update in the Future
-
-This is the magic part. When you want to change something:
-
-1.  **Ask Manus:** "Add a new news item about the 2026 Conference."
-2.  **Manus Updates:** I change the code here.
-3.  **You Sync:** You download the updated files and upload them to GitHub (or use Git commands).
-4.  **Automatic Magic:** Vercel sees the change on GitHub and **automatically updates your live website** within seconds. No servers to restart, no files to FTP.
+1.  **Ask Manus:** Request changes (e.g., "Add a new blog post").
+2.  **Download:** Get the updated files from Manus.
+3.  **Upload:** Drag and drop the new files to your GitHub repository.
+4.  **Auto-Deploy:** Vercel detects the change and updates the live site instantly.
