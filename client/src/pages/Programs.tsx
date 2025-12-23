@@ -337,19 +337,20 @@ export default function Programs() {
               </div>
 
               {/* Video Preview */}
-              <div className="relative aspect-video md:aspect-[21/9] bg-black/5 rounded-xl overflow-hidden border border-border/50 group cursor-pointer">
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="h-20 w-20 rounded-full bg-accent/90 text-accent-foreground flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <PlayCircle className="h-10 w-10 ml-1" />
-                  </div>
-                </div>
-                <img 
-                  src="/images/research-lab-abstract.png" 
-                  alt="Virtual Series Preview" 
-                  className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity"
-                />
-                <div className="absolute bottom-6 left-6 z-10">
-                  <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-sm px-3 py-1 text-sm">
+              <div className="relative aspect-video md:aspect-[21/9] bg-black rounded-xl overflow-hidden border border-border/50 shadow-lg">
+                <video 
+                  className="w-full h-full object-cover"
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline
+                  controls
+                >
+                  <source src="/images/program_preview.mp4" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <div className="absolute bottom-6 left-6 z-10 pointer-events-none">
+                  <Badge variant="secondary" className="bg-black/50 text-white border-none backdrop-blur-sm px-3 py-1 text-sm animate-pulse">
                     Watch Program Preview
                   </Badge>
                 </div>
