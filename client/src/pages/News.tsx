@@ -19,6 +19,14 @@ export default function News() {
 
   const newsItems = [
     {
+      id: 12,
+      title: "Launch of Medad: Revolutionizing Clinical Documentation with AI",
+      date: "December 2025",
+      summary: "We are proud to announce the launch of Medad, an AI-powered ambient clinical documentation system designed specifically for Omani healthcare. This innovative solution automates medical transcription in Arabic and English, restoring the doctor-patient connection.",
+      image: "/images/medad_hero.webp",
+      link: "https://www.medad.om/"
+    },
+    {
       id: 1,
       title: "Annual Forum for Medical Specialties Highlights Career and Research Pathways",
       date: "February 2025",
