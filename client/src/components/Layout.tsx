@@ -25,9 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center space-x-2">
-              <span className="font-serif text-xl font-bold text-primary tracking-tight">
-                MedResearch Academy
-              </span>
+              <img src="/images/logo_final.png" alt="MedResearch Academy" className="h-12 w-auto" />
             </a>
           </Link>
 
