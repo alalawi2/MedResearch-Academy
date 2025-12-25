@@ -27,7 +27,7 @@ export default function WallOfImpact() {
         {/* Stories Grid */}
         <section className="py-16">
           <div className="container">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Story 1: Dr. Fatma Al Shamsi */}
               <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
                 <div className="aspect-[4/3] overflow-hidden">
@@ -62,66 +62,6 @@ export default function WallOfImpact() {
                       alt="Scan for Original Post" 
                       className="w-16 h-16 rounded-lg border border-border"
                     />
-                  </div>
-                </div>
-              </div>
-
-              {/* Story 2: Student Success */}
-              <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img 
-                    src="/images/student_success_placeholder.png" 
-                    alt="Student Research Success" 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <div className="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded mb-2">
-                      Student Achievement
-                    </div>
-                    <h3 className="font-serif font-bold text-xl">Ali Al Balushi</h3>
-                  </div>
-                </div>
-                <div className="p-6 space-y-4">
-                  <h4 className="font-bold text-lg text-primary line-clamp-2">
-                    From Classroom to International Conference
-                  </h4>
-                  <p className="text-muted-foreground text-sm line-clamp-4">
-                    Starting with zero research experience, Ali joined our mentorship program to investigate prevalence of genetic markers in local populations. His dedication led to a poster presentation at an international genetics conference in Dubai.
-                  </p>
-                  <div className="pt-2 flex items-center text-sm font-medium text-primary">
-                    <Award className="h-4 w-4 mr-2 text-blue-500" />
-                    Best Student Poster Award
-                  </div>
-                </div>
-              </div>
-
-              {/* Story 3: Patient Impact */}
-              <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img 
-                    src="/images/omani_patient_dementia_v2.png" 
-                    alt="Patient Impact Story" 
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                  <div className="absolute bottom-4 left-4 right-4 text-white">
-                    <div className="inline-block px-2 py-1 bg-green-600 text-white text-xs font-bold rounded mb-2">
-                      Community Impact
-                    </div>
-                    <h3 className="font-serif font-bold text-xl">Patient-Centered Care</h3>
-                  </div>
-                </div>
-                <div className="p-6 space-y-4">
-                  <h4 className="font-bold text-lg text-primary line-clamp-2">
-                    Research That Touches Lives
-                  </h4>
-                  <p className="text-muted-foreground text-sm line-clamp-4">
-                    "It's not just about data; it's about dignity." Our research on feeding tube outcomes has directly improved the quality of life for elderly dementia patients, ensuring care decisions are compassionate, evidence-based, and culturally respectful.
-                  </p>
-                  <div className="pt-2 flex items-center text-sm font-medium text-primary">
-                    <Award className="h-4 w-4 mr-2 text-green-600" />
-                    Improved Patient Outcomes
                   </div>
                 </div>
               </div>
