@@ -33,11 +33,11 @@ export default function WallOfImpact() {
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                   
                   {/* Image Side */}
-                  <div className="relative h-full min-h-[500px] lg:min-h-full bg-black/5">
+                  <div className="relative h-full min-h-[500px] lg:min-h-full bg-white flex items-center justify-center p-4">
                     <img 
                       src="/images/dr_fatma_award_full.jpeg"
                       alt="Dr. Fatma Al Shamsi Award Ceremony" 
-                      className="absolute inset-0 w-full h-full object-contain bg-black/5"
+                      className="w-full h-auto max-h-full object-contain"
                     />
                   </div>
 
