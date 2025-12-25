@@ -125,6 +125,116 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Success Stories Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary mb-4">
+              <Award className="mr-2 h-4 w-4" />
+              Wall of Impact
+            </div>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-primary mb-4">
+              Real Stories, Real Impact
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              See how our community members are transforming healthcare through research and innovation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Story 1: Dr. Fatma Al Shamsi */}
+            <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <img 
+                  src="/images/dr_fatma_placeholder.png" 
+                  alt="Dr. Fatma Al Shamsi" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="inline-block px-2 py-1 bg-accent text-accent-foreground text-xs font-bold rounded mb-2">
+                    Resident Success
+                  </div>
+                  <h3 className="font-serif font-bold text-xl">Dr. Fatma Al Shamsi</h3>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <h4 className="font-bold text-lg text-primary line-clamp-2">
+                  Transforming Clinical Practice: The Power of Local Evidence
+                </h4>
+                <p className="text-muted-foreground text-sm line-clamp-4">
+                  Dr. Fatma turned a residency debate into a groundbreaking study on feeding tube use in advanced dementia. Her findings confirmed international guidelines were applicable in Oman, winning 1st Place at the Royal Hospital Research Day and influencing hospital-wide protocols.
+                </p>
+                <div className="pt-2 flex items-center text-sm font-medium text-primary">
+                  <Award className="h-4 w-4 mr-2 text-accent" />
+                  ACP 2025 Presenter
+                </div>
+              </div>
+            </div>
+
+            {/* Story 2: Student Success */}
+            <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <img 
+                  src="/images/student_success_placeholder.png" 
+                  alt="Student Research Success" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="inline-block px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded mb-2">
+                    Student Achievement
+                  </div>
+                  <h3 className="font-serif font-bold text-xl">Ali Al Balushi</h3>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <h4 className="font-bold text-lg text-primary line-clamp-2">
+                  From Classroom to International Conference
+                </h4>
+                <p className="text-muted-foreground text-sm line-clamp-4">
+                  Starting with zero research experience, Ali joined our mentorship program to investigate prevalence of genetic markers in local populations. His dedication led to a poster presentation at an international genetics conference in Dubai.
+                </p>
+                <div className="pt-2 flex items-center text-sm font-medium text-primary">
+                  <Award className="h-4 w-4 mr-2 text-blue-500" />
+                  Best Student Poster Award
+                </div>
+              </div>
+            </div>
+
+            {/* Story 3: Team Success */}
+            <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <img 
+                  src="/images/team_success_placeholder.png" 
+                  alt="Research Team Success" 
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <div className="inline-block px-2 py-1 bg-green-600 text-white text-xs font-bold rounded mb-2">
+                    Collaborative Grant
+                  </div>
+                  <h3 className="font-serif font-bold text-xl">The Cardio-Metabolic Team</h3>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <h4 className="font-bold text-lg text-primary line-clamp-2">
+                  Securing Funding for National Health Impact
+                </h4>
+                <p className="text-muted-foreground text-sm line-clamp-4">
+                  A multi-disciplinary team of residents and consultants collaborated on a proposal addressing metabolic syndrome in Oman. Their robust methodology and clear public health relevance secured a significant TRC research grant.
+                </p>
+                <div className="pt-2 flex items-center text-sm font-medium text-primary">
+                  <Award className="h-4 w-4 mr-2 text-green-600" />
+                  TRC Grant Recipients
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Brief Bio / Mission */}
       <section className="py-20 md:py-32">
         <div className="container grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
