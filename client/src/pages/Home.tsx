@@ -146,7 +146,7 @@ export default function Home() {
             <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
-                  src="/images/dr_fatma_placeholder.png" 
+                  src="/images/dr_fatma_real.jpeg"
                   alt="Dr. Fatma Al Shamsi" 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -210,32 +210,32 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Story 3: Team Success */}
+{/* Story 3: Patient Impact */}
             <div className="group relative bg-card rounded-2xl overflow-hidden border border-border shadow-sm hover:shadow-md transition-all duration-300">
               <div className="aspect-[4/3] overflow-hidden">
                 <img 
-                  src="/images/team_success_placeholder.png" 
-                  alt="Research Team Success" 
+                  src="/images/omani_patient_dementia_v2.png" 
+                  alt="Patient Impact Story" 
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                 <div className="absolute bottom-4 left-4 right-4 text-white">
                   <div className="inline-block px-2 py-1 bg-green-600 text-white text-xs font-bold rounded mb-2">
-                    Collaborative Grant
+                    Community Impact
                   </div>
-                  <h3 className="font-serif font-bold text-xl">The Cardio-Metabolic Team</h3>
+                  <h3 className="font-serif font-bold text-xl">Patient-Centered Care</h3>
                 </div>
               </div>
               <div className="p-6 space-y-4">
                 <h4 className="font-bold text-lg text-primary line-clamp-2">
-                  Securing Funding for National Health Impact
+                  Research That Touches Lives
                 </h4>
                 <p className="text-muted-foreground text-sm line-clamp-4">
-                  A multi-disciplinary team of residents and consultants collaborated on a proposal addressing metabolic syndrome in Oman. Their robust methodology and clear public health relevance secured a significant TRC research grant.
+                  "It's not just about data; it's about dignity." Our research on feeding tube outcomes has directly improved the quality of life for elderly dementia patients, ensuring care decisions are compassionate, evidence-based, and culturally respectful.
                 </p>
                 <div className="pt-2 flex items-center text-sm font-medium text-primary">
                   <Award className="h-4 w-4 mr-2 text-green-600" />
-                  TRC Grant Recipients
+                  Improved Patient Outcomes
                 </div>
               </div>
             </div>
