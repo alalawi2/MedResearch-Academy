@@ -169,6 +169,14 @@ export default function Home() {
                   <Award className="h-4 w-4 mr-2 text-accent" />
                   ACP 2025 Presenter
                 </div>
+                <div className="pt-4 border-t border-border/50 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Scan to view original post</span>
+                  <img 
+                    src="/images/dr_fatma_qr.png" 
+                    alt="Scan for Original Post" 
+                    className="w-16 h-16 rounded-lg border border-border"
+                  />
+                </div>
               </div>
             </div>
 
