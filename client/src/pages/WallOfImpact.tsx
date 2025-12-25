@@ -33,19 +33,12 @@ export default function WallOfImpact() {
                 <div className="grid grid-cols-1 lg:grid-cols-2">
                   
                   {/* Image Side */}
-                  <div className="relative h-full min-h-[400px] lg:min-h-full">
+                  <div className="relative h-full min-h-[500px] lg:min-h-full bg-black/5">
                     <img 
-                      src="/images/dr_fatma_real.jpeg"
-                      alt="Dr. Fatma Al Shamsi" 
-                      className="absolute inset-0 w-full h-full object-cover object-top"
+                      src="/images/dr_fatma_award_full.jpeg"
+                      alt="Dr. Fatma Al Shamsi Award Ceremony" 
+                      className="absolute inset-0 w-full h-full object-contain bg-black/5"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:to-black/50" />
-                    <div className="absolute bottom-6 left-6 right-6 text-white lg:hidden">
-                      <div className="inline-block px-3 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-full mb-3">
-                        Resident Success Story
-                      </div>
-                      <h2 className="font-serif font-bold text-3xl">Dr. Fatma Al Shamsi</h2>
-                    </div>
                   </div>
 
                   {/* Content Side */}
@@ -85,7 +78,7 @@ export default function WallOfImpact() {
                           The Impact
                         </h3>
                         <p className="text-muted-foreground leading-relaxed">
-                          Her findings were clear: feeding tubes offered no meaningful benefit, confirming that international guidelines hold true in Oman. This work won <strong>1st Place at the Royal Hospital Research Day</strong> and took her to the global stage at <strong>ACP 2025 in New Orleans</strong>.
+                          Her findings were clear: feeding tubes offered no meaningful benefit, confirming that international guidelines hold true in Oman. On <strong>November 14, 2024</strong>, this work won <strong>1st Place at the Royal Hospital Internal Medicine Research Day</strong>. It also took her to the global stage at <strong>ACP 2025 in New Orleans</strong>.
                         </p>
                         <div className="mt-4 p-4 bg-muted/50 rounded-xl border border-border/50 italic text-muted-foreground relative">
                           <Quote className="absolute top-4 left-4 h-6 w-6 text-accent/20" />
