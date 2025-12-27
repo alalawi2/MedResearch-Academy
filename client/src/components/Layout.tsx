@@ -14,6 +14,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { label: "Programs", path: "/programs" },
     { label: "Resources", path: "/resources" },
     { label: "Wall of Impact", path: "/wall-of-impact" },
+    { label: "Active Research", path: "/active-research" },
     { label: "News", path: "/news" },
     { label: "Contact", path: "/contact" },
   ];

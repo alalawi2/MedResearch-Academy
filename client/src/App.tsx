@@ -8,7 +8,8 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Programs from "@/pages/Programs";
 import Resources from "@/pages/Resources";
-import WallOfImpact from "@/pages/WallOfImpact";
+import WallOfImpact from './pages/WallOfImpact';
+import ActiveResearch from './pages/ActiveResearch';
 
 import Contact from "./pages/Contact";
 import News from "./pages/News";
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/programs" component={Programs} />
       <Route path="/resources" component={Resources} />
       <Route path="/wall-of-impact" component={WallOfImpact} />
+          <Route path="/active-research" component={ActiveResearch} />
       
       <Route path="/news" component={News} />
       <Route path="/contact" component={Contact} />
