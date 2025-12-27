@@ -64,7 +64,7 @@ const ActiveResearch = () => {
                     <img 
                       src={project.image} 
                       alt="Omani doctor with family" 
-                      className="w-full h-full object-cover object-center"
+                      className="w-full h-full object-contain object-center bg-muted"
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 text-sm font-medium animate-pulse">
