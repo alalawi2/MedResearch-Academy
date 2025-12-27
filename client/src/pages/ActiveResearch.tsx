@@ -16,7 +16,7 @@ const ActiveResearch = () => {
         "Dr. Abdullah Mohammed Khamis Al Alawi (PI)",
         "Dr. Fatma Abdullah Issa Al Mahruqi (Co-investigator)"
       ],
-      summary: "This qualitative study explores the experiences of parenthood during residency training in Oman. We aim to understand the cultural and institutional barriers residents face regarding maternity/paternity leave and postpartum support. Your insights will help shape better policies to support resident parents across Oman.",
+      summary: "This qualitative study explores the experiences of parenthood during residency training in Oman. We aim to understand the cultural and institutional barriers residents face regarding maternity/paternity leave and postpartum support. Your insights will help to create a better understanding of the challenges faced by resident parents across Oman.",
       targetAudience: [
         "Residency Program Directors",
         "Female Residents (who became pregnant during training)",
