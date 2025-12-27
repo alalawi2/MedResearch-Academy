@@ -60,7 +60,7 @@ export default function About() {
                   </div>
                   <div className="space-y-6 flex-grow">
                     <div>
-                      <h3 className="font-bold text-2xl font-serif">Dr. Abdullah M. Al Alawi</h3>
+                      <h3 className="font-bold text-2xl font-serif">Dr. Abdullah M. Al Alawi <span className="text-lg font-normal text-muted-foreground ml-2">BSc, MD, MSc, FRACP, FACP</span></h3>
                       <p className="text-primary font-medium">Founder & Lead Mentor</p>
                     </div>
                     
@@ -80,10 +80,10 @@ export default function About() {
                     </div>
 
                     <p className="text-muted-foreground leading-relaxed">
-                      Dr. Abdullah Al Alawi is a distinguished Senior Consultant Physician at Sultan Qaboos University Hospital (SQUH) and a transformative leader in medical education. As the <strong>Program Director of the Internal Medicine Residency Program</strong> at the Oman Medical Specialty Board (OMSB), he plays a pivotal role in shaping the next generation of physicians in Oman.
+                      Dr. Abdullah Al Alawi is a Senior Consultant Physician at Sultan Qaboos University Hospital (SQUH) and a transformative leader in medical education. As the <strong>Program Director of the Internal Medicine Residency Program</strong> at the Oman Medical Specialty Board (OMSB), he plays a pivotal role in shaping the next generation of physicians in Oman.
                     </p>
                     <p className="text-muted-foreground leading-relaxed">
-                      With a dual fellowship from the <strong>Royal Australasian College of Physicians (FRACP)</strong> and the <strong>American College of Physicians (FACP)</strong>, Dr. Al Alawi brings a global perspective to clinical practice and research. He holds a Master of Clinical Epidemiology with Distinction from the University of Newcastle, Australia, underpinning his expertise in research methodology and evidence-based medicine.
+                      With a fellowship from the <strong>Royal Australasian College of Physicians (FRACP)</strong>, Dr. Al Alawi brings a global perspective to clinical practice and research. He holds a Master of Clinical Epidemiology with Distinction from the University of Newcastle, Australia, underpinning his expertise in research methodology and evidence-based medicine.
                     </p>
                     <p className="text-muted-foreground leading-relaxed">
                       A prolific researcher, Dr. Al Alawi has been honored with the <strong>National Research Award</strong> for two consecutive years (2023 & 2024) and the Best Researcher Award from SQUH. Through <strong>MedResearch Academy</strong>, he is dedicated to empowering healthcare professionals with the skills to conduct high-impact research that addresses local health challenges and advances global medical knowledge.
