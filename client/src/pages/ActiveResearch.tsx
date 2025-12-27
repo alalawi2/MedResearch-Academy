@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Mail, Users, Calendar, FileText } from 'lucide-react';
+import { ArrowRight, Mail, Users, Calendar, FileText, ShieldCheck } from 'lucide-react';
 
 const ActiveResearch = () => {
   const activeProjects = [
@@ -23,7 +23,13 @@ const ActiveResearch = () => {
         "Male Residents (who became fathers during training)"
       ],
       contactEmail: "r2261@resident.omsb.org",
-      registrationLink: "https://docs.google.com/forms/d/e/1FAIpQLSfJ8_example_link/viewform" // Placeholder link
+      ethicalApproval: {
+        refNo: "SQU-EC/228/2025",
+        mrecNo: "MREC #3679",
+        date: "September 4, 2025",
+        committee: "Medical Research Ethics Committee (MREC), College of Medicine and Health Sciences, Sultan Qaboos University"
+      },
+      googleFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfJ8_b2s2kSLitotv26pf8/viewform" // Kept for reference
     }
   ];
 
@@ -95,6 +101,24 @@ const ActiveResearch = () => {
                           </div>
                         </div>
 
+                        <div className="flex items-start gap-3 text-muted-foreground">
+                          <ShieldCheck className="w-5 h-5 mt-1 text-primary shrink-0" />
+                          <div>
+                            <p className="font-semibold text-foreground">Ethical Approval:</p>
+                            <p className="text-sm text-muted-foreground">
+                              Approved by {project.ethicalApproval.committee}
+                            </p>
+                            <div className="flex gap-3 mt-1">
+                              <Badge variant="outline" className="text-xs font-normal">
+                                Ref: {project.ethicalApproval.refNo}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs font-normal">
+                                {project.ethicalApproval.mrecNo}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="bg-primary/5 p-4 rounded-lg border border-primary/10">
                           <p className="font-semibold text-primary mb-2 text-sm uppercase tracking-wide">Who Can Participate?</p>
                           <ul className="space-y-1">
@@ -111,13 +135,6 @@ const ActiveResearch = () => {
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-border/50">
                       <Button 
-                        size="lg" 
-                        className="w-full sm:w-auto gap-2 shadow-lg shadow-primary/20"
-                        onClick={() => window.open(project.registrationLink, '_blank')}
-                      >
-                        Register Now <ArrowRight className="w-4 h-4" />
-                      </Button>
-                      <Button 
                         variant="outline" 
                         size="lg" 
                         className="w-full sm:w-auto gap-2"
@@ -125,6 +142,32 @@ const ActiveResearch = () => {
                       >
                         <Mail className="w-4 h-4" /> Contact for Inquiry
                       </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Embedded Google Form Section */}
+                <div className="border-t border-border/50 bg-muted/30 p-6 md:p-8">
+                  <div className="max-w-3xl mx-auto">
+                    <div className="text-center mb-6">
+                      <h3 className="text-xl font-bold text-foreground mb-2">Register to Participate</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Please fill out the form below to express your interest. Your information will be kept confidential.
+                      </p>
+                    </div>
+                    <div className="relative w-full overflow-hidden rounded-lg border border-border bg-background shadow-sm" style={{ height: '800px' }}>
+                      <iframe 
+                        src="https://docs.google.com/forms/d/e/1FAIpQLSfJ8_b2s2kSLitotv26pf8/viewform?embedded=true" 
+                        width="100%" 
+                        height="100%" 
+                        frameBorder="0" 
+                        marginHeight={0} 
+                        marginWidth={0}
+                        title="Research Registration Form"
+                        className="absolute inset-0 w-full h-full"
+                      >
+                        Loading…
+                      </iframe>
                     </div>
                   </div>
                 </div>
