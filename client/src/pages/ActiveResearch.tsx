@@ -24,7 +24,7 @@ const ActiveResearch = () => {
           "To evaluate male residents' experiences of parenthood, paternity leave, and work-life balance.",
           "To identify gaps in current institutional policies and support systems."
         ],
-        methodology: "This is a qualitative study utilizing in-depth, semi-structured interviews. We will conduct interviews with three key groups: residency program directors, female residents who became pregnant during training, and male residents who became fathers during training. The study will be conducted across multiple accredited residency programs under the Oman Medical Specialty Board (OMSB).",
+        methodology: "This is a qualitative study utilizing in-depth, semi-structured interviews. We will conduct interviews with three key groups: residency program directors, female residents who became pregnant during training, and male residents who became fathers during training. The study will be conducted across multiple accredited residency programs.",
         significance: "Parenthood during residency presents significant challenges, including difficulties balancing work and family life, financial concerns, and pressure to delay childbearing. By identifying these barriers, this study seeks to provide insights that can inform policy enhancements and foster a more supportive training environment for resident parents in Oman."
       },
       targetAudience: [
