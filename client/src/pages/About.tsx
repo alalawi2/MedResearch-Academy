@@ -119,7 +119,7 @@ export default function About() {
                   </div>
                   <div className="space-y-6 flex-grow">
                     <div>
-                      <h3 className="font-bold text-2xl font-serif">Dr. Mohamed Al Rawahi</h3>
+                      <h3 className="font-bold text-2xl font-serif">Dr. Mohamed Al Rawahi <span className="text-lg font-normal text-muted-foreground ml-2">MD, MSc, FRCPC, ABIM</span></h3>
                       <p className="text-primary font-medium">Co-Founder & Senior Mentor</p>
                     </div>
                     
@@ -139,7 +139,11 @@ export default function About() {
                     </div>
 
                     <p className="text-muted-foreground leading-relaxed">
-                      A pioneer in cardiac electrophysiology in Oman, Dr. Al Rawahi holds a Master of Experimental Medicine from McGill University, Canada. He is currently pursuing a PhD in Cardiac Electrophysiology at Maastricht University. He leads groundbreaking research in arrhythmia management and AI applications in cardiology.
+                      A pioneer in cardiac electrophysiology in Oman, Dr. Al Rawahi is the **first American Board-certified Cardiac Electrophysiologist** in the country. He serves as a Senior Consultant at both Sultan Qaboos University Hospital and the National Heart Center (Royal Hospital).
+
+Dr. Al Rawahi holds a **Master of Experimental Medicine** from McGill University, Canada, and is currently pursuing a **PhD in Cardiac Electrophysiology** at Maastricht University, Netherlands. He is also the Chairman of the Examination Committee for the Cardiology Fellowship Program at OMSB.
+
+His research leadership includes multiple awards, such as the **Eric N. Prystowsky Fellows Clinical Research Award** (Heart Rhythm Society, Boston) and the **Best Researcher Award** from SQUH. He actively mentors residents and fellows, fostering a new generation of clinician-scientists in Oman.
                     </p>
 
                     <div className="flex flex-wrap gap-2">
