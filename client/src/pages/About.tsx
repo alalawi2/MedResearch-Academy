@@ -75,18 +75,25 @@ export default function About() {
                       </div>
                       <div className="flex items-start gap-3">
                         <PenTool className="h-4 w-4 text-primary mt-1 shrink-0" />
-                        <span>Associate Editor, SQUMJ & World Advances in Renal Medicine</span>
+                        <span>Associate Editor, SQUMJ</span>
                       </div>
                     </div>
 
                     <p className="text-muted-foreground leading-relaxed">
-                      A distinguished clinician and educator with over 15 years of experience. Dr. Al Alawi holds a Master of Clinical Epidemiology with distinction from the University of Newcastle, Australia. He is a prolific researcher with <strong>80+ peer-reviewed publications</strong> focusing on magnesium homeostasis and liver cirrhosis.
+                      Dr. Abdullah Al Alawi is a distinguished Senior Consultant Physician at Sultan Qaboos University Hospital (SQUH) and a transformative leader in medical education. As the <strong>Program Director of the Internal Medicine Residency Program</strong> at the Oman Medical Specialty Board (OMSB), he plays a pivotal role in shaping the next generation of physicians in Oman.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      With a dual fellowship from the <strong>Royal Australasian College of Physicians (FRACP)</strong> and the <strong>American College of Physicians (FACP)</strong>, Dr. Al Alawi brings a global perspective to clinical practice and research. He holds a Master of Clinical Epidemiology with Distinction from the University of Newcastle, Australia, underpinning his expertise in research methodology and evidence-based medicine.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed">
+                      A prolific researcher, Dr. Al Alawi has been honored with the <strong>National Research Award</strong> for two consecutive years (2023 & 2024) and the Best Researcher Award from SQUH. Through <strong>MedResearch Academy</strong>, he is dedicated to empowering healthcare professionals with the skills to conduct high-impact research that addresses local health challenges and advances global medical knowledge.
                     </p>
 
                     <div className="flex flex-wrap gap-2">
                       <Badge variant="secondary">Research Methodology</Badge>
                       <Badge variant="secondary">Biostatistics</Badge>
                       <Badge variant="secondary">Scientific Writing</Badge>
+                      <Badge variant="secondary">Clinical Epidemiology</Badge>
                     </div>
                   </div>
                   
