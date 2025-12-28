@@ -1,4 +1,5 @@
 import React from 'react';
+import Layout from "@/components/Layout";
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,8 +45,9 @@ const ActiveResearch = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16">
-      <div className="container mx-auto px-4">
+    <Layout>
+      <div className="min-h-screen bg-background pt-24 pb-16">
+        <div className="container mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -218,8 +220,9 @@ const ActiveResearch = () => {
             </motion.div>
           ))}
         </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
