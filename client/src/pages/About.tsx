@@ -80,7 +80,7 @@ export default function About() {
                     </div>
 
                     <p className="text-muted-foreground leading-relaxed">
-                      Dr. Abdullah Al Alawi is a Senior Consultant Physician at Sultan Qaboos University Hospital (SQUH) and a transformative leader in medical education. As the <strong>Program Director of the Internal Medicine Residency Program</strong> at the Oman Medical Specialty Board (OMSB), he plays a pivotal role in shaping the next generation of physicians in Oman.
+                      Dr. Abdullah Al Alawi is a Senior Consultant Physician at Sultan Qaboos University Hospital (SQUH). As the <strong>Program Director of the Internal Medicine Residency Program</strong> at the Oman Medical Specialty Board (OMSB), he plays a pivotal role in shaping the next generation of physicians in Oman.
                     </p>
                     <p className="text-muted-foreground leading-relaxed">
                       With a fellowship from the <strong>Royal Australasian College of Physicians (FRACP)</strong>, Dr. Al Alawi brings a global perspective to clinical practice and research. He holds a Master of Clinical Epidemiology with Distinction from the University of Newcastle, Australia, underpinning his expertise in research methodology and evidence-based medicine.
@@ -139,11 +139,11 @@ export default function About() {
                     </div>
 
                     <p className="text-muted-foreground leading-relaxed">
-                      A pioneer in cardiac electrophysiology in Oman, Dr. Al Rawahi is the **first American Board-certified Cardiac Electrophysiologist** in the country. He serves as a Senior Consultant at both Sultan Qaboos University Hospital and the National Heart Center (Royal Hospital).
+                      A pioneer in cardiac electrophysiology in Oman, Dr. Al Rawahi is the <strong>first American Board-certified Cardiac Electrophysiologist</strong> in the country. He serves as a Senior Consultant at both Sultan Qaboos University Hospital and the National Heart Center (Royal Hospital).
 
-Dr. Al Rawahi holds a **Master of Experimental Medicine** from McGill University, Canada, and is currently pursuing a **PhD in Cardiac Electrophysiology** at Maastricht University, Netherlands. He is also the Chairman of the Examination Committee for the Cardiology Fellowship Program at OMSB.
+Dr. Al Rawahi holds a <strong>Master of Experimental Medicine</strong> from McGill University, Canada, and is currently pursuing a <strong>PhD in Cardiac Electrophysiology</strong> at Maastricht University, Netherlands. He is also the Chairman of the Examination Committee for the Cardiology Fellowship Program at OMSB.
 
-His research leadership includes multiple awards, such as the **Eric N. Prystowsky Fellows Clinical Research Award** (Heart Rhythm Society, Boston) and the **Best Researcher Award** from SQUH. He actively mentors residents and fellows, fostering a new generation of clinician-scientists in Oman.
+His research leadership includes multiple awards, such as the <strong>Eric N. Prystowsky Fellows Clinical Research Award</strong> (Heart Rhythm Society, Boston) and the <strong>Best Researcher Award</strong> from SQUH. He actively mentors residents and fellows, fostering a new generation of clinician-scientists in Oman.
                     </p>
 
                     <div className="flex flex-wrap gap-2">
