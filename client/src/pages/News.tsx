@@ -19,6 +19,22 @@ export default function News() {
 
   const newsItems = [
     {
+      id: 14,
+      title: "Dr. Omar Al Taie Wins First Place for Best Scientific Research",
+      date: "December 2025",
+      summary: "Dr. Omar Al Taie, a resident in the Internal Medicine Program, was awarded First Place for the best scientific research at the 7th Annual Research Forum of the National Heart Center. His winning study was titled: \"Ten-Year Trends in Cardiac Mortality and Sudden Death in Oman (2014–2023).\"",
+      image: "/images/dr_omar_award.webp",
+      link: "https://x.com/OMSB_OM/status/2005151473563557933"
+    },
+    {
+      id: 13,
+      title: "Dr. Marwa Al Sharji Presents at International Conference",
+      date: "December 2025",
+      summary: "Dr. Marwa Al Sharji, a resident in the Internal Medicine Program, presented a scientific poster at the Emirates International Gastroenterology and Hepatology Conference. Her research evaluated the effectiveness of platelet-related indices in predicting esophageal varices and liver fibrosis complications in cirrhotic patients.",
+      image: "/images/dr_marwa_poster.webp",
+      link: "https://x.com/OMSB_OM/status/2005154326424228031"
+    },
+    {
       id: 12,
       title: "Launch of Medad: Revolutionizing Clinical Documentation with AI",
       date: "December 2025",
