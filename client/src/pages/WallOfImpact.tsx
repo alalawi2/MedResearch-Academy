@@ -27,7 +27,102 @@ export default function WallOfImpact() {
 
         {/* Featured Story Section */}
         <section className="py-20">
-          <div className="container">
+          <div className="container space-y-20">
+            {/* Dr. Salim Al Busaidi Story */}
+            <div className="max-w-5xl mx-auto">
+              <div className="bg-card rounded-3xl overflow-hidden border border-border shadow-xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2">
+                  
+                  {/* Image Side */}
+                  <div className="relative h-full min-h-[500px] lg:min-h-full bg-white flex flex-col">
+                    <div className="flex-1 relative overflow-hidden">
+                      <img 
+                        src="/images/dr_salim_profile.jpg"
+                        alt="Dr. Salim Al Busaidi" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 relative overflow-hidden border-t border-border/20">
+                      <img 
+                        src="/images/dr_salim_presentation.jpg"
+                        alt="Dr. Salim Al Busaidi Presenting" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Content Side */}
+                  <div className="p-8 md:p-12 flex flex-col justify-center space-y-8">
+                    <div className="hidden lg:block">
+                      <div className="inline-block px-3 py-1 bg-accent text-accent-foreground text-xs font-bold rounded-full mb-4">
+                        Alumni Success Story
+                      </div>
+                      <h2 className="font-serif font-bold text-4xl text-primary">Dr. Salim Al Busaidi</h2>
+                      <p className="text-muted-foreground mt-2 font-medium">Specialist Physician, SQUH</p>
+                      <p className="text-sm text-muted-foreground/80">Currently: Acute Care & General Medicine Fellow, Australia</p>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-xl font-bold text-foreground mb-3 flex items-center">
+                          <span className="w-8 h-1 bg-accent mr-3 rounded-full"></span>
+                          The Spark
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          It began during an on-call shift, completing a death notification under pressure with limited information. Faced with assigning a single cause of death based on fragmented data, Dr. Salim questioned: <em>How reliable is our national mortality data?</em> This moment became the catalyst for a systematic evaluation of death certification practices.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-foreground mb-3 flex items-center">
+                          <span className="w-8 h-1 bg-accent mr-3 rounded-full"></span>
+                          The Journey
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          He launched a retrospective study at SQUH, identifying substantial discrepancies in cause-of-death documentation. His work was published in the <strong>Journal of Forensic and Legal Medicine (Q1)</strong> and supported by national research funding. But he didn't stop at publication—he translated findings into national capacity-building initiatives.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-foreground mb-3 flex items-center">
+                          <span className="w-8 h-1 bg-accent mr-3 rounded-full"></span>
+                          The Impact
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          His research led to a flagship national workshop with WHO, MOH, and OMSB, aligning Oman's practices with international standards. It also spurred the creation of a national online training platform for physicians.
+                        </p>
+                        <div className="mt-4 p-4 bg-muted/50 rounded-xl border border-border/50 italic text-muted-foreground relative">
+                          <Quote className="absolute top-4 left-4 h-6 w-6 text-accent/20" />
+                          <p className="pl-8">
+                            "These efforts strengthened mortality data quality, supported evidence-informed public health policy, and illustrate how clinician-led research can translate into sustained national health system improvement."
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-border flex flex-col gap-4">
+                      <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">Key Publications</h4>
+                      <div className="flex flex-col gap-3">
+                        <a href="https://mjournal.squ.edu.om/home/vol25/iss1/36/" target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="w-full justify-between group">
+                            <span className="truncate mr-2">SQUMJ Publication (2025)</span>
+                            <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                          </Button>
+                        </a>
+                        <a href="https://www.sciencedirect.com/science/article/abs/pii/S1752928X23000653?via%3Dihub" target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="w-full justify-between group">
+                            <span className="truncate mr-2">Journal of Forensic and Legal Medicine</span>
+                            <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Dr. Fatma Al Shamsi Story */}
             <div className="max-w-5xl mx-auto">
               <div className="bg-card rounded-3xl overflow-hidden border border-border shadow-xl">
                 <div className="grid grid-cols-1 lg:grid-cols-2">
