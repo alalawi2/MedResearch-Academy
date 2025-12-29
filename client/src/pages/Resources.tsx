@@ -1,6 +1,12 @@
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Loader2, RefreshCw } from "lucide-react";
+import { ExternalLink, Loader2, RefreshCw, Share2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { fetchLatestPublications, type PubMedArticle } from "@/lib/pubmed";
 
@@ -25,6 +31,26 @@ export default function Resources() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const sharePublication = (platform: string, article: PubMedArticle) => {
+    const text = encodeURIComponent(`${article.title} - MedResearch Academy`);
+    const url = encodeURIComponent(article.link);
+    let shareUrl = "";
+
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}&via=Medresearch_om&hashtags=MedResearchOman,MedicalResearch,Publication`;
+        break;
+    }
+    
+    window.open(shareUrl, "_blank", "width=600,height=400");
   };
 
   return (
@@ -99,6 +125,27 @@ export default function Resources() {
                       <p className="text-sm text-muted-foreground line-clamp-1">
                         {article.authors.join(", ")}
                       </p>
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Share2 className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                            <span className="sr-only">Share</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => sharePublication("whatsapp", article)}>
+                            Share on WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sharePublication("linkedin", article)}>
+                            Share on LinkedIn
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => sharePublication("twitter", article)}>
+                            Share on X
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 ))}
