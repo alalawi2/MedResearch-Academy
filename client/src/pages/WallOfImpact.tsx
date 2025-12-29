@@ -268,6 +268,19 @@ export default function WallOfImpact() {
                           </div>
                         </div>
                       `
+                    },
+                    {
+                      position: { lat: 29.9511, lng: -90.0715 }, // New Orleans, USA
+                      title: "New Orleans, USA",
+                      content: `
+                        <div class="p-2 min-w-[200px]">
+                          <h3 class="font-bold text-primary mb-1">New Orleans, USA</h3>
+                          <p class="text-sm text-muted-foreground">ACP 2025 Presentation</p>
+                          <div class="mt-2 text-xs">
+                            <span class="block">• Dr. Fatma Al Shamsi</span>
+                          </div>
+                        </div>
+                      `
                     }
                   ];
 
