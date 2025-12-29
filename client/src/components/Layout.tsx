@@ -113,9 +113,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Linkedin className="h-5 w-5" />
                 <span className="sr-only">LinkedIn</span>
               </a>
-              <a href="https://x.com/medresearch" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="https://x.com/Medresearch_om" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
+                <span className="sr-only">X (Twitter)</span>
               </a>
               <a href="https://www.researchgate.net/profile/Abdullah-Al-Alawi-4" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <BookOpen className="h-5 w-5" />

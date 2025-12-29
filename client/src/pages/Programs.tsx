@@ -4,7 +4,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, Download, Bell, Mail, Timer } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, Download, Bell, Mail, Timer, Share2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +18,26 @@ export default function Programs() {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  const shareProgram = (platform: string) => {
+    const url = window.location.href;
+    const text = encodeURIComponent("Join the Virtual Research Series at MedResearch Academy - A comprehensive 16-week research training program.");
+    let shareUrl = "";
+
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}&via=Medresearch_om&hashtags=MedResearchOman,MedicalResearch,ResearchTraining`;
+        break;
+    }
+    
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
 
   useEffect(() => {
     // Target date: Dec 31, 2025 20:00:00 Muscat Time (GMT+4)
@@ -151,9 +177,29 @@ export default function Programs() {
                 {virtualSeries.icon}
               </div>
               <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-3">
-                  <CardTitle className="font-serif text-3xl text-primary">{virtualSeries.title}</CardTitle>
-                  <Badge className="bg-green-600 text-white hover:bg-green-700 text-sm px-3 py-1">No Registration Required</Badge>
+                  <div className="flex flex-wrap items-center gap-3 w-full justify-between">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <CardTitle className="font-serif text-3xl text-primary">{virtualSeries.title}</CardTitle>
+                    <Badge className="bg-green-600 text-white hover:bg-green-700 text-sm px-3 py-1">No Registration Required</Badge>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-2">
+                        <Share2 className="h-4 w-4" /> Share Program
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => shareProgram("whatsapp")}>
+                        Share on WhatsApp
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => shareProgram("linkedin")}>
+                        Share on LinkedIn
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => shareProgram("twitter")}>
+                        Share on X
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
                 <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
                   {virtualSeries.description}
