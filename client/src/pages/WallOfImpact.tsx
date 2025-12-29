@@ -1,6 +1,7 @@
 import Layout from "@/components/Layout";
 import { Award, Quote, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MapView } from "@/components/Map";
 
 export default function WallOfImpact() {
   return (
@@ -210,8 +211,94 @@ export default function WallOfImpact() {
           </div>
         </section>
 
+        {/* Global Impact Map */}
+        <section className="py-20 bg-muted/30">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Our Global Reach</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                From Oman to the world, our alumni and founders are making an impact across continents.
+              </p>
+            </div>
+            
+            <div className="bg-card rounded-3xl overflow-hidden border border-border shadow-xl h-[500px] relative">
+              <MapView 
+                initialCenter={{ lat: 20.0, lng: 60.0 }} 
+                initialZoom={2}
+                onMapReady={(map) => {
+                  // Locations data
+                  const locations = [
+                    {
+                      position: { lat: 23.5880, lng: 58.3829 }, // Muscat, Oman
+                      title: "Muscat, Oman",
+                      content: `
+                        <div class="p-2 min-w-[200px]">
+                          <h3 class="font-bold text-primary mb-1">Muscat, Oman</h3>
+                          <p class="text-sm text-muted-foreground">Home of MedResearch Academy</p>
+                          <div class="mt-2 text-xs">
+                            <span class="block">• Dr. Abdullah Al Alawi</span>
+                            <span class="block">• Dr. Mohamed Al Rawahi</span>
+                            <span class="block">• Dr. Fatma Al Shamsi</span>
+                          </div>
+                        </div>
+                      `
+                    },
+                    {
+                      position: { lat: -33.8688, lng: 151.2093 }, // Sydney, Australia (approx for Australia)
+                      title: "Australia",
+                      content: `
+                        <div class="p-2 min-w-[200px]">
+                          <h3 class="font-bold text-primary mb-1">Australia</h3>
+                          <p class="text-sm text-muted-foreground">Acute Care Fellowship</p>
+                          <div class="mt-2 text-xs">
+                            <span class="block font-semibold">• Dr. Salim Al Busaidi</span>
+                          </div>
+                        </div>
+                      `
+                    },
+                    {
+                      position: { lat: 50.8514, lng: 5.6910 }, // Maastricht, Netherlands
+                      title: "Maastricht, Netherlands",
+                      content: `
+                        <div class="p-2 min-w-[200px]">
+                          <h3 class="font-bold text-primary mb-1">Maastricht, Netherlands</h3>
+                          <p class="text-sm text-muted-foreground">PhD Research</p>
+                          <div class="mt-2 text-xs">
+                            <span class="block">• Dr. Mohamed Al Rawahi</span>
+                          </div>
+                        </div>
+                      `
+                    }
+                  ];
+
+                  // Add markers
+                  locations.forEach(loc => {
+                    const marker = new google.maps.marker.AdvancedMarkerElement({
+                      map,
+                      position: loc.position,
+                      title: loc.title,
+                    });
+
+                    // Add info window on click
+                    const infoWindow = new google.maps.InfoWindow({
+                      content: loc.content,
+                    });
+
+                    marker.addListener("click", () => {
+                      infoWindow.open({
+                        anchor: marker,
+                        map,
+                      });
+                    });
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </section>
+
         {/* Call to Action */}
-        <section className="py-16 bg-muted/30">
+        <section className="py-16">
           <div className="container text-center max-w-2xl mx-auto">
             <h3 className="text-2xl font-serif font-bold mb-4">Do you have a story to tell?</h3>
             <p className="text-muted-foreground mb-8">
