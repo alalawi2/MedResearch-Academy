@@ -184,7 +184,7 @@ export default function News() {
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
         break;
       case "twitter":
-        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}&hashtags=MedResearchOman,MedicalResearch`;
         break;
     }
     
@@ -275,7 +275,7 @@ export default function News() {
                             Share on LinkedIn
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => shareNews("twitter", item)}>
-                            Share on X (Twitter)
+                            Share on X
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

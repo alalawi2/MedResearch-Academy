@@ -77,7 +77,7 @@ export default function Contact() {
                 <div className="pt-4">
                   <h3 className="font-bold mb-4">Social Profiles</h3>
                   <div className="flex gap-4">
-                    <a href="https://x.com/alalawi_dr" target="_blank" rel="noopener noreferrer">
+                    <a href="https://x.com/medresearch" target="_blank" rel="noopener noreferrer">
                       <Button variant="outline" size="icon" className="rounded-full hover:text-primary hover:border-primary transition-colors">
                         <Twitter className="h-5 w-5" />
                         <span className="sr-only">Twitter</span>

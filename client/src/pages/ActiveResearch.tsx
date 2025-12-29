@@ -4,9 +4,35 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Mail, Users, Calendar, FileText, ShieldCheck, Target, BookOpen, Lightbulb } from 'lucide-react';
+import { ArrowRight, Mail, Users, Calendar, FileText, ShieldCheck, Target, BookOpen, Lightbulb, Share2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ActiveResearch = () => {
+  const shareProject = (platform: string, project: any) => {
+    const url = window.location.href;
+    const text = encodeURIComponent(`Check out this active research project: ${project.title}`);
+    let shareUrl = "";
+
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}&via=Medresearch_om&hashtags=MedResearchOman,MedicalResearch`;
+        break;
+    }
+    
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
   const activeProjects = [
     {
       id: 1,
@@ -180,13 +206,34 @@ const ActiveResearch = () => {
                         </div>
                       </div>
 
-                      <Button 
-                        className="w-full gap-2"
-                        size="lg"
-                        onClick={() => window.location.href = `mailto:${project.contactEmail}`}
-                      >
-                        <Mail className="w-4 h-4" /> Contact for Inquiry
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          className="flex-grow gap-2"
+                          size="lg"
+                          onClick={() => window.location.href = `mailto:${project.contactEmail}`}
+                        >
+                          <Mail className="w-4 h-4" /> Contact for Inquiry
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-11 w-11 shrink-0">
+                              <Share2 className="h-4 w-4" />
+                              <span className="sr-only">Share</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => shareProject("whatsapp", project)}>
+                              Share on WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareProject("linkedin", project)}>
+                              Share on LinkedIn
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareProject("twitter", project)}>
+                              Share on X
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>

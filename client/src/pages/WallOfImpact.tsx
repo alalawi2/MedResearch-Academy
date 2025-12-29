@@ -1,9 +1,35 @@
 import Layout from "@/components/Layout";
-import { Award, Quote, ArrowRight } from "lucide-react";
+import { Award, Quote, ArrowRight, Share2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MapView } from "@/components/Map";
 
 export default function WallOfImpact() {
+  const shareStory = (platform: string, name: string) => {
+    const url = window.location.href;
+    const text = encodeURIComponent(`Read the inspiring story of ${name} on MedResearch Academy's Wall of Impact`);
+    let shareUrl = "";
+
+    switch (platform) {
+      case "whatsapp":
+        shareUrl = `https://wa.me/?text=${text}%20${url}`;
+        break;
+      case "linkedin":
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case "twitter":
+        shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}&via=Medresearch_om&hashtags=MedResearchOman,MedicalResearch,SuccessStory`;
+        break;
+    }
+    
+    window.open(shareUrl, "_blank", "width=600,height=400");
+  };
+
   return (
     <Layout>
       <div className="bg-background min-h-screen">
@@ -117,6 +143,27 @@ export default function WallOfImpact() {
                           </Button>
                         </a>
                       </div>
+                      
+                      <div className="mt-4 flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary gap-2">
+                              <Share2 className="h-4 w-4" /> Share Story
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => shareStory("whatsapp", "Dr. Salim Al Busaidi")}>
+                              Share on WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareStory("linkedin", "Dr. Salim Al Busaidi")}>
+                              Share on LinkedIn
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareStory("twitter", "Dr. Salim Al Busaidi")}>
+                              Share on X
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -198,11 +245,32 @@ export default function WallOfImpact() {
                         </div>
                       </div>
                       
-                      <a href="https://www.instagram.com/p/DCWuAxMooNI/?igsh=anBxMjRiNGJ6Z3lu" target="_blank" rel="noopener noreferrer">
-                        <Button className="w-full sm:w-auto gap-2">
-                          View Original Post <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </a>
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <a href="https://www.instagram.com/p/DCWuAxMooNI/?igsh=anBxMjRiNGJ6Z3lu" target="_blank" rel="noopener noreferrer" className="flex-grow sm:flex-grow-0">
+                          <Button className="w-full gap-2">
+                            View Original Post <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </a>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="shrink-0">
+                              <Share2 className="h-4 w-4" />
+                              <span className="sr-only">Share</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => shareStory("whatsapp", "Dr. Fatma Al Shamsi")}>
+                              Share on WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareStory("linkedin", "Dr. Fatma Al Shamsi")}>
+                              Share on LinkedIn
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => shareStory("twitter", "Dr. Fatma Al Shamsi")}>
+                              Share on X
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>
