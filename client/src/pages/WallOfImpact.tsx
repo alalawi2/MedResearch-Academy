@@ -232,44 +232,56 @@ export default function WallOfImpact() {
                       </div>
                     </div>
 
-                    <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6">
-                      <div className="flex items-center gap-4">
-                        <img 
-                          src="/images/dr_fatma_qr.png" 
-                          alt="Scan to view original post" 
-                          className="w-20 h-20 rounded-xl border border-border shadow-sm"
-                        />
-                        <div className="text-sm text-muted-foreground">
-                          <p className="font-semibold text-foreground">Read the full story</p>
-                          <p>Scan to view on Instagram</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2 w-full sm:w-auto">
-                        <a href="https://www.instagram.com/p/DCWuAxMooNI/?igsh=anBxMjRiNGJ6Z3lu" target="_blank" rel="noopener noreferrer" className="flex-grow sm:flex-grow-0">
-                          <Button className="w-full gap-2">
-                            View Original Post <ArrowRight className="h-4 w-4" />
+                    <div className="pt-6 border-t border-border flex flex-col gap-4">
+                      <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">Key Publications & Media</h4>
+                      <div className="flex flex-col gap-3">
+                        <a href="https://mjournal.squ.edu.om/home/vol25/iss1/150/" target="_blank" rel="noopener noreferrer">
+                          <Button variant="outline" size="sm" className="w-full justify-between group">
+                            <span className="truncate mr-2">SQU Medical Journal Publication</span>
+                            <ArrowRight className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                           </Button>
                         </a>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="shrink-0">
-                              <Share2 className="h-4 w-4" />
-                              <span className="sr-only">Share</span>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mt-2">
+                        <div className="flex items-center gap-4">
+                          <img 
+                            src="/images/dr_fatma_qr.png" 
+                            alt="Scan to view original post" 
+                            className="w-20 h-20 rounded-xl border border-border shadow-sm"
+                          />
+                          <div className="text-sm text-muted-foreground">
+                            <p className="font-semibold text-foreground">Read the full story</p>
+                            <p>Scan to view on Instagram</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 w-full sm:w-auto">
+                          <a href="https://www.instagram.com/p/DCWuAxMooNI/?igsh=anBxMjRiNGJ6Z3lu" target="_blank" rel="noopener noreferrer" className="flex-grow sm:flex-grow-0">
+                            <Button className="w-full gap-2">
+                              View Original Post <ArrowRight className="h-4 w-4" />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => shareStory("whatsapp", "Dr. Fatma Al Shamsi")}>
-                              Share on WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareStory("linkedin", "Dr. Fatma Al Shamsi")}>
-                              Share on LinkedIn
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => shareStory("twitter", "Dr. Fatma Al Shamsi")}>
-                              Share on X
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          </a>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon" className="shrink-0">
+                                <Share2 className="h-4 w-4" />
+                                <span className="sr-only">Share</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => shareStory("whatsapp", "Dr. Fatma Al Shamsi")}>
+                                Share on WhatsApp
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareStory("linkedin", "Dr. Fatma Al Shamsi")}>
+                                Share on LinkedIn
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => shareStory("twitter", "Dr. Fatma Al Shamsi")}>
+                                Share on X
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
                     </div>
                   </div>
