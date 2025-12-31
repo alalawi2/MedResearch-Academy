@@ -427,9 +427,9 @@ export default function Programs() {
             </CardContent>
             
             <CardFooter className="bg-background/50 border-t border-border/50 p-6 md:p-8">
-              <Link href="/contact?subject=Virtual Research Series Registration">
+              <Link href="/contact?subject=Virtual Research Series Inquiry">
                 <Button size="lg" className="w-full md:w-auto text-lg px-8 bg-accent text-accent-foreground hover:bg-accent/90">
-                  Register for Next Cohort
+                  Join Open Session
                 </Button>
               </Link>
             </CardFooter>
