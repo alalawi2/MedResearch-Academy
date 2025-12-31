@@ -427,7 +427,7 @@ export default function Programs() {
             </CardContent>
             
             <CardFooter className="bg-background/50 border-t border-border/50 p-6 md:p-8">
-              <Link href="/contact">
+              <Link href="/contact?subject=Virtual Research Series Registration">
                 <Button size="lg" className="w-full md:w-auto text-lg px-8 bg-accent text-accent-foreground hover:bg-accent/90">
                   Register for Next Cohort
                 </Button>
@@ -491,7 +491,7 @@ export default function Programs() {
               <p className="text-muted-foreground mb-6">
                 Share your expertise by leading a session in our Virtual Research Series. We welcome mentors in biostatistics, clinical trials, and medical writing.
               </p>
-              <Link href="/contact">
+              <Link href="/contact?subject=Mentorship Inquiry">
                 <Button variant="outline" className="w-full">Become a Mentor</Button>
               </Link>
             </div>
@@ -504,7 +504,7 @@ export default function Programs() {
               <p className="text-muted-foreground mb-6">
                 Collaborate on our active projects in metabolic disorders and AI-driven hepatology, or propose a new multi-center study.
               </p>
-              <Link href="/contact">
+              <Link href="/contact?subject=Research Collaboration Proposal">
                 <Button variant="outline" className="w-full">Propose Collaboration</Button>
               </Link>
             </div>

@@ -6,21 +6,39 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Mail, MapPin, Phone, Twitter, Linkedin, BookOpen, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 
 export default function Contact() {
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [location] = useLocation();
+
+  useEffect(() => {
+    // Parse query parameters manually since wouter doesn't provide a hook for it
+    const searchParams = new URLSearchParams(window.location.search);
+    const subjectParam = searchParams.get("subject");
+    if (subjectParam) {
+      setValue("subject", subjectParam);
+    }
+  }, [location, setValue]);
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
+      // Add Formspree specific fields
+      const formData = {
+        ...data,
+        _replyto: data.email, // Ensure reply-to is set to the sender's email
+        _subject: data.subject || "New Inquiry from MedResearch Academy Website", // Set email subject
+      };
+
       const response = await fetch("https://formspree.io/f/mojavboe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
 
       if (response.ok) {
