@@ -7,6 +7,11 @@ import { Download, FileText, Loader2, Video } from "lucide-react";
 export default function Lectures() {
   const { data: lectures, isLoading } = trpc.lectures.list.useQuery();
 
+  const extractYouTubeId = (url: string) => {
+    const match = url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+    return match ? match[1] : null;
+  };
+
   const getFileIcon = (mimeType: string | null) => {
     if (!mimeType) return <FileText className="h-6 w-6" />;
     if (mimeType.startsWith("video/")) return <Video className="h-6 w-6" />;
@@ -23,7 +28,7 @@ export default function Lectures() {
               Lecture Library
             </h1>
             <p className="text-xl text-primary-foreground/80">
-              Access our collection of educational materials, including slides, recordings, and supplementary resources.
+              Access our collection of educational videos, slides, recordings, and supplementary resources.
             </p>
           </div>
         </div>
@@ -46,36 +51,64 @@ export default function Lectures() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {lectures?.map((lecture) => (
-                <Card key={lecture.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className="p-2 bg-primary/10 rounded-lg text-primary">
-                        {getFileIcon(lecture.mimeType)}
+              {lectures?.map((lecture) => {
+                const youtubeId = lecture.videoUrl ? extractYouTubeId(lecture.videoUrl) : null;
+                return (
+                  <Card key={lecture.id} className="hover:shadow-lg transition-shadow flex flex-col">
+                    <CardHeader>
+                      {youtubeId ? (
+                        <div className="mb-4 aspect-video rounded-lg overflow-hidden">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${youtubeId}`}
+                            title={lecture.title}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-full"
+                          />
+                        </div>
+                      ) : (
+                        lecture.mimeType && (
+                          <div className="flex items-start gap-3 mb-2">
+                            <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                              {getFileIcon(lecture.mimeType)}
+                            </div>
+                          </div>
+                        )
+                      )}
+                      <CardTitle className="line-clamp-2 text-lg">{lecture.title}</CardTitle>
+                      <CardDescription className="line-clamp-3">
+                        {lecture.description || "Educational resource"}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 flex flex-col justify-end">
+                      <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                        {youtubeId && <div>Type: YouTube Video</div>}
+                        {lecture.fileName && <div>Format: {lecture.fileName.split(".").pop()?.toUpperCase()}</div>}
+                        {lecture.fileSize && <div>Size: {(lecture.fileSize / 1024 / 1024).toFixed(2)} MB</div>}
+                        <div>Added: {new Date(lecture.createdAt).toLocaleDateString()}</div>
                       </div>
-                      <div className="flex-1">
-                        <CardTitle className="line-clamp-2 text-lg">{lecture.title}</CardTitle>
+                      <div className="flex gap-2">
+                        {lecture.videoUrl && (
+                          <Button asChild className="flex-1">
+                            <a href={lecture.videoUrl} target="_blank" rel="noopener noreferrer">
+                              <Video className="mr-2 h-4 w-4" />
+                              Watch on YouTube
+                            </a>
+                          </Button>
+                        )}
+                        {lecture.fileUrl && (
+                          <Button asChild className="flex-1" variant={lecture.videoUrl ? "outline" : "default"}>
+                            <a href={lecture.fileUrl} target="_blank" rel="noopener noreferrer">
+                              <Download className="mr-2 h-4 w-4" />
+                              Download
+                            </a>
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                    <CardDescription className="line-clamp-3">
-                      {lecture.description || "Educational resource"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                      <div>Format: {lecture.fileName.split(".").pop()?.toUpperCase()}</div>
-                      <div>Size: {(lecture.fileSize / 1024 / 1024).toFixed(2)} MB</div>
-                      <div>Added: {new Date(lecture.createdAt).toLocaleDateString()}</div>
-                    </div>
-                    <Button asChild className="w-full">
-                      <a href={lecture.fileUrl} target="_blank" rel="noopener noreferrer">
-                        <Download className="mr-2 h-4 w-4" />
-                        Access Lecture
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

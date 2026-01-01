@@ -30,35 +30,39 @@ export const appRouter = router({
         z.object({
           title: z.string().min(1),
           description: z.string().optional(),
-          fileData: z.string(), // base64 encoded file
-          fileName: z.string(),
-          mimeType: z.string(),
-          fileSize: z.number(),
+          videoUrl: z.string().optional(),
+          fileData: z.string().optional(), // base64 encoded file
+          fileName: z.string().optional(),
+          mimeType: z.string().optional(),
+          fileSize: z.number().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        // Decode base64 file data
-        const fileBuffer = Buffer.from(input.fileData, "base64");
+        let fileUrl: string | null = null;
+        let fileKey: string | null = null;
         
-        // Generate unique file key
-        const fileKey = `lectures/${nanoid()}-${input.fileName}`;
-        
-        // Upload to S3
-        const { url } = await storagePut(fileKey, fileBuffer, input.mimeType);
+        // Upload file if provided
+        if (input.fileData && input.fileName && input.mimeType && input.fileSize) {
+          const fileBuffer = Buffer.from(input.fileData, "base64");
+          fileKey = `lectures/${nanoid()}-${input.fileName}`;
+          const result = await storagePut(fileKey, fileBuffer, input.mimeType);
+          fileUrl = result.url;
+        }
         
         // Save to database
         await createLecture({
           title: input.title,
           description: input.description || null,
-          fileUrl: url,
+          videoUrl: input.videoUrl || null,
+          fileUrl,
           fileKey,
-          fileName: input.fileName,
-          fileSize: input.fileSize,
-          mimeType: input.mimeType,
+          fileName: input.fileName || null,
+          fileSize: input.fileSize || null,
+          mimeType: input.mimeType || null,
           uploadedBy: ctx.user.id,
         });
         
-        return { success: true, url };
+        return { success: true, url: fileUrl || input.videoUrl };
       }),
     delete: adminProcedure
       .input(z.object({ id: z.number() }))

@@ -32,10 +32,11 @@ export const lectures = mysqlTable("lectures", {
   id: int("id").autoincrement().primaryKey(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  fileUrl: varchar("fileUrl", { length: 512 }).notNull(),
-  fileKey: varchar("fileKey", { length: 512 }).notNull(),
-  fileName: varchar("fileName", { length: 255 }).notNull(),
-  fileSize: int("fileSize").notNull(), // in bytes
+  videoUrl: varchar("videoUrl", { length: 512 }), // YouTube URL (optional)
+  fileUrl: varchar("fileUrl", { length: 512 }), // File URL (optional)
+  fileKey: varchar("fileKey", { length: 512 }),
+  fileName: varchar("fileName", { length: 255 }),
+  fileSize: int("fileSize"), // in bytes
   mimeType: varchar("mimeType", { length: 100 }),
   uploadedBy: int("uploadedBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
