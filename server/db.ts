@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertLecture, InsertQuestion, InsertUser, lectures, questions, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -167,6 +167,34 @@ export async function deleteQuestion(id: number) {
     throw new Error("Database not available");
   }
   await db.delete(questions).where(eq(questions.id, id));
+}
+
+export async function getAllQuestions() {
+  const db = await getDb();
+  if (!db) {
+    return [];
+  }
+  // Join with lectures to get lecture title
+  const result = await db
+    .select({
+      id: questions.id,
+      lectureId: questions.lectureId,
+      lectureTitle: lectures.title,
+      userId: questions.userId,
+      userName: questions.userName,
+      userEmail: questions.userEmail,
+      question: questions.question,
+      answer: questions.answer,
+      answeredBy: questions.answeredBy,
+      answeredAt: questions.answeredAt,
+      isPublished: questions.isPublished,
+      createdAt: questions.createdAt,
+      updatedAt: questions.updatedAt,
+    })
+    .from(questions)
+    .leftJoin(lectures, eq(questions.lectureId, lectures.id))
+    .orderBy(desc(questions.createdAt));
+  return result;
 }
 
 // TODO: add feature queries here as your schema grows.

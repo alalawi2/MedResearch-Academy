@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { createLecture, createQuestion, deleteLecture, deleteQuestion, getAllLectures, getPublishedQuestionsByLectureId, getQuestionsByLectureId, updateQuestion } from "./db";
+import { createLecture, createQuestion, deleteLecture, deleteQuestion, getAllLectures, getAllQuestions, getPublishedQuestionsByLectureId, getQuestionsByLectureId, updateQuestion } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -78,9 +78,8 @@ export const appRouter = router({
         return await getPublishedQuestionsByLectureId(input.lectureId);
       }),
     listAll: adminProcedure
-      .input(z.object({ lectureId: z.number() }))
-      .query(async ({ input }) => {
-        return await getQuestionsByLectureId(input.lectureId);
+      .query(async () => {
+        return await getAllQuestions();
       }),
     ask: publicProcedure
       .input(
@@ -109,24 +108,23 @@ export const appRouter = router({
     answer: adminProcedure
       .input(
         z.object({
-          id: z.number(),
+          questionId: z.number(),
           answer: z.string().min(1),
-          isPublished: z.boolean(),
         })
       )
       .mutation(async ({ ctx, input }) => {
-        await updateQuestion(input.id, {
+        await updateQuestion(input.questionId, {
           answer: input.answer,
           answeredBy: ctx.user.id,
           answeredAt: new Date(),
-          isPublished: input.isPublished ? 1 : 0,
+          isPublished: 1, // Publish when answered
         });
         return { success: true };
       }),
     delete: adminProcedure
-      .input(z.object({ id: z.number() }))
+      .input(z.object({ questionId: z.number() }))
       .mutation(async ({ input }) => {
-        await deleteQuestion(input.id);
+        await deleteQuestion(input.questionId);
         return { success: true };
       }),
     togglePublish: adminProcedure

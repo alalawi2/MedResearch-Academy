@@ -6,3 +6,6 @@
 - [ ] Rename `Publications.tsx` to `Resources.tsx` and update content
 - [ ] Update `App.tsx` routes to reflect new page names
 - [ ] Update `Layout.tsx` navigation links to match new routes
+- [x] Fix Q&A system: questions should only appear publicly after instructor replies
+- [x] Remove commenting functionality - only instructor can answer
+- [x] Update UI to show only answered questions to public users

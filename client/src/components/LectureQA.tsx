@@ -16,7 +16,10 @@ export function LectureQA({ lectureId }: LectureQAProps) {
   const [question, setQuestion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: questions, isLoading, refetch } = trpc.questions.listByLecture.useQuery({ lectureId });
+  const { data: allQuestions, isLoading, refetch } = trpc.questions.listByLecture.useQuery({ lectureId });
+  
+  // Only show questions that have been answered
+  const questions = allQuestions?.filter(q => q.answer && q.isPublished) || [];
   const askMutation = trpc.questions.ask.useMutation();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,7 +107,7 @@ export function LectureQA({ lectureId }: LectureQAProps) {
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
-        ) : questions && questions.length > 0 ? (
+        ) : questions.length > 0 ? (
           questions.map((q) => (
             <Card key={q.id}>
               <CardHeader>
@@ -147,7 +150,7 @@ export function LectureQA({ lectureId }: LectureQAProps) {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <MessageSquare className="h-12 w-12 text-muted-foreground mb-3" />
               <p className="text-muted-foreground text-center">
-                No questions yet. Be the first to ask!
+                No answered questions yet. Be the first to ask!
               </p>
             </CardContent>
           </Card>
