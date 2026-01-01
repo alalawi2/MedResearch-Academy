@@ -46,4 +46,25 @@ export const lectures = mysqlTable("lectures", {
 export type Lecture = typeof lectures.$inferSelect;
 export type InsertLecture = typeof lectures.$inferInsert;
 
+/**
+ * Questions table for lecture Q&A
+ */
+export const questions = mysqlTable("questions", {
+  id: int("id").autoincrement().primaryKey(),
+  lectureId: int("lectureId").notNull().references(() => lectures.id, { onDelete: "cascade" }),
+  userId: int("userId").notNull().references(() => users.id),
+  userName: varchar("userName", { length: 255 }).notNull(),
+  userEmail: varchar("userEmail", { length: 320 }),
+  question: text("question").notNull(),
+  answer: text("answer"),
+  answeredBy: int("answeredBy").references(() => users.id),
+  answeredAt: timestamp("answeredAt"),
+  isPublished: int("isPublished").default(0).notNull(), // 0 = false, 1 = true
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Question = typeof questions.$inferSelect;
+export type InsertQuestion = typeof questions.$inferInsert;
+
 // TODO: Add your tables here

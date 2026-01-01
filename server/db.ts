@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertLecture, InsertUser, lectures, users } from "../drizzle/schema";
+import { InsertLecture, InsertQuestion, InsertUser, lectures, questions, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -123,6 +123,50 @@ export async function getLectureById(id: number) {
   }
   const result = await db.select().from(lectures).where(eq(lectures.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
+}
+
+// Question database helpers
+export async function createQuestion(question: InsertQuestion) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  const result = await db.insert(questions).values(question);
+  return result;
+}
+
+export async function getQuestionsByLectureId(lectureId: number) {
+  const db = await getDb();
+  if (!db) {
+    return [];
+  }
+  const result = await db.select().from(questions).where(eq(questions.lectureId, lectureId));
+  return result;
+}
+
+export async function getPublishedQuestionsByLectureId(lectureId: number) {
+  const db = await getDb();
+  if (!db) {
+    return [];
+  }
+  const result = await db.select().from(questions).where(and(eq(questions.lectureId, lectureId), eq(questions.isPublished, 1)));
+  return result;
+}
+
+export async function updateQuestion(id: number, data: Partial<InsertQuestion>) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  await db.update(questions).set(data).where(eq(questions.id, id));
+}
+
+export async function deleteQuestion(id: number) {
+  const db = await getDb();
+  if (!db) {
+    throw new Error("Database not available");
+  }
+  await db.delete(questions).where(eq(questions.id, id));
 }
 
 // TODO: add feature queries here as your schema grows.

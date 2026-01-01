@@ -3,7 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { adminProcedure, publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
-import { createLecture, deleteLecture, getAllLectures, getLectureById } from "./db";
+import { createLecture, createQuestion, deleteLecture, deleteQuestion, getAllLectures, getPublishedQuestionsByLectureId, getQuestionsByLectureId, updateQuestion } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -68,6 +68,73 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await deleteLecture(input.id);
+        return { success: true };
+      }),
+  }),
+  questions: router({
+    listByLecture: publicProcedure
+      .input(z.object({ lectureId: z.number() }))
+      .query(async ({ input }) => {
+        return await getPublishedQuestionsByLectureId(input.lectureId);
+      }),
+    listAll: adminProcedure
+      .input(z.object({ lectureId: z.number() }))
+      .query(async ({ input }) => {
+        return await getQuestionsByLectureId(input.lectureId);
+      }),
+    ask: publicProcedure
+      .input(
+        z.object({
+          lectureId: z.number(),
+          question: z.string().min(10),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.user) {
+          throw new Error("You must be logged in to ask a question");
+        }
+        await createQuestion({
+          lectureId: input.lectureId,
+          userId: ctx.user.id,
+          userName: ctx.user.name || "Anonymous",
+          userEmail: ctx.user.email || null,
+          question: input.question,
+          answer: null,
+          answeredBy: null,
+          answeredAt: null,
+          isPublished: 0, // Not published by default
+        });
+        return { success: true };
+      }),
+    answer: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          answer: z.string().min(1),
+          isPublished: z.boolean(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await updateQuestion(input.id, {
+          answer: input.answer,
+          answeredBy: ctx.user.id,
+          answeredAt: new Date(),
+          isPublished: input.isPublished ? 1 : 0,
+        });
+        return { success: true };
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteQuestion(input.id);
+        return { success: true };
+      }),
+    togglePublish: adminProcedure
+      .input(z.object({ id: z.number(), isPublished: z.boolean() }))
+      .mutation(async ({ input }) => {
+        await updateQuestion(input.id, {
+          isPublished: input.isPublished ? 1 : 0,
+        });
         return { success: true };
       }),
   }),

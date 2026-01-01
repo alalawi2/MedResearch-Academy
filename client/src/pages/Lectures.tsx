@@ -2,7 +2,8 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { Download, FileText, Loader2, Video } from "lucide-react";
+import { Download, FileText, Loader2, MessageSquare, Video } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Lectures() {
   const { data: lectures, isLoading } = trpc.lectures.list.useQuery();
@@ -88,19 +89,16 @@ export default function Lectures() {
                         <div>Added: {new Date(lecture.createdAt).toLocaleDateString()}</div>
                       </div>
                       <div className="flex gap-2">
-                        {lecture.videoUrl && (
-                          <Button asChild className="flex-1">
-                            <a href={lecture.videoUrl} target="_blank" rel="noopener noreferrer">
-                              <Video className="mr-2 h-4 w-4" />
-                              Watch on YouTube
-                            </a>
-                          </Button>
-                        )}
+                        <Button asChild className="flex-1">
+                          <Link href={`/lectures/${lecture.id}`}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            View & Discuss
+                          </Link>
+                        </Button>
                         {lecture.fileUrl && (
-                          <Button asChild className="flex-1" variant={lecture.videoUrl ? "outline" : "default"}>
+                          <Button asChild variant="outline" size="icon">
                             <a href={lecture.fileUrl} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" />
-                              Download
+                              <Download className="h-4 w-4" />
                             </a>
                           </Button>
                         )}

@@ -13,7 +13,8 @@ import ActiveResearch from './pages/ActiveResearch';
 
 import Contact from "./pages/Contact";
 import News from "./pages/News";
-import Lectures from "./pages/Lectures";
+import Lectures from "@/pages/Lectures";
+import LectureDetail from "@/pages/LectureDetail";
 import AdminLectures from "./pages/AdminLectures";
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -28,7 +29,8 @@ function Router() {
       
       <Route path="/news" component={News} />
       <Route path="/contact" component={Contact} />
-      <Route path="/lectures" component={Lectures} />
+        <Route path="/lectures" component={Lectures} />
+        <Route path="/lectures/:id" component={LectureDetail} />
       <Route path="/admin/lectures" component={AdminLectures} />
       <Route component={NotFound} />
     </Switch>
