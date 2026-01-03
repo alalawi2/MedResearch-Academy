@@ -65,3 +65,5 @@
 - [x] Create visual assets for pre-operative patient preparation guide
 - [x] Add featured section to Resources page with embedded guide link
 - [x] Test pre-operative guide section display and functionality
+- [x] Remove publications section from Resources page
+- [x] Remove LinkedIn accounts links from Resources page
