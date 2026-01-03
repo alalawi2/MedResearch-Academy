@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2 } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2, Bell, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import SessionCountdown from "@/components/SessionCountdown";
 import AddToCalendar from "@/components/AddToCalendar";
+import ReminderDialog from "@/components/ReminderDialog";
 import { trpc } from "@/lib/trpc";
 
 export default function Programs() {
@@ -256,41 +257,77 @@ export default function Programs() {
                     Upcoming Sessions
                   </h3>
                   
-                  <div className="grid gap-4">
+                  <div className="grid gap-6">
                     {upcomingSessions.map((session: any) => (
-                      <Card key={session.id} className="hover:shadow-lg transition-shadow">
+                      <Card key={session.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
                         <CardContent className="pt-6">
-                          <div className="flex items-start justify-between gap-4">
+                          <div className="flex flex-col md:flex-row gap-6">
+                            {/* Speaker Photo */}
+                            <div className="flex-shrink-0">
+                              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
+                                <img 
+                                  src="/images/dr-rawahi.jpg" 
+                                  alt="Dr. Mohamed Al Rawahi" 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                            
+                            {/* Session Details */}
                             <div className="flex-1">
-                              <h4 className="text-lg font-semibold mb-2">{session.title}</h4>
-                              <p className="text-muted-foreground mb-4">{session.description}</p>
+                              <h4 className="text-xl font-bold mb-2 text-primary">{session.title}</h4>
                               
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                                <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  {new Date(session.sessionDate).toLocaleDateString("en-US", {
-                                    weekday: "short",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
+                              {/* Speaker Info */}
+                              <div className="flex items-center gap-2 mb-3 text-sm">
+                                <User className="h-4 w-4 text-accent" />
+                                <div>
+                                  <span className="font-semibold">Dr. Mohamed Al Rawahi</span>
+                                  <span className="text-muted-foreground"> • MD, MSc, FRCPC, ABIM</span>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  {new Date(session.sessionDate).toLocaleTimeString("en-US", {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-1">Senior Consultant in Cardiac Electrophysiology</p>
+                              
+                              <p className="text-muted-foreground mb-4 mt-3">{session.description}</p>
+                              
+                              <div className="flex flex-wrap items-center gap-4 text-sm">
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <Calendar className="h-4 w-4 text-primary" />
+                                  <span className="font-medium">
+                                    {new Date(session.sessionDate).toLocaleDateString("en-US", {
+                                      weekday: "short",
+                                      month: "short",
+                                      day: "numeric",
+                                      year: "numeric",
+                                    })}
+                                  </span>
                                 </div>
+                                <div className="flex items-center gap-1 text-muted-foreground">
+                                  <Clock className="h-4 w-4 text-primary" />
+                                  <span className="font-medium">
+                                    {new Date(session.sessionDate).toLocaleTimeString("en-US", {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </span>
+                                </div>
+                                
+                                {/* Reminder Button */}
+                                <ReminderDialog 
+                                  lectureId={session.id}
+                                  sessionTitle={session.title}
+                                />
                               </div>
                             </div>
                             
                             {session.videoUrl && (
-                              <Link href={`/lectures/${session.id}`}>
-                                <Button variant="outline">
-                                  <PlayCircle className="h-4 w-4 mr-2" />
-                                  View Lecture
-                                </Button>
-                              </Link>
+                              <div className="flex items-center">
+                                <Link href={`/lectures/${session.id}`}>
+                                  <Button variant="outline" size="lg">
+                                    <PlayCircle className="h-4 w-4 mr-2" />
+                                    View Lecture
+                                  </Button>
+                                </Link>
+                              </div>
                             )}
                           </div>
                         </CardContent>

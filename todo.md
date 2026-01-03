@@ -26,3 +26,12 @@
 - [x] Create new session "Beyond PubMed: AI-Powered Literature Search - Applications and Ethics" for January 14, 2026
 - [x] Update Dr. Mohamed's photo on the website
 - [x] Add session with learning objectives and Zoom link
+- [x] Add Dr. Mohamed's photo to session display on Programs page
+- [x] Add speaker name and details to session card
+- [x] Implement reminder/notification subscription feature with icon
+- [x] Test session display enhancements
+- [x] Design professional flyer for "Beyond PubMed" session
+- [x] Add Dr. Mohamed's photo to session display on Programs page
+- [x] Add speaker name and details to session card
+- [x] Implement reminder/notification subscription feature with icon
+- [x] Test session display enhancements
