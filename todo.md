@@ -44,3 +44,5 @@
 - [x] Create unsubscribe database field and API endpoint
 - [x] Build admin analytics dashboard for reminder statistics
 - [x] Test unsubscribe flow and analytics display
+- [x] Redesign "Beyond PubMed" flyer with official MedResearch Academy logo
+- [x] Add flyer display and download button to Programs page

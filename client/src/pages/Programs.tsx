@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2, Bell, User } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2, Bell, User, Download, Image } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -316,6 +316,18 @@ export default function Programs() {
                                   lectureId={session.id}
                                   sessionTitle={session.title}
                                 />
+                                
+                                {/* Flyer Download Button - Only for Beyond PubMed session */}
+                                {session.title.includes("Beyond PubMed") && (
+                                  <a 
+                                    href="/images/beyond-pubmed-flyer.png" 
+                                    download="Beyond-PubMed-Flyer.png"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+                                  >
+                                    <Download className="h-4 w-4" />
+                                    Download Flyer
+                                  </a>
+                                )}
                               </div>
                             </div>
                             
