@@ -65,7 +65,7 @@ export default function Home() {
               <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 transform translate-x-4 hover:scale-105 transition-transform duration-300">
                 <div className="relative w-56 h-56 rounded-full overflow-hidden border-4 border-background shadow-xl grayscale hover:grayscale-0 transition-all duration-500">
                   <img 
-                    src="/images/dr-rawahi.jpg" 
+                    src="/mohamed-alrawahi.png" 
                     alt="Dr. Mohamed Al Rawahi" 
                     className="w-full h-full object-cover"
                   />

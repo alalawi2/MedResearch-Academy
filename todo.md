@@ -20,3 +20,9 @@
 - [x] Design smart session archive (past sessions available, emphasis on upcoming)
 - [x] Update Programs page with new session management features
 - [x] Fix nested anchor tag error on homepage
+- [x] Update Dr. Mohamed Al Rawahi's photo on the website
+- [x] Create new session: "Beyond PubMed: AI-Powered Literature Search - Applications and Ethics"
+- [x] Add learning objectives to the new session
+- [x] Create new session "Beyond PubMed: AI-Powered Literature Search - Applications and Ethics" for January 14, 2026
+- [x] Update Dr. Mohamed's photo on the website
+- [x] Add session with learning objectives and Zoom link

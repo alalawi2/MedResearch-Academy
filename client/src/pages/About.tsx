@@ -112,7 +112,7 @@ export default function About() {
                 <div className="bg-card border border-border rounded-xl p-6 shadow-sm h-full flex flex-col">
                   <div className="aspect-[3/4] rounded-lg bg-secondary/30 border border-border/50 mb-6 overflow-hidden relative">
                      <img 
-                       src="/images/dr-rawahi.jpg" 
+                       src="/mohamed-alrawahi.png" 
                        alt="Dr. Mohamed Al Rawahi" 
                        className="w-full h-full object-cover object-center"
                      />
