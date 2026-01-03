@@ -47,3 +47,6 @@
 - [x] Redesign "Beyond PubMed" flyer with official MedResearch Academy logo
 - [x] Add flyer display and download button to Programs page
 - [x] Display flyer image in upcoming session section on Programs page
+- [x] Fix nested anchor tag error on Programs page
+- [x] Fix nested anchor tag error on Programs page
+- [x] Reorganize session description with better formatting and structure

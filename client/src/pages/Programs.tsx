@@ -343,12 +343,12 @@ export default function Programs() {
                             
                             {session.videoUrl && (
                               <div className="flex items-center">
-                                <Link href={`/lectures/${session.id}`}>
-                                  <Button variant="outline" size="lg">
+                                <Button variant="outline" size="lg" asChild>
+                                  <Link href={`/lectures/${session.id}`}>
                                     <PlayCircle className="h-4 w-4 mr-2" />
                                     View Lecture
-                                  </Button>
-                                </Link>
+                                  </Link>
+                                </Button>
                               </div>
                             )}
                           </div>
@@ -384,12 +384,12 @@ export default function Programs() {
                             </div>
                             
                             {session.videoUrl && (
-                              <Link href={`/lectures/${session.id}`}>
-                                <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/lectures/${session.id}`}>
                                   <PlayCircle className="h-4 w-4 mr-2" />
                                   Watch
-                                </Button>
-                              </Link>
+                                </Link>
+                              </Button>
                             )}
                           </div>
                         </CardContent>
@@ -399,11 +399,11 @@ export default function Programs() {
                   
                   {pastSessions.length > 5 && (
                     <div className="mt-4 text-center">
-                      <Link href="/lectures">
-                        <Button variant="outline">
+                      <Button variant="outline" asChild>
+                        <Link href="/lectures">
                           View All Recordings ({pastSessions.length})
-                        </Button>
-                      </Link>
+                        </Link>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -411,17 +411,17 @@ export default function Programs() {
             </CardContent>
             
             <CardFooter className="bg-muted/30 flex-wrap gap-4">
-              <Link href="/contact?subject=Virtual Research Series Inquiry">
-                <Button>
+              <Button asChild>
+                <Link href="/contact?subject=Virtual Research Series Inquiry">
                   Join Open Session
-                </Button>
-              </Link>
-              <Link href="/lectures">
-                <Button variant="outline">
+                </Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/lectures">
                   <PlayCircle className="h-4 w-4 mr-2" />
                   View All Lectures
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
         </div>
@@ -461,11 +461,11 @@ export default function Programs() {
               </CardContent>
               
               <CardFooter>
-                <Link href="/contact?subject=Mentorship Inquiry">
-                  <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/contact?subject=Mentorship Inquiry">
                     Become a Mentor
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </CardFooter>
             </Card>
 
@@ -497,11 +497,11 @@ export default function Programs() {
               </CardContent>
               
               <CardFooter>
-                <Link href="/contact?subject=Research Collaboration">
-                  <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/contact?subject=Research Collaboration">
                     Propose Collaboration
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </CardFooter>
             </Card>
           </div>

@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET description = 'Join Dr. Mohamed Al Rawahi for an exploration of cutting-edge AI tools revolutionizing medical literature search and research synthesis.\n\n📚 Learning Objectives:\n• Understand capabilities and limitations of AI-powered literature search tools beyond traditional databases\n• Learn practical applications of AI for efficient evidence synthesis and systematic reviews  \n• Explore ethical considerations when using AI in medical research and publication\n• Discover strategies to integrate AI tools into your research workflow while maintaining academic integrity\n\n👨‍⚕️ Speaker: Dr. Mohamed Al Rawahi, MD, MSc, FRCPC, ABIM\nSenior Consultant in Cardiac Electrophysiology\n\n⏱️ Duration: 60 minutes (20:00-21:00 Muscat Time)'\nWHERE title LIKE '%Beyond PubMed%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET description = 'Join Dr. Mohamed Al Rawahi for an exploration of cutting-edge AI tools revolutionizing medical literature search and research synthesis.\n\n📚 Learning Objectives:\n• Understand capabilities and limitations of AI-powered literature search tools beyond traditional databases\n• Learn practical applications of AI for efficient evidence synthesis and systematic reviews  \n• Explore ethical considerations when using AI in medical research and publication\n• Discover strategies to integrate AI tools into your research workflow while maintaining academic integrity\n\n👨‍⚕️ Speaker: Dr. Mohamed Al Rawahi, MD, MSc, FRCPC, ABIM\nSenior Consultant in Cardiac Electrophysiology\n\n⏱️ Duration: 60 minutes (20:00-21:00 Muscat Time)'\nWHERE title LIKE '%Beyond PubMed%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1553
+}
