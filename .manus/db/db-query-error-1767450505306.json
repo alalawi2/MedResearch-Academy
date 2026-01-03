@@ -1,0 +1,8 @@
+{
+  "query": "SELECT r.id, r.email, r.reminderSent24h, r.reminderSent1h, l.title, l.sessionDate, l.zoomLink FROM reminders r JOIN lectures l ON r.lectureId = l.id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute SELECT r.id, r.email, r.reminderSent24h, r.reminderSent1h, l.title, l.sessionDate, l.zoomLink FROM reminders r JOIN lectures l ON r.lectureId = l.id;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'kegm3bvttztes7ge5tmbvx.reminders' doesn't exist"
+  ]
+}

@@ -35,3 +35,7 @@
 - [x] Add speaker name and details to session card
 - [x] Implement reminder/notification subscription feature with icon
 - [x] Test session display enhancements
+- [x] Set up email service configuration for automated reminders
+- [x] Create email templates for 24-hour and 1-hour reminders
+- [x] Implement scheduled job to check and send reminders
+- [x] Test email reminder system with real session data
