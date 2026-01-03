@@ -9,3 +9,5 @@
 - [x] Fix Q&A system: questions should only appear publicly after instructor replies
 - [x] Remove commenting functionality - only instructor can answer
 - [x] Update UI to show only answered questions to public users
+- [x] Test all contact buttons and forms across the website
+- [x] Fix any non-functioning contact features (No issues found - all working)
