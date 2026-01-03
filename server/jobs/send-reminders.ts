@@ -42,7 +42,8 @@ async function send24HourReminders() {
         and(
           gte(lectures.sessionDate, in24Hours),
           lte(lectures.sessionDate, in24HoursPlus15Min),
-          eq(reminders.reminderSent24h, 0)
+          eq(reminders.reminderSent24h, 0),
+          eq(reminders.unsubscribed, 0)
         )
       );
 
@@ -59,6 +60,8 @@ async function send24HourReminders() {
         description: reminder.description || undefined,
         sessionDate: reminder.sessionDate,
         zoomLink: reminder.zoomLink,
+        reminderId: reminder.reminderId,
+        email: reminder.email,
       });
 
       const success = await sendEmail({
@@ -121,7 +124,8 @@ async function send1HourReminders() {
         and(
           gte(lectures.sessionDate, in1Hour),
           lte(lectures.sessionDate, in1HourPlus15Min),
-          eq(reminders.reminderSent1h, 0)
+          eq(reminders.reminderSent1h, 0),
+          eq(reminders.unsubscribed, 0)
         )
       );
 
@@ -138,6 +142,8 @@ async function send1HourReminders() {
         description: reminder.description || undefined,
         sessionDate: reminder.sessionDate,
         zoomLink: reminder.zoomLink,
+        reminderId: reminder.reminderId,
+        email: reminder.email,
       });
 
       const success = await sendEmail({

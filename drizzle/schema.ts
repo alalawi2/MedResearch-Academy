@@ -78,6 +78,8 @@ export const reminders = mysqlTable("reminders", {
   email: varchar("email", { length: 320 }).notNull(),
   reminderSent24h: int("reminderSent24h").default(0).notNull(), // 0 = not sent, 1 = sent
   reminderSent1h: int("reminderSent1h").default(0).notNull(),
+  unsubscribed: int("unsubscribed").default(0).notNull(), // 0 = subscribed, 1 = unsubscribed
+  unsubscribedAt: timestamp("unsubscribedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

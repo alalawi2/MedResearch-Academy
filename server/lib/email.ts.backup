@@ -174,11 +174,6 @@ export function generate24HourReminderEmail(sessionData: {
               <p style="margin: 0; color: #94a3b8; font-size: 12px;">
                 @Medresearch_om | medresearch-academy.om
               </p>
-              ${sessionData.reminderId && sessionData.email ? `
-              <p style="margin: 15px 0 0 0; color: #94a3b8; font-size: 11px;">
-                Don't want to receive reminders? <a href="https://medresearch-academy.om/unsubscribe?id=${sessionData.reminderId}&email=${encodeURIComponent(sessionData.email)}" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
-              </p>
-              ` : ''}
             </td>
           </tr>
         </table>
@@ -282,11 +277,6 @@ export function generate1HourReminderEmail(sessionData: {
               <p style="margin: 0; color: #94a3b8; font-size: 12px;">
                 @Medresearch_om | medresearch-academy.om
               </p>
-              ${sessionData.reminderId && sessionData.email ? `
-              <p style="margin: 15px 0 0 0; color: #94a3b8; font-size: 11px;">
-                Don't want to receive reminders? <a href="https://medresearch-academy.om/unsubscribe?id=${sessionData.reminderId}&email=${encodeURIComponent(sessionData.email)}" style="color: #64748b; text-decoration: underline;">Unsubscribe</a>
-              </p>
-              ` : ''}
             </td>
           </tr>
         </table>

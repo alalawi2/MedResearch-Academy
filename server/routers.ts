@@ -6,6 +6,8 @@ import { z } from "zod";
 import { createLecture, createQuestion, deleteLecture, deleteQuestion, getAllLectures, getAllQuestions, getPublishedQuestionsByLectureId, getQuestionsByLectureId, updateQuestion } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
+import { unsubscribeRouter } from "./routers/unsubscribe";
+import { analyticsRouter } from "./routers/analytics";
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -176,6 +178,13 @@ export const appRouter = router({
         });
         return { success: true };
       }),
+  }),
+  unsubscribe: unsubscribeRouter,
+  analytics: router({
+    reminders: router({
+      stats: analyticsRouter.getReminderStats,
+      sessions: analyticsRouter.getSessionReminders,
+    }),
   }),
 });
 

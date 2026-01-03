@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
-import { Calendar, Clock, Link as LinkIcon, Trash2, Video } from "lucide-react";
+import { Calendar, Clock, Link as LinkIcon, Trash2, Video, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
 export default function AdminSessions() {
+  const [, setLocation] = useLocation();
   const { data: user } = trpc.auth.me.useQuery();
   const { data: upcomingSessions = [], refetch: refetchUpcoming } = trpc.sessions.getUpcoming.useQuery();
   const { data: pastSessions = [], refetch: refetchPast } = trpc.sessions.getPast.useQuery();
@@ -100,7 +102,17 @@ export default function AdminSessions() {
   return (
     <Layout>
       <div className="container py-12">
-        <h1 className="text-4xl font-bold mb-8">Session Management</h1>
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold">Session Management</h1>
+          <Button
+            onClick={() => setLocation("/admin/analytics")}
+            variant="outline"
+            className="gap-2"
+          >
+            <BarChart3 className="w-4 h-4" />
+            View Analytics
+          </Button>
+        </div>
 
         {/* Schedule New Session */}
         <Card className="p-6 mb-12">

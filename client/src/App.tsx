@@ -18,6 +18,8 @@ import LectureDetail from "@/pages/LectureDetail";
 import AdminLectures from "./pages/AdminLectures";
 import AdminQuestions from "./pages/AdminQuestions";
 import AdminSessions from "./pages/AdminSessions";
+import AdminAnalytics from "./pages/AdminAnalytics";
+import Unsubscribe from "./pages/Unsubscribe";
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
@@ -36,6 +38,8 @@ function Router() {
           <Route path="/admin/lectures" component={AdminLectures} />
           <Route path="/admin/questions" component={AdminQuestions} />
           <Route path="/admin/sessions" component={AdminSessions} />
+          <Route path="/admin/analytics" component={AdminAnalytics} />
+          <Route path="/unsubscribe" component={Unsubscribe} />
       <Route component={NotFound} />
     </Switch>
   );
