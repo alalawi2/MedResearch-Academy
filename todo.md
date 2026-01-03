@@ -62,3 +62,6 @@
 - [x] Regenerate email signature with Tuesday date
 - [x] Regenerate social media square with Tuesday date
 - [x] Update website announcements with new date
+- [x] Create visual assets for pre-operative patient preparation guide
+- [x] Add featured section to Resources page with embedded guide link
+- [x] Test pre-operative guide section display and functionality
