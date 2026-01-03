@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET sessionDate = '2026-01-14 20:00:00'\nWHERE title LIKE '%Beyond PubMed%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET sessionDate = '2026-01-14 20:00:00'\nWHERE title LIKE '%Beyond PubMed%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1550
+}
