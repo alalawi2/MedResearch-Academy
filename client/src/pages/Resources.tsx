@@ -1,3 +1,4 @@
+
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Loader2, RefreshCw, Share2 } from "lucide-react";
@@ -67,7 +68,63 @@ export default function Resources() {
       <section className="py-16">
         <div className="container max-w-5xl space-y-16">
           
-          {/* Example Publications Section */}
+          {/* Medical Research Assistant Section */}
+          <div className="rounded-xl overflow-hidden" style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+          }}>
+            <div className="p-8 md:p-12 text-white">
+              {/* Header */}
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">
+                  🔬 Medical Research Assistant
+                </h2>
+                <p className="text-lg md:text-xl opacity-95 max-w-3xl mx-auto leading-relaxed">
+                  Comprehensive research tools designed for early-career medical researchers. 
+                  Plan, design, and write research proposals with AI-powered assistance.
+                </p>
+              </div>
+
+              {/* 8 Tools Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                {[
+                  { icon: '📊', title: 'Sample Size Calculator', desc: '8 statistical tests with beginner-friendly wizard' },
+                  { icon: '🧪', title: 'Study Type Wizard', desc: 'Interactive decision tree for study design' },
+                  { icon: '📝', title: 'AI Proposal Writer', desc: 'IMRAD templates with PDF/Word export' },
+                  { icon: '💬', title: 'Research Chatbot', desc: 'LLM-powered Q&A for research guidance' },
+                  { icon: '🔍', title: 'Statistical Test Selector', desc: 'Interactive flowchart to choose tests' },
+                  { icon: '📚', title: 'Literature Search', desc: 'PubMed integration for research papers' },
+                  { icon: '💰', title: 'Budget Calculator', desc: 'Research budget planning with charts' },
+                  { icon: '📅', title: 'Timeline Planner', desc: 'Gantt chart for project milestones' }
+                ].map((tool, idx) => (
+                  <div 
+                    key={idx}
+                    className="bg-white/15 backdrop-blur-sm p-5 rounded-lg border border-white/20 hover:-translate-y-1 transition-transform duration-200"
+                  >
+                    <div className="text-3xl mb-2">{tool.icon}</div>
+                    <h4 className="text-base font-semibold mb-2">{tool.title}</h4>
+                    <p className="text-sm opacity-90 leading-snug">{tool.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Button */}
+              <div className="text-center">
+                <a 
+                  href="https://3000-iudb0l3cxip5864amsdp9-0037ee3b.sg1.manus.computer" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block bg-white text-[#667eea] px-8 py-4 rounded-lg text-lg font-semibold shadow-lg hover:-translate-y-0.5 hover:shadow-xl transition-all duration-200"
+                >
+                  Launch Research Assistant →
+                </a>
+                <p className="mt-4 text-sm opacity-85">
+                  Free trial period • No credit card required
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Example Publications Section */
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
