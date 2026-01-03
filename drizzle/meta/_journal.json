@@ -1,41 +1,5 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": [
-    {
-      "idx": 0,
-      "version": "5",
-      "when": 1767179987185,
-      "tag": "0000_neat_randall",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1767180097966,
-      "tag": "0001_sad_morg",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "5",
-      "when": 1767240263269,
-      "tag": "0002_amusing_selene",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "5",
-      "when": 1767240555313,
-      "tag": "0003_silky_morbius",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "5",
-      "when": 1767442381443,
-      "tag": "0004_brief_gargoyle",
-      "breakpoints": true
-    }
-  ]
+  "entries": []
 }

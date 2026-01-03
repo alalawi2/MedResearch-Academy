@@ -12,9 +12,11 @@
 - [x] Test all contact buttons and forms across the website
 - [x] Fix any non-functioning contact features (No issues found - all working)
 - [x] Create database schema for sessions and reminders
+- [x] Build backend APIs for session management (getUpcoming, getPast, subscribeReminder)
+- [x] Create admin interface for scheduling sessions (/admin/sessions)
 - [ ] Implement email reminder system for upcoming sessions
-- [ ] Add "Add to Calendar" button (Google, Outlook, Apple)
-- [ ] Create countdown timer component for next session
-- [ ] Design smart session archive (past sessions available, emphasis on upcoming)
-- [ ] Update Programs page with new session management features
+- [x] Add "Add to Calendar" button (Google, Outlook, Apple)
+- [x] Create countdown timer component for next session
+- [x] Design smart session archive (past sessions available, emphasis on upcoming)
+- [x] Update Programs page with new session management features
 - [x] Fix nested anchor tag error on homepage

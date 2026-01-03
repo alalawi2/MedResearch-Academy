@@ -35,6 +35,8 @@ export const appRouter = router({
           fileName: z.string().optional(),
           mimeType: z.string().optional(),
           fileSize: z.number().optional(),
+          sessionDate: z.string().optional(),
+          zoomLink: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -59,6 +61,8 @@ export const appRouter = router({
           fileName: input.fileName || null,
           fileSize: input.fileSize || null,
           mimeType: input.mimeType || null,
+          sessionDate: input.sessionDate ? new Date(input.sessionDate) : null,
+          zoomLink: input.zoomLink || null,
           uploadedBy: ctx.user.id,
         });
         
@@ -132,6 +136,43 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         await updateQuestion(input.id, {
           isPublished: input.isPublished ? 1 : 0,
+        });
+        return { success: true };
+      }),
+  }),
+  sessions: router({
+    getUpcoming: publicProcedure.query(async () => {
+      const { getDb } = await import("./db");
+      const { lectures } = await import("../drizzle/schema");
+      const { sql } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return [];
+      const now = new Date();
+      return await db.select().from(lectures)
+        .where(sql`${lectures.sessionDate} > ${now}`)
+        .orderBy(lectures.sessionDate);
+    }),
+    getPast: publicProcedure.query(async () => {
+      const { getDb } = await import("./db");
+      const { lectures } = await import("../drizzle/schema");
+      const { sql } = await import("drizzle-orm");
+      const db = await getDb();
+      if (!db) return [];
+      const now = new Date();
+      return await db.select().from(lectures)
+        .where(sql`${lectures.sessionDate} <= ${now} AND ${lectures.sessionDate} IS NOT NULL`)
+        .orderBy(sql`${lectures.sessionDate} DESC`);
+    }),
+    subscribeReminder: publicProcedure
+      .input(z.object({ lectureId: z.number(), email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db");
+        const { reminders } = await import("../drizzle/schema");
+        const db = await getDb();
+        if (!db) throw new Error("Database not available");
+        await db.insert(reminders).values({
+          lectureId: input.lectureId,
+          email: input.email,
         });
         return { success: true };
       }),
