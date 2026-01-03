@@ -46,3 +46,4 @@
 - [x] Test unsubscribe flow and analytics display
 - [x] Redesign "Beyond PubMed" flyer with official MedResearch Academy logo
 - [x] Add flyer display and download button to Programs page
+- [x] Display flyer image in upcoming session section on Programs page

@@ -262,15 +262,25 @@ export default function Programs() {
                       <Card key={session.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
                         <CardContent className="pt-6">
                           <div className="flex flex-col md:flex-row gap-6">
-                            {/* Speaker Photo */}
+                            {/* Flyer Image for Beyond PubMed, Speaker Photo for others */}
                             <div className="flex-shrink-0">
-                              <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
-                                <img 
-                                  src="/images/dr-rawahi.jpg" 
-                                  alt="Dr. Mohamed Al Rawahi" 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
+                              {session.title.includes("Beyond PubMed") ? (
+                                <div className="w-full md:w-80 rounded-lg overflow-hidden border-2 border-primary/20 shadow-lg hover:shadow-xl transition-shadow">
+                                  <img 
+                                    src="/images/beyond-pubmed-flyer.png" 
+                                    alt="Beyond PubMed Session Flyer" 
+                                    className="w-full h-auto object-contain"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
+                                  <img 
+                                    src="/images/dr-rawahi.jpg" 
+                                    alt="Dr. Mohamed Al Rawahi" 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              )}
                             </div>
                             
                             {/* Session Details */}
