@@ -57,7 +57,7 @@ draw.text((540, 1190), 'MD, MSc, FRCPC, ABIM', fill='#5DD9C1', font=font_small, 
 # Date & Time - prominent box
 box_y = 1260
 draw.rounded_rectangle([(90, box_y), (990, box_y + 200)], radius=20, fill='#2C5F7F', outline='#5DD9C1', width=5)
-draw.text((540, box_y + 40), '📅 Wednesday, January 14, 2026', fill='white', font=font_body, anchor='mm')
+draw.text((540, box_y + 40), '📅 Tuesday, January 13, 2026', fill='white', font=font_body, anchor='mm')
 draw.text((540, box_y + 90), '🕐 8:00 PM - 9:00 PM', fill='white', font=font_body, anchor='mm')
 draw.text((540, box_y + 140), '💻 Zoom (Virtual)', fill='white', font=font_body, anchor='mm')
 

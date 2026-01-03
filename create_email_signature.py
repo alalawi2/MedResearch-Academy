@@ -32,7 +32,7 @@ except:
 x_start = 110
 draw.text((x_start, 20), 'Join Our Next Session:', fill='white', font=font_title)
 draw.text((x_start, 45), 'Beyond PubMed: AI-Powered Literature Search', fill='#5DD9C1', font=font_body)
-draw.text((x_start, 70), '📅 Wed, Jan 14, 2026 | 🕐 8:00 PM', fill='white', font=font_small)
+draw.text((x_start, 70), '📅 Tue, Jan 13, 2026 | 🕐 8:00 PM', fill='white', font=font_small)
 draw.text((x_start, 90), '💻 Zoom (Virtual) | Free Registration', fill='white', font=font_small)
 draw.text((x_start, 115), '🔗 medresearch-academy.om/programs', fill='#5DD9C1', font=font_small)
 
@@ -74,7 +74,7 @@ draw_sq.text((300, 330), 'Applications and Ethics', fill='#5DD9C1', font=font_sq
 
 # Date box
 draw_sq.rounded_rectangle([(50, 380), (550, 480)], radius=15, fill='#2C5F7F', outline='#5DD9C1', width=3)
-draw_sq.text((300, 410), '📅 Wednesday, January 14, 2026', fill='white', font=font_sq_small, anchor='mm')
+draw_sq.text((300, 410), '📅 Tuesday, January 13, 2026', fill='white', font=font_sq_small, anchor='mm')
 draw_sq.text((300, 445), '🕐 8:00 PM - 9:00 PM (Muscat Time)', fill='white', font=font_sq_small, anchor='mm')
 
 # QR code

@@ -56,3 +56,9 @@
 - [x] Generate functional QR code and add to flyer
 - [x] Create Instagram Story version of flyer (9:16 format)
 - [x] Design email signature graphics for session promotion
+- [x] Change session date to Tuesday, January 13, 2026
+- [x] Regenerate flyer with Tuesday date
+- [x] Regenerate Instagram Story with Tuesday date
+- [x] Regenerate email signature with Tuesday date
+- [x] Regenerate social media square with Tuesday date
+- [x] Update website announcements with new date
