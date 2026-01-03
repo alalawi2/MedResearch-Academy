@@ -11,3 +11,10 @@
 - [x] Update UI to show only answered questions to public users
 - [x] Test all contact buttons and forms across the website
 - [x] Fix any non-functioning contact features (No issues found - all working)
+- [x] Create database schema for sessions and reminders
+- [ ] Implement email reminder system for upcoming sessions
+- [ ] Add "Add to Calendar" button (Google, Outlook, Apple)
+- [ ] Create countdown timer component for next session
+- [ ] Design smart session archive (past sessions available, emphasis on upcoming)
+- [ ] Update Programs page with new session management features
+- [x] Fix nested anchor tag error on homepage

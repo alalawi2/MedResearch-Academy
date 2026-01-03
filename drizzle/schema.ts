@@ -38,6 +38,8 @@ export const lectures = mysqlTable("lectures", {
   fileName: varchar("fileName", { length: 255 }),
   fileSize: int("fileSize"), // in bytes
   mimeType: varchar("mimeType", { length: 100 }),
+  sessionDate: timestamp("sessionDate"), // When this session is scheduled (null if not a session)
+  zoomLink: varchar("zoomLink", { length: 512 }), // Zoom link for upcoming sessions
   uploadedBy: int("uploadedBy").notNull().references(() => users.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -66,5 +68,20 @@ export const questions = mysqlTable("questions", {
 
 export type Question = typeof questions.$inferSelect;
 export type InsertQuestion = typeof questions.$inferInsert;
+
+/**
+ * Reminders table for email reminders for sessions
+ */
+export const reminders = mysqlTable("reminders", {
+  id: int("id").autoincrement().primaryKey(),
+  lectureId: int("lectureId").notNull().references(() => lectures.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 320 }).notNull(),
+  reminderSent24h: int("reminderSent24h").default(0).notNull(), // 0 = not sent, 1 = sent
+  reminderSent1h: int("reminderSent1h").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Reminder = typeof reminders.$inferSelect;
+export type InsertReminder = typeof reminders.$inferInsert;
 
 // TODO: Add your tables here

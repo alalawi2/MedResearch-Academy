@@ -115,12 +115,12 @@ export default function Home() {
           </div>
           
           <div className="mt-12 text-center">
-            <a href="/contact" target="_blank" rel="noopener noreferrer">
+            <Link href="/contact">
               <Button variant="outline" className="gap-2 border-primary/20 hover:border-primary hover:bg-primary/5">
                 <BookOpen className="h-4 w-4" />
                 Join Our Community
               </Button>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
