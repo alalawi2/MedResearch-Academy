@@ -86,9 +86,17 @@ for obj in objectives:
     draw.text((100, y_pos), obj, fill='white', font=font_small)
     y_pos += 30
 
-# QR Code placeholder (add manually or use online QR generator)
-draw.rounded_rectangle([(950, 1350), (1130, 1530)], radius=10, fill='white')
-draw.text((970, 1440), 'QR CODE', fill='black', font=font_body)
+# QR Code - load actual generated QR code
+try:
+    qr_img = Image.open('client/public/images/qr-code.png')
+    qr_img = qr_img.resize((180, 180), Image.Resampling.LANCZOS)
+    flyer.paste(qr_img, (950, 1350))
+    print('QR code added successfully!')
+except Exception as e:
+    print(f'QR code error: {e}')
+    # Fallback placeholder
+    draw.rounded_rectangle([(950, 1350), (1130, 1530)], radius=10, fill='white')
+    draw.text((970, 1440), 'QR CODE', fill='black', font=font_body)
 draw.text((920, 1540), 'Scan to Register', fill='white', font=font_small)
 
 # Footer

@@ -53,3 +53,6 @@
 - [x] Update session date to Wednesday, January 14, 2026
 - [x] Fix flyer to show Wednesday, January 14, 2026 (not Tuesday)
 - [x] Regenerate flyer using exact Dr. Mohamed Al Rawahi photo from website
+- [x] Generate functional QR code and add to flyer
+- [x] Create Instagram Story version of flyer (9:16 format)
+- [x] Design email signature graphics for session promotion
