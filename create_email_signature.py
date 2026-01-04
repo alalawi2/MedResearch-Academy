@@ -22,11 +22,15 @@ except:
 
 # Left section - Logo
 try:
-    logo = Image.open('client/public/images/logo.png')
-    logo = logo.resize((80, 80), Image.Resampling.LANCZOS)
-    banner.paste(logo, (15, 35), logo if logo.mode == 'RGBA' else None)
-except:
-    pass
+    logo = Image.open('client/public/images/logo_final_v2.png')
+    logo = logo.resize((70, 70), Image.Resampling.LANCZOS)
+    # Create white background for logo
+    logo_bg = Image.new('RGB', (80, 80), 'white')
+    logo_bg.paste(logo, (5, 5), logo if logo.mode == 'RGBA' else None)
+    banner.paste(logo_bg, (15, 35))
+    print('MedResearch Academy logo added to email signature!')
+except Exception as e:
+    print(f'Logo error: {e}')
 
 # Middle section - Event info
 x_start = 110
@@ -53,11 +57,15 @@ for y in range(600):
 
 # Logo centered
 try:
-    logo = Image.open('client/public/images/logo.png')
-    logo = logo.resize((120, 120), Image.Resampling.LANCZOS)
-    square.paste(logo, (240, 40), logo if logo.mode == 'RGBA' else None)
-except:
-    pass
+    logo = Image.open('client/public/images/logo_final_v2.png')
+    logo = logo.resize((100, 100), Image.Resampling.LANCZOS)
+    # Create white background for logo
+    logo_bg = Image.new('RGB', (110, 110), 'white')
+    logo_bg.paste(logo, (5, 5), logo if logo.mode == 'RGBA' else None)
+    square.paste(logo_bg, (245, 40))
+    print('MedResearch Academy logo added to social media square!')
+except Exception as e:
+    print(f'Logo error: {e}')
 
 # Title
 try:

@@ -24,11 +24,15 @@ except:
 
 # Top section - Logo and branding
 try:
-    logo = Image.open('client/public/images/logo.png')
-    logo = logo.resize((180, 180), Image.Resampling.LANCZOS)
-    story.paste(logo, (450, 80), logo if logo.mode == 'RGBA' else None)
-except:
-    pass
+    logo = Image.open('client/public/images/logo_final_v2.png')
+    logo = logo.resize((150, 150), Image.Resampling.LANCZOS)
+    # Create white background for logo
+    logo_bg = Image.new('RGB', (160, 160), 'white')
+    logo_bg.paste(logo, (5, 5), logo if logo.mode == 'RGBA' else None)
+    story.paste(logo_bg, (460, 80))
+    print('MedResearch Academy logo added to Instagram Story!')
+except Exception as e:
+    print(f'Logo error: {e}')
 
 draw.text((540, 280), 'Virtual Research Series', fill='white', font=font_subtitle, anchor='mm')
 

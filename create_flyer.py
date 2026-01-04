@@ -12,11 +12,15 @@ for y in range(height):
     b = int(80 + (128 - 80) * (y / height))
     draw.line([(0, y), (width, y)], fill=(r, g, b))
 
-# Load and place logo
+# Load and place logo (MedResearch Academy)
 try:
-    logo = Image.open('client/public/images/logo.png')
-    logo = logo.resize((200, 200), Image.Resampling.LANCZOS)
-    flyer.paste(logo, (50, 30), logo if logo.mode == 'RGBA' else None)
+    logo = Image.open('client/public/images/logo_final_v2.png')
+    logo = logo.resize((150, 150), Image.Resampling.LANCZOS)
+    # Create white background for logo
+    logo_bg = Image.new('RGB', (160, 160), 'white')
+    logo_bg.paste(logo, (5, 5), logo if logo.mode == 'RGBA' else None)
+    flyer.paste(logo_bg, (40, 40))
+    print('MedResearch Academy logo added successfully!')
 except Exception as e:
     print(f'Logo error: {e}')
 

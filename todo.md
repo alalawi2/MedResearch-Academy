@@ -68,3 +68,5 @@
 - [x] Remove publications section from Resources page
 - [x] Remove LinkedIn accounts links from Resources page
 - [x] Add MedResearch Academy logo to pre-operative guide banner
+- [x] Add MedResearch Academy logo to Dr. Mohamed's "Beyond PubMed" lecture flyer
+- [x] Update all promotional materials (Instagram Story, email signature, social media square) with logo
