@@ -134,11 +134,11 @@ export default function Programs() {
             </p>
             
             <div className="flex flex-wrap gap-4">
-              <Link href="/contact?subject=Virtual Research Series Inquiry">
-                <Button size="lg">
+              <Button size="lg" asChild>
+                <Link href="/contact?subject=Virtual Research Series Inquiry">
                   Join Open Session
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
