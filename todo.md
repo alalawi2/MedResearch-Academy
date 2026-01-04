@@ -67,3 +67,4 @@
 - [x] Test pre-operative guide section display and functionality
 - [x] Remove publications section from Resources page
 - [x] Remove LinkedIn accounts links from Resources page
+- [x] Add MedResearch Academy logo to pre-operative guide banner
