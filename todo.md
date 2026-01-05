@@ -71,3 +71,6 @@
 - [x] Add MedResearch Academy logo to Dr. Mohamed's "Beyond PubMed" lecture flyer
 - [x] Update all promotional materials (Instagram Story, email signature, social media square) with logo
 - [x] Fix nested anchor tag error on Programs page (React warning)
+- [x] Create visual banner for MedResearch Clinical Calculator
+- [x] Add MedResearch Clinical Calculator card to Resources page
+- [x] Embed calculator with iframe without showing Manus URL

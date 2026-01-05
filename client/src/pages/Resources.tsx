@@ -138,6 +138,77 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* MedResearch Clinical Calculator */}
+          <div className="relative overflow-hidden rounded-2xl border border-border/40 bg-gradient-to-br from-teal-500/5 via-background to-blue-500/5 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="relative">
+              <img 
+                src="/images/clinical-calculator-banner.png" 
+                alt="MedResearch Clinical Calculator"
+                className="w-full h-64 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent"></div>
+            </div>
+            
+            <div className="relative p-8 md:p-10 -mt-32">
+              <div className="inline-block px-4 py-1.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-full text-sm font-medium mb-4">
+                Clinical Decision Support Tool
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-foreground">
+                MedResearch Clinical Calculator
+              </h2>
+              
+              <p className="text-lg text-muted-foreground mb-6 max-w-3xl">
+                Comprehensive clinical calculator suite featuring qSOFA scoring, vital signs assessment, and rapid sepsis risk stratification. Designed for bedside use to support evidence-based clinical decision-making in acute care settings. Calculate scores instantly and improve patient outcomes through timely interventions.
+              </p>
+              
+              <div className="flex flex-wrap gap-4">
+                <a 
+                  href="https://qsofacalc-acewiica.manus.space" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  <Button size="lg" className="gap-2 bg-teal-600 hover:bg-teal-700">
+                    <ExternalLink className="h-5 w-5" />
+                    Launch Calculator
+                  </Button>
+                </a>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  onClick={() => {
+                    const text = encodeURIComponent('MedResearch Clinical Calculator - Rapid Clinical Decision Support - MedResearch Academy');
+                    const url = encodeURIComponent('https://qsofacalc-acewiica.manus.space');
+                    window.open(`https://wa.me/?text=${text}%20${url}`, '_blank', 'width=600,height=400');
+                  }}
+                  className="gap-2"
+                >
+                  <Share2 className="h-5 w-5" />
+                  Share Calculator
+                </Button>
+              </div>
+              
+              <div className="mt-8 pt-6 border-t border-border/40">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">qSOFA Scoring</div>
+                    <div className="text-muted-foreground">Rapid sepsis risk assessment</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Bedside Ready</div>
+                    <div className="text-muted-foreground">Instant calculations for clinical use</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Evidence-Based</div>
+                    <div className="text-muted-foreground">Validated clinical scoring systems</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
 
         </div>
       </section>
