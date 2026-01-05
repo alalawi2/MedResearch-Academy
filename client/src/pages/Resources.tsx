@@ -78,7 +78,7 @@ export default function Resources() {
               <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent"></div>
             </div>
             
-            <div className="relative p-8 md:p-10 -mt-32">
+            <div className="relative p-8 md:p-10 -mt-20">
               <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
                 Featured Clinical Resource
               </div>
@@ -149,7 +149,7 @@ export default function Resources() {
               <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent"></div>
             </div>
             
-            <div className="relative p-8 md:p-10 -mt-32">
+            <div className="relative p-8 md:p-10 -mt-20">
               <div className="inline-block px-4 py-1.5 bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-full text-sm font-medium mb-4">
                 Clinical Decision Support Tool
               </div>

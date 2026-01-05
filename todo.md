@@ -74,3 +74,4 @@
 - [x] Create visual banner for MedResearch Clinical Calculator
 - [x] Add MedResearch Clinical Calculator card to Resources page
 - [x] Embed calculator with iframe without showing Manus URL
+- [x] Fix MedResearch Clinical Calculator card being cut off on Resources page
