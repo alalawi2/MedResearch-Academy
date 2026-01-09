@@ -164,6 +164,123 @@ export default function Programs() {
         </div>
       </section>
 
+      {/* Upcoming Sessions - Moved to Top */}
+      {upcomingSessions.length > 0 && (
+        <section className="py-12">
+          <div className="container">
+            <h2 className="text-3xl font-bold mb-8 text-center">Upcoming Sessions</h2>
+            
+            <div className="grid gap-6">
+              {upcomingSessions.map((session: any) => (
+                <Card key={session.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      {/* Speaker Photo */}
+                      <div className="flex-shrink-0">
+                        <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
+                          <img 
+                            src="/mohamed-alrawahi.png" 
+                            alt="Dr. Mohamed Al Rawahi" 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Session Details */}
+                      <div className="flex-1">
+                        <h4 className="text-xl font-bold mb-2 text-primary">{session.title}</h4>
+                        
+                        {/* Speaker Info */}
+                        <div className="flex items-center gap-2 mb-3 text-sm">
+                          <User className="h-4 w-4 text-accent" />
+                          <div>
+                            <span className="font-semibold">Dr. Mohamed Al Rawahi</span>
+                            <span className="text-muted-foreground"> • MD, MSc, FRCPC, ABIM</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-1">Senior Consultant in Cardiac Electrophysiology</p>
+                        
+                        <p className="text-muted-foreground mb-4 mt-3">{session.description}</p>
+                        
+                        {/* Date and Time */}
+                        <div className="flex flex-wrap items-center gap-4 text-sm mb-4">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              {new Date(session.sessionDate).toLocaleDateString("en-US", {
+                                weekday: "short",
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span className="font-medium">
+                              {new Date(session.sessionDate).toLocaleTimeString("en-US", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap gap-3">
+                          {/* Primary Action: Register for Zoom */}
+                          {session.zoomLink && (
+                            <Button asChild size="default" className="bg-accent hover:bg-accent/90">
+                              <a 
+                                href={session.zoomLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Register Now
+                              </a>
+                            </Button>
+                          )}
+                          
+                          {/* Secondary Actions */}
+                          <ReminderDialog 
+                            lectureId={session.id}
+                            sessionTitle={session.title}
+                          />
+                          
+                          {session.title.includes("Beyond PubMed") && (
+                            <Button variant="outline" size="default" asChild>
+                              <a 
+                                href="/images/beyond-pubmed-flyer.png" 
+                                download="Beyond-PubMed-Flyer.png"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Flyer
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {session.videoUrl && (
+                        <div className="flex items-center">
+                          <Button variant="outline" size="lg" asChild>
+                            <Link href={`/lectures/${session.id}`}>
+                              <PlayCircle className="h-4 w-4 mr-2" />
+                              View Lecture
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Next Session Countdown */}
       {nextSession && (
         <section className="py-12 bg-muted/30">
@@ -195,7 +312,7 @@ export default function Programs() {
         </section>
       )}
 
-      {/* Virtual Research Series */}
+      {/* Virtual Research Series - Curriculum */}
       <section className="py-20">
         <div className="container">
           <Card className="overflow-hidden">
@@ -248,124 +365,6 @@ export default function Programs() {
                   ))}
                 </div>
               </div>
-
-              {/* Upcoming Sessions */}
-              {upcomingSessions.length > 0 && (
-                <div className="mb-8">
-                  <h3 className="text-2xl font-semibold flex items-center gap-2 mb-6">
-                    <Calendar className="h-6 w-6 text-primary" />
-                    Upcoming Sessions
-                  </h3>
-                  
-                  <div className="grid gap-6">
-                    {upcomingSessions.map((session: any) => (
-                      <Card key={session.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
-                        <CardContent className="pt-6">
-                          <div className="flex flex-col md:flex-row gap-6">
-                            {/* Speaker Photo */}
-                            <div className="flex-shrink-0">
-                              <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
-                                <img 
-                                  src="/mohamed-alrawahi.png" 
-                                  alt="Dr. Mohamed Al Rawahi" 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            </div>
-                            
-                            {/* Session Details */}
-                            <div className="flex-1">
-                              <h4 className="text-xl font-bold mb-2 text-primary">{session.title}</h4>
-                              
-                              {/* Speaker Info */}
-                              <div className="flex items-center gap-2 mb-3 text-sm">
-                                <User className="h-4 w-4 text-accent" />
-                                <div>
-                                  <span className="font-semibold">Dr. Mohamed Al Rawahi</span>
-                                  <span className="text-muted-foreground"> • MD, MSc, FRCPC, ABIM</span>
-                                </div>
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-1">Senior Consultant in Cardiac Electrophysiology</p>
-                              
-                              <p className="text-muted-foreground mb-4 mt-3">{session.description}</p>
-                              
-                              {/* Date and Time */}
-                              <div className="flex flex-wrap items-center gap-4 text-sm mb-4">
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Calendar className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">
-                                    {new Date(session.sessionDate).toLocaleDateString("en-US", {
-                                      weekday: "short",
-                                      month: "short",
-                                      day: "numeric",
-                                      year: "numeric",
-                                    })}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Clock className="h-4 w-4 text-primary" />
-                                  <span className="font-medium">
-                                    {new Date(session.sessionDate).toLocaleTimeString("en-US", {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              {/* Action Buttons */}
-                              <div className="flex flex-wrap gap-3">
-                                {/* Primary Action: Register for Zoom */}
-                                {session.zoomLink && (
-                                  <Button asChild size="default" className="bg-accent hover:bg-accent/90">
-                                    <a 
-                                      href={session.zoomLink}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      <ExternalLink className="h-4 w-4 mr-2" />
-                                      Register Now
-                                    </a>
-                                  </Button>
-                                )}
-                                
-                                {/* Secondary Actions */}
-                                <ReminderDialog 
-                                  lectureId={session.id}
-                                  sessionTitle={session.title}
-                                />
-                                
-                                {session.title.includes("Beyond PubMed") && (
-                                  <Button variant="outline" size="default" asChild>
-                                    <a 
-                                      href="/images/beyond-pubmed-flyer.png" 
-                                      download="Beyond-PubMed-Flyer.png"
-                                    >
-                                      <Download className="h-4 w-4 mr-2" />
-                                      Flyer
-                                    </a>
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {session.videoUrl && (
-                              <div className="flex items-center">
-                                <Button variant="outline" size="lg" asChild>
-                                  <Link href={`/lectures/${session.id}`}>
-                                    <PlayCircle className="h-4 w-4 mr-2" />
-                                    View Lecture
-                                  </Link>
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Past Sessions Archive */}
               {pastSessions.length > 0 && (
@@ -435,86 +434,7 @@ export default function Programs() {
         </div>
       </section>
 
-      {/* Other Programs */}
-      <section className="py-20 bg-muted/30">
-        <div className="container">
-          <h2 className="text-3xl font-bold mb-12 text-center">Additional Opportunities</h2>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Mentorship */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4 mb-4">
-                  {mentorshipProgram.icon}
-                  <div>
-                    <CardTitle className="text-2xl">{mentorshipProgram.title}</CardTitle>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="secondary">{mentorshipProgram.duration}</Badge>
-                      <Badge variant="secondary">{mentorshipProgram.level}</Badge>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">{mentorshipProgram.description}</p>
-              </CardHeader>
-              
-              <CardContent>
-                <ul className="space-y-2">
-                  {mentorshipProgram.benefits.map((benefit, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              
-              <CardFooter>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/contact?subject=Mentorship Inquiry">
-                    Become a Mentor
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
 
-            {/* Collaborative Research */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4 mb-4">
-                  {collaborativeResearch.icon}
-                  <div>
-                    <CardTitle className="text-2xl">{collaborativeResearch.title}</CardTitle>
-                    <div className="flex gap-2 mt-2">
-                      <Badge variant="secondary">{collaborativeResearch.duration}</Badge>
-                      <Badge variant="secondary">{collaborativeResearch.level}</Badge>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-muted-foreground">{collaborativeResearch.description}</p>
-              </CardHeader>
-              
-              <CardContent>
-                <ul className="space-y-2">
-                  {collaborativeResearch.opportunities.map((opportunity, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span>{opportunity}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-              
-              <CardFooter>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/contact?subject=Research Collaboration">
-                    Propose Collaboration
-                  </Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </div>
-      </section>
     </Layout>
   );
 }

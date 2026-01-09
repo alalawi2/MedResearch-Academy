@@ -106,3 +106,7 @@
 - [x] Generate new QR code for registration link
 - [x] Regenerate all 4 promotional materials with registration QR codes
 - [x] Update button text from "Join Meeting" to "Register Now"
+- [x] Reorganize Programs page: Move Upcoming Sessions to top
+- [x] Move Countdown section after Upcoming Sessions
+- [x] Move Curriculum section after Countdown
+- [x] Remove Additional Opportunities section
