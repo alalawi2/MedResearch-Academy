@@ -122,7 +122,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <BookOpen className="h-5 w-5" />
                 <span className="sr-only">ResearchGate</span>
               </a>
-              <a href="mailto:info@research-academy.om" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href="mailto:info@medresearch-academy.om" className="text-muted-foreground hover:text-primary transition-colors">
                 <Mail className="h-5 w-5" />
                 <span className="sr-only">Email</span>
               </a>

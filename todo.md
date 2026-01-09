@@ -110,3 +110,9 @@
 - [x] Move Countdown section after Upcoming Sessions
 - [x] Move Curriculum section after Countdown
 - [x] Remove Additional Opportunities section
+- [x] Update email from info@research-academy.om to info@medresearch-academy.om throughout website
+- [x] Update email in footer
+- [x] Update email in Contact page
+- [x] Update email in Wall of Impact page
+- [x] Regenerate flyer with correct email info@medresearch-academy.om
+- [x] Add visible Zoom registration link to flyer
