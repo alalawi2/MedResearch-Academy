@@ -178,7 +178,7 @@ export default function Programs() {
                 <Button asChild size="lg">
                   <a href={nextSession.zoomLink} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Join Zoom Meeting
+                    Register Now
                   </a>
                 </Button>
               )}
@@ -315,7 +315,7 @@ export default function Programs() {
                               
                               {/* Action Buttons */}
                               <div className="flex flex-wrap gap-3">
-                                {/* Primary Action: Join Zoom */}
+                                {/* Primary Action: Register for Zoom */}
                                 {session.zoomLink && (
                                   <Button asChild size="default" className="bg-accent hover:bg-accent/90">
                                     <a 
@@ -324,7 +324,7 @@ export default function Programs() {
                                       rel="noopener noreferrer"
                                     >
                                       <ExternalLink className="h-4 w-4 mr-2" />
-                                      Join Meeting
+                                      Register Now
                                     </a>
                                   </Button>
                                 )}

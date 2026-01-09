@@ -102,3 +102,7 @@
 - [x] Regenerate all promotional materials with correct Dr. Mohamed photo (mohamed-alrawahi.png)
 - [x] Add Zoom link display to website Programs page
 - [x] Redesign Programs page to be more professional and less crowded
+- [x] Update Zoom registration link in database: https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg
+- [x] Generate new QR code for registration link
+- [x] Regenerate all 4 promotional materials with registration QR codes
+- [x] Update button text from "Join Meeting" to "Register Now"
