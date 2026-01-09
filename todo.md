@@ -98,3 +98,4 @@
 - [ ] Write blog post: "Complete Guide to Pre-Operative Patient Preparation"
 - [ ] Write blog post: "Clinical Decision Support Tools for Omani Healthcare Professionals"
 - [ ] Optimize meta tags and keywords for clinical tool pages
+- [x] Fix QR codes in promotional materials to link to Zoom meeting
