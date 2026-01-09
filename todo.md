@@ -75,3 +75,12 @@
 - [x] Add MedResearch Clinical Calculator card to Resources page
 - [x] Embed calculator with iframe without showing Manus URL
 - [x] Fix MedResearch Clinical Calculator card being cut off on Resources page
+- [x] Verify Dr. Mohamed's session date is Tuesday, January 13, 2026 in database
+- [x] Regenerate main flyer with Tuesday date
+- [x] Regenerate Instagram Story with Tuesday date
+- [x] Regenerate email signature banner with Tuesday date
+- [x] Regenerate social media square with Tuesday date
+- [x] Update all contact email addresses to info@research-academy.om
+- [x] Update Contact page email
+- [x] Update Footer email
+- [x] Update any other email references across the website

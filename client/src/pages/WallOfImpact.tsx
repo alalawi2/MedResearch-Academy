@@ -397,7 +397,7 @@ export default function WallOfImpact() {
             <p className="text-muted-foreground mb-8">
               Your research journey could inspire the next generation of medical professionals. Share your achievements with the MedResearch Academy community.
             </p>
-            <a href="mailto:dr.abdullahalalawi@gmail.com">
+            <a href="mailto:info@research-academy.om">
               <Button variant="outline" size="lg" className="border-primary/20 hover:border-primary hover:bg-primary/5">
                 Submit Your Story
               </Button>
