@@ -262,25 +262,15 @@ export default function Programs() {
                       <Card key={session.id} className="hover:shadow-lg transition-shadow border-2 border-primary/20">
                         <CardContent className="pt-6">
                           <div className="flex flex-col md:flex-row gap-6">
-                            {/* Flyer Image for Beyond PubMed, Speaker Photo for others */}
+                            {/* Speaker Photo */}
                             <div className="flex-shrink-0">
-                              {session.title.includes("Beyond PubMed") ? (
-                                <div className="w-full md:w-80 rounded-lg overflow-hidden border-2 border-primary/20 shadow-lg hover:shadow-xl transition-shadow">
-                                  <img 
-                                    src="/images/beyond-pubmed-flyer.png" 
-                                    alt="Beyond PubMed Session Flyer" 
-                                    className="w-full h-auto object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-32 h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
-                                  <img 
-                                    src="/images/dr-rawahi.jpg" 
-                                    alt="Dr. Mohamed Al Rawahi" 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              )}
+                              <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
+                                <img 
+                                  src="/mohamed-alrawahi.png" 
+                                  alt="Dr. Mohamed Al Rawahi" 
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
                             </div>
                             
                             {/* Session Details */}
@@ -299,8 +289,9 @@ export default function Programs() {
                               
                               <p className="text-muted-foreground mb-4 mt-3">{session.description}</p>
                               
-                              <div className="flex flex-wrap items-center gap-4 text-sm">
-                                <div className="flex items-center gap-1 text-muted-foreground">
+                              {/* Date and Time */}
+                              <div className="flex flex-wrap items-center gap-4 text-sm mb-4">
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
                                   <Calendar className="h-4 w-4 text-primary" />
                                   <span className="font-medium">
                                     {new Date(session.sessionDate).toLocaleDateString("en-US", {
@@ -311,7 +302,7 @@ export default function Programs() {
                                     })}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-1 text-muted-foreground">
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
                                   <Clock className="h-4 w-4 text-primary" />
                                   <span className="font-medium">
                                     {new Date(session.sessionDate).toLocaleTimeString("en-US", {
@@ -320,23 +311,40 @@ export default function Programs() {
                                     })}
                                   </span>
                                 </div>
+                              </div>
+                              
+                              {/* Action Buttons */}
+                              <div className="flex flex-wrap gap-3">
+                                {/* Primary Action: Join Zoom */}
+                                {session.zoomLink && (
+                                  <Button asChild size="default" className="bg-accent hover:bg-accent/90">
+                                    <a 
+                                      href={session.zoomLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <ExternalLink className="h-4 w-4 mr-2" />
+                                      Join Meeting
+                                    </a>
+                                  </Button>
+                                )}
                                 
-                                {/* Reminder Button */}
+                                {/* Secondary Actions */}
                                 <ReminderDialog 
                                   lectureId={session.id}
                                   sessionTitle={session.title}
                                 />
                                 
-                                {/* Flyer Download Button - Only for Beyond PubMed session */}
                                 {session.title.includes("Beyond PubMed") && (
-                                  <a 
-                                    href="/images/beyond-pubmed-flyer.png" 
-                                    download="Beyond-PubMed-Flyer.png"
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
-                                  >
-                                    <Download className="h-4 w-4" />
-                                    Download Flyer
-                                  </a>
+                                  <Button variant="outline" size="default" asChild>
+                                    <a 
+                                      href="/images/beyond-pubmed-flyer.png" 
+                                      download="Beyond-PubMed-Flyer.png"
+                                    >
+                                      <Download className="h-4 w-4 mr-2" />
+                                      Flyer
+                                    </a>
+                                  </Button>
                                 )}
                               </div>
                             </div>

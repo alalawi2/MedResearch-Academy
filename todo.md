@@ -99,3 +99,6 @@
 - [ ] Write blog post: "Clinical Decision Support Tools for Omani Healthcare Professionals"
 - [ ] Optimize meta tags and keywords for clinical tool pages
 - [x] Fix QR codes in promotional materials to link to Zoom meeting
+- [x] Regenerate all promotional materials with correct Dr. Mohamed photo (mohamed-alrawahi.png)
+- [x] Add Zoom link display to website Programs page
+- [x] Redesign Programs page to be more professional and less crowded
