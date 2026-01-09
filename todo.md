@@ -58,9 +58,9 @@
 - [x] Design email signature graphics for session promotion
 - [x] Change session date to Tuesday, January 13, 2026
 - [x] Regenerate flyer with Tuesday date
-- [x] Regenerate Instagram Story with Tuesday date
+- [x] Regenerate Instagram Story with Tuesday date and actual assets
 - [x] Regenerate email signature with Tuesday date
-- [x] Regenerate social media square with Tuesday date
+- [x] Regenerate social media square with Tuesday date and actual assets
 - [x] Update website announcements with new date
 - [x] Create visual assets for pre-operative patient preparation guide
 - [x] Add featured section to Resources page with embedded guide link
@@ -76,11 +76,25 @@
 - [x] Embed calculator with iframe without showing Manus URL
 - [x] Fix MedResearch Clinical Calculator card being cut off on Resources page
 - [x] Verify Dr. Mohamed's session date is Tuesday, January 13, 2026 in database
-- [x] Regenerate main flyer with Tuesday date
+- [x] Regenerate main flyer with Tuesday date and actual assets
 - [x] Regenerate Instagram Story with Tuesday date
-- [x] Regenerate email signature banner with Tuesday date
+- [x] Regenerate email signature banner with Tuesday date and actual assets
 - [x] Regenerate social media square with Tuesday date
 - [x] Update all contact email addresses to info@research-academy.om
 - [x] Update Contact page email
 - [x] Update Footer email
 - [x] Update any other email references across the website
+- [ ] Fix flyer date from 14/1/2026 to 13/1/2026 (Tuesday, January 13, 2026)
+- [ ] Create automated email reminder system (7 days, 3 days, 1 day, 1 hour before sessions)
+- [ ] Design email templates with signature banner
+- [x] Add social proof badge "Join 150+ Omani medical professionals" to flyers
+- [x] Create testimonial section for promotional materials
+- [ ] Create dedicated landing page for qSOFA Clinical Calculator
+- [ ] Create dedicated landing page for Pre-Operative Patient Preparation Guide
+- [ ] Add Schema.org structured data markup to Resources page
+- [ ] Add Schema.org markup to calculator landing page
+- [ ] Add Schema.org markup to pre-op guide landing page
+- [ ] Write blog post: "How to Use qSOFA Calculator for Rapid Sepsis Assessment"
+- [ ] Write blog post: "Complete Guide to Pre-Operative Patient Preparation"
+- [ ] Write blog post: "Clinical Decision Support Tools for Omani Healthcare Professionals"
+- [ ] Optimize meta tags and keywords for clinical tool pages

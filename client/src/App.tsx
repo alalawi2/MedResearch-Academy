@@ -15,6 +15,7 @@ import Contact from "./pages/Contact";
 import News from "./pages/News";
 import Lectures from "@/pages/Lectures";
 import LectureDetail from "@/pages/LectureDetail";
+import QSofaCalculator from "@/pages/QSofaCalculator";
 import AdminLectures from "./pages/AdminLectures";
 import AdminQuestions from "./pages/AdminQuestions";
 import AdminSessions from "./pages/AdminSessions";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/programs" component={Programs} />
       <Route path="/resources" component={Resources} />
+      <Route path="/qsofa-calculator" component={QSofaCalculator} />
       <Route path="/wall-of-impact" component={WallOfImpact} />
           <Route path="/active-research" component={ActiveResearch} />
       
