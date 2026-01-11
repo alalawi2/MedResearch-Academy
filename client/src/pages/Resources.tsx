@@ -209,6 +209,60 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* Bayan Adaptive Learning Platform - Coming Soon */}
+          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 via-background to-accent/10 shadow-lg">
+            <div className="absolute top-4 right-4 z-10">
+              <div className="px-4 py-2 bg-accent text-accent-foreground rounded-full text-sm font-bold shadow-md">
+                Coming Soon
+              </div>
+            </div>
+            
+            <div className="p-8 md:p-10 text-center">
+              <div className="flex justify-center mb-6">
+                <img 
+                  src="/images/bayan_logo_final_v2.png" 
+                  alt="Bayan Logo"
+                  className="h-32 w-32 md:h-40 md:w-40 object-contain"
+                />
+              </div>
+              
+              <div className="inline-block px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium mb-4">
+                AI-Powered Exam Preparation
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-foreground">
+                Bayan: AI-Powered Adaptive Learning Platform
+              </h2>
+              
+              <p className="text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
+                Master medical exams with personalized question banks that adapt to your knowledge gaps. Smart algorithms identify weak areas and create custom practice sessions for optimal exam preparation.
+              </p>
+              
+              <div className="mt-8 pt-6 border-t border-border/40">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Adaptive Learning</div>
+                    <div className="text-muted-foreground">AI identifies your weak areas automatically</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Personalized Practice</div>
+                    <div className="text-muted-foreground">Custom question sets tailored to you</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground mb-1">Exam-Ready</div>
+                    <div className="text-muted-foreground">OMSB, Arab Board, and licensing exams</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-8">
+                <p className="text-sm text-muted-foreground italic">
+                  Stay tuned for the launch of Bayan. Follow us on social media for updates!
+                </p>
+              </div>
+            </div>
+          </div>
+
 
         </div>
       </section>

@@ -116,3 +116,5 @@
 - [x] Update email in Wall of Impact page
 - [x] Regenerate flyer with correct email info@medresearch-academy.om
 - [x] Add visible Zoom registration link to flyer
+- [x] Add Bayan AI-Powered Adaptive Learning Platform to Resources page as "Coming Soon"
+- [x] Copy Bayan logo to project public images folder
