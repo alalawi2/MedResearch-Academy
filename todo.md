@@ -119,3 +119,6 @@
 - [x] Add Bayan AI-Powered Adaptive Learning Platform to Resources page as "Coming Soon"
 - [x] Copy Bayan logo to project public images folder
 - [x] Fix MedResearch Clinical Calculator card being cut off on Resources page
+- [x] Rebrand Clinical Calculator to "MedResearch Clinical Calculator Hub"
+- [x] Update description to position qSOFA as one of many calculators
+- [x] Update feature boxes to reflect comprehensive calculator suite

@@ -143,7 +143,7 @@ export default function Resources() {
             <div className="relative">
               <img 
                 src="/images/clinical-calculator-banner.png" 
-                alt="MedResearch Clinical Calculator"
+                alt="MedResearch Clinical Calculator Hub"
                 className="w-full h-64 object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/50 to-transparent"></div>
@@ -155,11 +155,11 @@ export default function Resources() {
               </div>
               
               <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4 text-foreground">
-                MedResearch Clinical Calculator
+                MedResearch Clinical Calculator Hub
               </h2>
               
               <p className="text-lg text-muted-foreground mb-6 max-w-3xl">
-                Comprehensive clinical calculator suite featuring qSOFA scoring, vital signs assessment, and rapid sepsis risk stratification. Designed for bedside use to support evidence-based clinical decision-making in acute care settings. Calculate scores instantly and improve patient outcomes through timely interventions.
+                Your comprehensive hub for hundreds of evidence-based medical calculators. From qSOFA sepsis scoring and vital signs assessment to specialized clinical risk stratification tools. Designed for bedside use to support rapid, accurate clinical decision-making across all medical specialties. Access the calculator you need, when you need it.
               </p>
               
               <div className="flex flex-wrap gap-4">
@@ -179,7 +179,7 @@ export default function Resources() {
                   variant="outline" 
                   size="lg"
                   onClick={() => {
-                    const text = encodeURIComponent('MedResearch Clinical Calculator - Rapid Clinical Decision Support - MedResearch Academy');
+                    const text = encodeURIComponent('MedResearch Clinical Calculator Hub - Hundreds of Medical Calculators - MedResearch Academy');
                     const url = encodeURIComponent('https://qsofacalc-acewiica.manus.space');
                     window.open(`https://wa.me/?text=${text}%20${url}`, '_blank', 'width=600,height=400');
                   }}
@@ -193,12 +193,12 @@ export default function Resources() {
               <div className="mt-8 pt-6 border-t border-border/40">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <div className="font-semibold text-foreground mb-1">qSOFA Scoring</div>
-                    <div className="text-muted-foreground">Rapid sepsis risk assessment</div>
+                    <div className="font-semibold text-foreground mb-1">Hundreds of Calculators</div>
+                    <div className="text-muted-foreground">Comprehensive medical calculation suite</div>
                   </div>
                   <div>
-                    <div className="font-semibold text-foreground mb-1">Bedside Ready</div>
-                    <div className="text-muted-foreground">Instant calculations for clinical use</div>
+                    <div className="font-semibold text-foreground mb-1">All Specialties</div>
+                    <div className="text-muted-foreground">Cardiology, nephrology, emergency medicine & more</div>
                   </div>
                   <div>
                     <div className="font-semibold text-foreground mb-1">Evidence-Based</div>
