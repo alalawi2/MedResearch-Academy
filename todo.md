@@ -122,3 +122,4 @@
 - [x] Rebrand Clinical Calculator to "MedResearch Clinical Calculator Hub"
 - [x] Update description to position qSOFA as one of many calculators
 - [x] Update feature boxes to reflect comprehensive calculator suite
+- [x] Add YouTube recording link to Dr. Mohamed's Beyond PubMed lecture
