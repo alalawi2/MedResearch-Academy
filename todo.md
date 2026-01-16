@@ -123,3 +123,9 @@
 - [x] Update description to position qSOFA as one of many calculators
 - [x] Update feature boxes to reflect comprehensive calculator suite
 - [x] Add YouTube recording link to Dr. Mohamed's Beyond PubMed lecture
+- [x] Add Dr. Abdullah's lecture "Choosing the Right Study Design" to database (Jan 28, 2026)
+- [x] Generate flyer for Dr. Abdullah's lecture
+- [x] Generate Instagram story for Dr. Abdullah's lecture
+- [x] Generate social square for Dr. Abdullah's lecture
+- [x] Generate email signature banner for Dr. Abdullah's lecture
+- [x] Verify lecture appears correctly on Programs and Lectures pages
