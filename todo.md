@@ -143,3 +143,6 @@
 - [x] Fix database - update Dr. Abdullah's lecture with correct description and learning objectives
 - [x] Fix Programs page - showing Dr. Mohamed's name/photo instead of Dr. Abdullah's
 - [x] Add flyer display to Dr. Abdullah's session card on Programs page
+- [x] Generate new QR code linking to Zoom registration page (not direct meeting)
+- [x] Update flyer with registration QR code
+- [x] Update database with registration link

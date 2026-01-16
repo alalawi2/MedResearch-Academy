@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET zoomLink = 'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg'\nWHERE id = 60001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET zoomLink = 'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg'\nWHERE id = 60001;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1541
+}
