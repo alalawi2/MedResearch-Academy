@@ -137,3 +137,4 @@
 - [x] Fix Dr. Abdullah's title from "Co-Founder" to "Founder" in flyer
 - [x] Remove "JOIN 150+ OMANI MEDICAL PROFESSIONALS" badge from flyer
 - [ ] Test QR code functionality by scanning with phone
+- [x] Change QR code text from "Scan to Join Meeting" to "Scan to Register"
