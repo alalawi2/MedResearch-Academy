@@ -129,3 +129,11 @@
 - [x] Generate social square for Dr. Abdullah's lecture
 - [x] Generate email signature banner for Dr. Abdullah's lecture
 - [x] Verify lecture appears correctly on Programs and Lectures pages
+- [x] Delete all incorrect promotional materials for Dr. Abdullah's lecture
+- [x] Find Dr. Abdullah's correct photo from website (dr-alawi.jpg)
+- [x] Review Dr. Mohamed's flyer as template for correct style
+- [x] Fix database entry - speaker info is already correct (Dr. Abdullah M. Al Alawi)
+- [x] Generate ONE correct flyer for Dr. Abdullah matching previous style
+- [x] Fix Dr. Abdullah's title from "Co-Founder" to "Founder" in flyer
+- [x] Remove "JOIN 150+ OMANI MEDICAL PROFESSIONALS" badge from flyer
+- [ ] Test QR code functionality by scanning with phone
