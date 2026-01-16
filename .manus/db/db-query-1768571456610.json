@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET description = 'Master the art of selecting the optimal research study design for your clinical questions. Learn how different study designs impact research validity, feasibility, and outcomes.\n\n📚 Key Topics:\n• Evidence hierarchy and study design quality\n• Matching research questions to appropriate designs\n• Observational vs interventional studies\n• Case-control, cohort, and cross-sectional designs\n• Common pitfalls and how to avoid them\n\n👨‍⚕️ Dr. Abdullah M. Al Alawi\nFounder, MedResearch Academy'\nWHERE id = 60001;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET description = 'Master the art of selecting the optimal research study design for your clinical questions. Learn how different study designs impact research validity, feasibility, and outcomes.\n\n📚 Key Topics:\n• Evidence hierarchy and study design quality\n• Matching research questions to appropriate designs\n• Observational vs interventional studies\n• Case-control, cohort, and cross-sectional designs\n• Common pitfalls and how to avoid them\n\n👨‍⚕️ Dr. Abdullah M. Al Alawi\nFounder, MedResearch Academy'\nWHERE id = 60001;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1581
+}

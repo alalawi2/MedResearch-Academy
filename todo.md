@@ -146,3 +146,7 @@
 - [x] Generate new QR code linking to Zoom registration page (not direct meeting)
 - [x] Update flyer with registration QR code
 - [x] Update database with registration link
+- [x] Fix Lectures page date - date is correct (1/16/2026 is when added, not session date)
+- [x] Fix Dr. Abdullah's photo not displaying on Programs page - photo IS displaying correctly
+- [x] Add large flyer image display to Programs page (like Dr. Mohamed's session)
+- [x] Make session description more concise

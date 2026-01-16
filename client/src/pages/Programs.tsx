@@ -292,6 +292,26 @@ export default function Programs() {
                         </div>
                       )}
                     </div>
+                    
+                    {/* Large Flyer Display */}
+                    {session.title.includes("Beyond PubMed") && (
+                      <div className="mt-6 border-t pt-6">
+                        <img 
+                          src="/images/beyond-pubmed-flyer.png" 
+                          alt="Beyond PubMed Session Flyer" 
+                          className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                    )}
+                    {session.title.includes("Study Design") && (
+                      <div className="mt-6 border-t pt-6">
+                        <img 
+                          src="/images/study-design-flyer.png" 
+                          alt="Study Design Session Flyer" 
+                          className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
