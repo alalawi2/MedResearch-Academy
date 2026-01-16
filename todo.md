@@ -150,3 +150,5 @@
 - [x] Fix Dr. Abdullah's photo not displaying on Programs page - photo IS displaying correctly
 - [x] Add large flyer image display to Programs page (like Dr. Mohamed's session)
 - [x] Make session description more concise
+- [x] Fix flyer - missing Dr. Abdullah's photo
+- [x] Match exact style from Dr. Mohamed's flyer created last week
