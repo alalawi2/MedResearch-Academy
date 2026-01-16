@@ -138,3 +138,8 @@
 - [x] Remove "JOIN 150+ OMANI MEDICAL PROFESSIONALS" badge from flyer
 - [ ] Test QR code functionality by scanning with phone
 - [x] Change QR code text from "Scan to Join Meeting" to "Scan to Register"
+- [ ] Fix Programs page - showing Dr. Mohamed's name/photo instead of Dr. Abdullah's
+- [ ] Add flyer display to Dr. Abdullah's session card on Programs page (like Dr. Mohamed's)
+- [x] Fix database - update Dr. Abdullah's lecture with correct description and learning objectives
+- [x] Fix Programs page - showing Dr. Mohamed's name/photo instead of Dr. Abdullah's
+- [x] Add flyer display to Dr. Abdullah's session card on Programs page

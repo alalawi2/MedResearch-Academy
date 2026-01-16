@@ -179,8 +179,8 @@ export default function Programs() {
                       <div className="flex-shrink-0">
                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
                           <img 
-                            src="/mohamed-alrawahi.png" 
-                            alt="Dr. Mohamed Al Rawahi" 
+                            src={session.title.includes("Beyond PubMed") ? "/mohamed-alrawahi.png" : "/images/dr-abdullah.jpg"}
+                            alt={session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : "Dr. Abdullah Al Alawi"}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -194,11 +194,19 @@ export default function Programs() {
                         <div className="flex items-center gap-2 mb-3 text-sm">
                           <User className="h-4 w-4 text-accent" />
                           <div>
-                            <span className="font-semibold">Dr. Mohamed Al Rawahi</span>
-                            <span className="text-muted-foreground"> • MD, MSc, FRCPC, ABIM</span>
+                            <span className="font-semibold">
+                              {session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : "Dr. Abdullah M. Al Alawi"}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {session.title.includes("Beyond PubMed") ? " • MD, MSc, FRCPC, ABIM" : " • MD"}
+                            </span>
                           </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">Senior Consultant in Cardiac Electrophysiology</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {session.title.includes("Beyond PubMed") 
+                            ? "Senior Consultant in Cardiac Electrophysiology" 
+                            : "Founder, MedResearch Academy | Senior Consultant in General Medicine"}
+                        </p>
                         
                         <p className="text-muted-foreground mb-4 mt-3">{session.description}</p>
                         
@@ -253,6 +261,17 @@ export default function Programs() {
                               <a 
                                 href="/images/beyond-pubmed-flyer.png" 
                                 download="Beyond-PubMed-Flyer.png"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Flyer
+                              </a>
+                            </Button>
+                          )}
+                          {session.title.includes("Study Design") && (
+                            <Button variant="outline" size="default" asChild>
+                              <a 
+                                href="/images/study-design-flyer.png" 
+                                download="Study-Design-Flyer.png"
                               >
                                 <Download className="h-4 w-4 mr-2" />
                                 Flyer
