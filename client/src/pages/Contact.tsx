@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, MapPin, Phone, Twitter, Linkedin, BookOpen, Loader2 } from "lucide-react";
+import { Mail, MapPin, Phone, Twitter, Linkedin, BookOpen, Loader2, MessageCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -90,7 +90,23 @@ export default function Contact() {
                   </CardContent>
                 </Card>
 
-
+                <Card className="border-border/50 shadow-sm">
+                  <CardContent className="flex items-start gap-4 p-6">
+                    <div className="bg-primary/10 p-3 rounded-full text-primary">
+                      <MessageCircle className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-bold mb-1">WhatsApp Channel</h3>
+                      <p className="text-muted-foreground text-sm mb-3">Join our WhatsApp channel for updates on upcoming sessions and research news</p>
+                      <a href="https://whatsapp.com/channel/0029Vb7YmBo2ER6mtOHgja13" target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <MessageCircle className="h-4 w-4" />
+                          Join Channel
+                        </Button>
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 <div className="pt-4">
                   <h3 className="font-bold mb-4">Social Profiles</h3>

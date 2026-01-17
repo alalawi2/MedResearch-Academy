@@ -152,3 +152,7 @@
 - [x] Make session description more concise
 - [x] Fix flyer - missing Dr. Abdullah's photo
 - [x] Match exact style from Dr. Mohamed's flyer created last week
+- [x] Save WhatsApp channel QR code to project
+- [x] Add WhatsApp channel to Contact page
+- [x] Add WhatsApp registration option to Programs page for events
+- [x] Generate QR code for WhatsApp channel link

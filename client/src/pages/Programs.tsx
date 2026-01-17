@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2, Bell, User, Download, Image } from "lucide-react";
+import { Video, PlayCircle, CheckCircle2, Microscope, Handshake, Users, Lightbulb, Brain, Activity, GraduationCap, FileText, Calendar, Clock, ExternalLink, Share2, Bell, User, Download, Image, MessageCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -251,6 +251,17 @@ export default function Programs() {
                           )}
                           
                           {/* Secondary Actions */}
+                          <Button variant="outline" size="default" asChild>
+                            <a 
+                              href="https://whatsapp.com/channel/0029Vb7YmBo2ER6mtOHgja13"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <MessageCircle className="h-4 w-4 mr-2" />
+                              WhatsApp
+                            </a>
+                          </Button>
+                          
                           <ReminderDialog 
                             lectureId={session.id}
                             sessionTitle={session.title}
