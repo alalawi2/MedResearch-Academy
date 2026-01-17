@@ -156,3 +156,6 @@
 - [x] Add WhatsApp channel to Contact page
 - [x] Add WhatsApp registration option to Programs page for events
 - [x] Generate QR code for WhatsApp channel link
+- [x] Test Zoom registration QR code on flyer
+- [x] Regenerate QR code with verified working link
+- [x] Replace flyer with version containing verified QR code
