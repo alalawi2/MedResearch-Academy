@@ -185,3 +185,4 @@
 - [x] Upload Case Report flyer to S3 CDN
 - [x] Fix flyer date - change "Tuesday" to "Wednesday"
 - [x] QR code verified - links to https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg
+- [x] Fix Case Report session time to 10:00 PM (22:00) on February 25, 2026
