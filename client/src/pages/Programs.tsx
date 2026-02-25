@@ -308,6 +308,19 @@ export default function Programs() {
                               </Button>
                             </>
                           )}
+                          {session.title.includes("Case Report") && (
+                            <Button variant="outline" size="default" asChild>
+                              <a 
+                                href="https://files.manuscdn.com/user_upload_by_module/session_file/310519663215016294/wfobdglZKJVOlXjC.png" 
+                                download="Case-Report-Flyer.png"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Flyer
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
@@ -347,6 +360,15 @@ export default function Programs() {
                         <img 
                           src="/images/research-proposal-flyer.png" 
                           alt="Research Proposal Session Flyer" 
+                          className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                    )}
+                    {session.title.includes("Case Report") && (
+                      <div className="mt-6 border-t pt-6">
+                        <img 
+                          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663215016294/wfobdglZKJVOlXjC.png" 
+                          alt="Case Report Session Flyer" 
                           className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
                         />
                       </div>

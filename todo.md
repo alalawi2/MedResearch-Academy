@@ -177,3 +177,11 @@
 - [x] Update navigation to link to new session page
 - [x] Remove "Choosing the Right Study Design to Achieve the Best Outcome" from Lectures page
 - [x] Delete session from database
+- [x] Generate QR code for Case Report session registration
+- [x] Update flyer with new title, date (Feb 25), time (10:00 PM), and QR code
+- [x] Add Case Report session to database
+- [x] Add Case Report flyer download button to Programs page
+- [x] Add Case Report flyer display on Programs page
+- [x] Upload Case Report flyer to S3 CDN
+- [x] Fix flyer date - change "Tuesday" to "Wednesday"
+- [x] QR code verified - links to https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg
