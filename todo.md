@@ -175,3 +175,5 @@
 - [x] Add speaker bio section for Dr. Abdullah
 - [x] Remove "Choosing the Right Study Design" from Resources section (not found - already removed or never added)
 - [x] Update navigation to link to new session page
+- [x] Remove "Choosing the Right Study Design to Achieve the Best Outcome" from Lectures page
+- [x] Delete session from database
