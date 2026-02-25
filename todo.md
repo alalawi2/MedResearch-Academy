@@ -170,4 +170,8 @@
 - [x] Update Research Proposal session in database - add YouTube link and mark as completed
 - [x] Verify session moved to Past Sessions section with video embed
 - [x] Test Q&A section functionality (will verify after deployment)
-- [ ] Save checkpoint with completed session update
+- [x] Save checkpoint with completed session update (version: 6d3bcf0e)
+- [x] Create dedicated page for February 11th session with detailed agenda
+- [x] Add speaker bio section for Dr. Abdullah
+- [x] Remove "Choosing the Right Study Design" from Resources section (not found - already removed or never added)
+- [x] Update navigation to link to new session page

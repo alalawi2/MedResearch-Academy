@@ -290,15 +290,23 @@ export default function Programs() {
                             </Button>
                           )}
                           {session.title.includes("Research Proposal") && (
-                            <Button variant="outline" size="default" asChild>
-                              <a 
-                                href="/images/research-proposal-flyer.png" 
-                                download="Research-Proposal-Flyer.png"
-                              >
-                                <Download className="h-4 w-4 mr-2" />
-                                Flyer
-                              </a>
-                            </Button>
+                            <>
+                              <Button variant="outline" size="default" asChild>
+                                <Link href="/session/research-proposal">
+                                  <FileText className="h-4 w-4 mr-2" />
+                                  Learn More
+                                </Link>
+                              </Button>
+                              <Button variant="outline" size="default" asChild>
+                                <a 
+                                  href="/images/research-proposal-flyer.png" 
+                                  download="Research-Proposal-Flyer.png"
+                                >
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Flyer
+                                </a>
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>
