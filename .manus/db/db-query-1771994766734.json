@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO lectures (\n  title,\n  description,\n  videoUrl,\n  uploadedBy\n) VALUES (\n  'How to Use Zotero with Consensus for Better Citation Management',\n  'A comprehensive tutorial delivered by Dr. Hoor Al Kabi demonstrating how to integrate Consensus research platform with Zotero citation manager. Learn the complete workflow from downloading and installing Zotero, using the Zotero Connector to save references from Consensus, and inserting citations into Microsoft Word. This practical session covers essential tools for academic writing and proper citation management in medical research.',\n  'https://www.youtube.com/watch?v=qJTu99R6N80',\n  1\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute INSERT INTO lectures (\n  title,\n  description,\n  videoUrl,\n  uploadedBy\n) VALUES (\n  'How to Use Zotero with Consensus for Better Citation Management',\n  'A comprehensive tutorial delivered by Dr. Hoor Al Kabi demonstrating how to integrate Consensus research platform with Zotero citation manager. Learn the complete workflow from downloading and installing Zotero, using the Zotero Connector to save references from Consensus, and inserting citations into Microsoft Word. This practical session covers essential tools for academic writing and proper citation management in medical research.',\n  'https://www.youtube.com/watch?v=qJTu99R6N80',\n  1\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1515
+}
