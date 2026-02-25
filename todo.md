@@ -159,3 +159,15 @@
 - [x] Test Zoom registration QR code on flyer
 - [x] Regenerate QR code with verified working link
 - [x] Replace flyer with version containing verified QR code
+- [x] Save official MedResearch Academy logo to project
+- [x] Replace website logo with new official logo
+- [x] Update flyer with correct official logo
+- [x] Save February 11th flyer to project
+- [x] Extract QR code registration link from flyer
+- [x] Add "How to Write a Research Proposal" session to database
+- [x] Update Programs page with new session and countdown timer
+- [ ] Fix dev server and test display
+- [x] Update Research Proposal session in database - add YouTube link and mark as completed
+- [x] Verify session moved to Past Sessions section with video embed
+- [x] Test Q&A section functionality (will verify after deployment)
+- [ ] Save checkpoint with completed session update

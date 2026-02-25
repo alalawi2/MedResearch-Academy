@@ -289,6 +289,17 @@ export default function Programs() {
                               </a>
                             </Button>
                           )}
+                          {session.title.includes("Research Proposal") && (
+                            <Button variant="outline" size="default" asChild>
+                              <a 
+                                href="/images/research-proposal-flyer.png" 
+                                download="Research-Proposal-Flyer.png"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Flyer
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
@@ -319,6 +330,15 @@ export default function Programs() {
                         <img 
                           src="/images/study-design-flyer.png" 
                           alt="Study Design Session Flyer" 
+                          className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                    )}
+                    {session.title.includes("Research Proposal") && (
+                      <div className="mt-6 border-t pt-6">
+                        <img 
+                          src="/images/research-proposal-flyer.png" 
+                          alt="Research Proposal Session Flyer" 
                           className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
                         />
                       </div>

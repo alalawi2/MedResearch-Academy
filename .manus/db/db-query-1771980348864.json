@@ -1,0 +1,16 @@
+{
+  "query": "SELECT id, title, videoUrl, sessionDate FROM lectures WHERE title LIKE '%Research Proposal%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute SELECT id, title, videoUrl, sessionDate FROM lectures WHERE title LIKE '%Research Proposal%';",
+  "rows": [
+    {
+      "id": "90001",
+      "title": "How to Write a Research Proposal: From Idea to Approval",
+      "videoUrl": "https://www.youtube.com/watch?v=-aTy6QKaVts",
+      "sessionDate": "2026-02-11 20:00:00"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\ttitle\tvideoUrl\tsessionDate\n90001\tHow to Write a Research Proposal: From Idea to Approval\thttps://www.youtube.com/watch?v=-aTy6QKaVts\t2026-02-11 20:00:00\n",
+  "stderr": "",
+  "execution_time_ms": 1627
+}

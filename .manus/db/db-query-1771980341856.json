@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET videoUrl = 'https://www.youtube.com/watch?v=-aTy6QKaVts', \n    updatedAt = NOW()\nWHERE title LIKE '%Research Proposal%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET videoUrl = 'https://www.youtube.com/watch?v=-aTy6QKaVts', \n    updatedAt = NOW()\nWHERE title LIKE '%Research Proposal%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 3046
+}

@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO lectures (title, description, videoUrl, sessionDate, zoomLink, uploadedBy, createdAt, updatedAt) \nVALUES (\n  'How to Write a Research Proposal: From Idea to Approval',\n  'Learn the essential steps to craft a compelling research proposal that gets approved. This comprehensive session covers everything from developing your research question to presenting a convincing case for funding and ethical approval. Presented by Dr. Abdullah M. Al Alawi, BSc, MD, MSc, FRACP, FACP - Founder of MedResearch Academy.',\n  NULL,\n  '2026-02-11 20:00:00',\n  'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg',\n  1,\n  NOW(),\n  NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute INSERT INTO lectures (title, description, videoUrl, sessionDate, zoomLink, uploadedBy, createdAt, updatedAt) \nVALUES (\n  'How to Write a Research Proposal: From Idea to Approval',\n  'Learn the essential steps to craft a compelling research proposal that gets approved. This comprehensive session covers everything from developing your research question to presenting a convincing case for funding and ethical approval. Presented by Dr. Abdullah M. Al Alawi, BSc, MD, MSc, FRACP, FACP - Founder of MedResearch Academy.',\n  NULL,\n  '2026-02-11 20:00:00',\n  'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg',\n  1,\n  NOW(),\n  NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 1541
+}
