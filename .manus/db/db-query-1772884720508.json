@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE lectures \nSET videoUrl = 'https://www.youtube.com/watch?v=4i5WvOTzCH4',\n    description = 'In this session, Dr. Abdullah M. Al Alawi — Senior Consultant and Program Director of Internal Medicine at Sultan Qaboos University Hospital — delivers a comprehensive guide on writing and publishing a medical case report. The lecture covers what makes a case publishable, mastering the CARE guidelines structure, ethics and patient consent, authorship, choosing the right journal, handling peer review, and evolving a case report into a case series. Includes real-world case showcases and practical tips for avoiding common mistakes.',\n    sessionDate = '2026-02-25 22:00:00'\nWHERE title LIKE '%Case Report%' AND title LIKE '%How to Write%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures \nSET videoUrl = 'https://www.youtube.com/watch?v=4i5WvOTzCH4',\n    description = 'In this session, Dr. Abdullah M. Al Alawi — Senior Consultant and Program Director of Internal Medicine at Sultan Qaboos University Hospital — delivers a comprehensive guide on writing and publishing a medical case report. The lecture covers what makes a case publishable, mastering the CARE guidelines structure, ethics and patient consent, authorship, choosing the right journal, handling peer review, and evolving a case report into a case series. Includes real-world case showcases and practical tips for avoiding common mistakes.',\n    sessionDate = '2026-02-25 22:00:00'\nWHERE title LIKE '%Case Report%' AND title LIKE '%How to Write%';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 2675
+}
