@@ -19,6 +19,14 @@ export default function News() {
 
   const newsItems = [
     {
+      id: 15,
+      title: "Dr. Abdullah Al Alawi Featured on Oman TV — Nabt Jinan Program",
+      date: "March 2026",
+      summary: "Dr. Abdullah M. Al Alawi, Senior Consultant and Program Director of Internal Medicine at Sultan Qaboos University Hospital and Founder of MedResearch Academy, was featured as a guest on the Oman TV program 'Nabt Jinan' (نبت جنان) during Ramadan 1447H. The program, broadcast on Oman TV General, highlights inspiring Omani personalities and their contributions to society.",
+      image: "/images/oman-tv-interview-nabt-jinan.webp",
+      link: "https://www.youtube.com/watch?v=SnowxT9f9r4"
+    },
+    {
       id: 14,
       title: "Dr. Omar Al Taie Wins First Place for Best Scientific Research",
       date: "December 2025",

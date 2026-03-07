@@ -188,3 +188,4 @@
 - [x] Fix Case Report session time to 10:00 PM (22:00) on February 25, 2026
 - [x] Add "How to Use Zotero with Consensus" lecture to database with YouTube link
 - [x] Add "How to Write a Medical Case Report" lecture to database with YouTube link and update Case Report session
+- [x] Add Oman TV interview (نبت جنان) featuring Dr. Abdullah Al Alawi to News page
