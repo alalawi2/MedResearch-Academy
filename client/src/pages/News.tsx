@@ -22,9 +22,10 @@ export default function News() {
       id: 15,
       title: "Dr. Abdullah Al Alawi Featured on Oman TV — Nabt Jinan Program",
       date: "March 2026",
-      summary: "Dr. Abdullah M. Al Alawi, Senior Consultant and Program Director of Internal Medicine at Sultan Qaboos University Hospital and Founder of MedResearch Academy, was featured as a guest on the Oman TV program 'Nabt Jinan' (نبت جنان) during Ramadan 1447H. The program, broadcast on Oman TV General, highlights inspiring Omani personalities and their contributions to society.",
+      summary: "Dr. Abdullah M. Al Alawi, Senior Consultant and Program Director of Internal Medicine at Sultan Qaboos University Hospital and Founder of MedResearch Academy, was featured as a guest on the Oman TV program 'Nabt Jinan' (نبت جنان) during Ramadan 1447H. The program highlights inspiring Omani personalities and their contributions to society.",
       image: "/images/oman-tv-interview-nabt-jinan.webp",
-      link: "https://www.youtube.com/watch?v=SnowxT9f9r4"
+      link: "https://www.youtube.com/watch?v=SnowxT9f9r4",
+      youtubeId: "SnowxT9f9r4"
     },
     {
       id: 14,
@@ -231,7 +232,19 @@ export default function News() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {displayedNews.map((item) => (
-                  <Card key={item.id} className="flex flex-col h-full border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                  <Card key={item.id} className={`flex flex-col h-full border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${'youtubeId' in item && item.youtubeId ? 'md:col-span-2 lg:col-span-3' : ''}`}>
+                    {'youtubeId' in item && item.youtubeId ? (
+                      <div className="w-full relative overflow-hidden bg-black" style={{aspectRatio: '16/9'}}>
+                        <iframe
+                          src={`https://www.youtube.com/embed/${item.youtubeId}`}
+                          title={item.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full absolute inset-0"
+                          style={{border: 'none'}}
+                        />
+                      </div>
+                    ) : (
                     <div className="h-48 w-full relative overflow-hidden bg-muted">
                        <img 
                         src={item.image} 
@@ -247,6 +260,7 @@ export default function News() {
                         }}
                        />
                     </div>
+                    )}
                     <CardHeader>
                       <div className="flex items-center text-sm text-muted-foreground mb-2">
                         <Calendar className="h-4 w-4 mr-2" />
@@ -264,7 +278,11 @@ export default function News() {
                     <CardFooter className="flex gap-2">
                       <a href={item.link} target="_blank" rel="noopener noreferrer" className="flex-grow">
                         <Button variant="outline" className="w-full gap-2">
-                          Read More <ExternalLink className="h-4 w-4" />
+                          {'youtubeId' in item && item.youtubeId ? (
+                            <><svg className="h-4 w-4 fill-current" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> Watch on YouTube</>
+                          ) : (
+                            <>Read More <ExternalLink className="h-4 w-4" /></>
+                          )}
                         </Button>
                       </a>
                       
