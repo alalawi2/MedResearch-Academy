@@ -28,6 +28,15 @@ export default function News() {
       youtubeId: "SnowxT9f9r4"
     },
     {
+      id: 16,
+      title: "Dr. Abdullah Al Alawi on Oman TV — Taryaq: Artificial Intelligence in Medicine",
+      date: "March 2026",
+      summary: "Dr. Abdullah bin Mohammed Al Alawi, Senior Consultant in Internal Medicine, was featured on Oman TV's health program 'Taryaq' (ترياق) to discuss the role of Artificial Intelligence in modern medicine. He explains how AI is used to analyze patient data, read scans, and suggest treatment plans — while emphasizing that AI is a tool to support doctors, not replace the essential human element of medical care.",
+      image: "/images/oman-tv-interview-nabt-jinan.webp",
+      link: "https://www.youtube.com/watch?v=9NKD_sPF0x8",
+      youtubeId: "9NKD_sPF0x8"
+    },
+    {
       id: 14,
       title: "Dr. Omar Al Taie Wins First Place for Best Scientific Research",
       date: "December 2025",

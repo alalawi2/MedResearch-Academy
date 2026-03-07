@@ -190,3 +190,4 @@
 - [x] Add "How to Write a Medical Case Report" lecture to database with YouTube link and update Case Report session
 - [x] Add Oman TV interview (نبت جنان) featuring Dr. Abdullah Al Alawi to News page
 - [x] Update News page to show YouTube embed preview for Oman TV interview card
+- [x] Add second interview (9NKD_sPF0x8) to News page with YouTube embed
