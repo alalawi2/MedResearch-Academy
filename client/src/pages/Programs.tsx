@@ -179,8 +179,8 @@ export default function Programs() {
                       <div className="flex-shrink-0">
                         <div className="w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 border-primary/20 shadow-md">
                           <img 
-                            src={session.title.includes("Beyond PubMed") ? "/mohamed-alrawahi.png" : "/images/dr-abdullah.jpg"}
-                            alt={session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : "Dr. Abdullah Al Alawi"}
+                            src={session.title.includes("Beyond PubMed") ? "/mohamed-alrawahi.png" : session.title.includes("Qualitative") ? "/images/oman-tv-interview-nabt-jinan.webp" : "/images/dr-abdullah.jpg"}
+                            alt={session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : session.title.includes("Qualitative") ? "Dr. Tamadhir Al-Mahrouqi" : "Dr. Abdullah Al Alawi"}
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -195,16 +195,18 @@ export default function Programs() {
                           <User className="h-4 w-4 text-accent" />
                           <div>
                             <span className="font-semibold">
-                              {session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : "Dr. Abdullah M. Al Alawi"}
+                              {session.title.includes("Beyond PubMed") ? "Dr. Mohamed Al Rawahi" : session.title.includes("Qualitative") ? "Dr. Tamadhir Al-Mahrouqi" : "Dr. Abdullah M. Al Alawi"}
                             </span>
                             <span className="text-muted-foreground">
-                              {session.title.includes("Beyond PubMed") ? " • MD, MSc, FRCPC, ABIM" : " • MD"}
+                              {session.title.includes("Beyond PubMed") ? " • MD, MSc, FRCPC, ABIM" : session.title.includes("Qualitative") ? " • Psychiatry Resident, OMSB" : " • MD"}
                             </span>
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mb-1">
                           {session.title.includes("Beyond PubMed") 
                             ? "Senior Consultant in Cardiac Electrophysiology" 
+                            : session.title.includes("Qualitative")
+                            ? "Qualitative Research Specialist | MedResearch Academy"
                             : "Founder, MedResearch Academy | Senior Consultant in General Medicine"}
                         </p>
                         
@@ -321,6 +323,19 @@ export default function Programs() {
                               </a>
                             </Button>
                           )}
+                          {session.title.includes("Qualitative") && (
+                            <Button variant="outline" size="default" asChild>
+                              <a 
+                                href="https://files.manuscdn.com/user_upload_by_module/session_file/310519663215016294/nhBvSBzRVZMHXcXT.png" 
+                                download="Qualitative-Research-Flyer.png"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Flyer
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
                       
@@ -369,6 +384,15 @@ export default function Programs() {
                         <img 
                           src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663215016294/wfobdglZKJVOlXjC.png" 
                           alt="Case Report Session Flyer" 
+                          className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                    )}
+                    {session.title.includes("Qualitative") && (
+                      <div className="mt-6 border-t pt-6">
+                        <img 
+                          src="https://files.manuscdn.com/user_upload_by_module/session_file/310519663215016294/nhBvSBzRVZMHXcXT.png" 
+                          alt="Qualitative Research Session Flyer" 
                           className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
                         />
                       </div>

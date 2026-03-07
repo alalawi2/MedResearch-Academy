@@ -191,3 +191,6 @@
 - [x] Add Oman TV interview (نبت جنان) featuring Dr. Abdullah Al Alawi to News page
 - [x] Update News page to show YouTube embed preview for Oman TV interview card
 - [x] Add second interview (9NKD_sPF0x8) to News page with YouTube embed
+- [x] Upload Qualitative Research flyer to CDN
+- [x] Add "Designing Qualitative Research in Healthcare" session to database (March 11, 2026, 9:00 PM Muscat)
+- [x] Verify countdown timer shows on Programs page for new session

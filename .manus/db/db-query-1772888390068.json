@@ -1,0 +1,36 @@
+{
+  "query": "SELECT * FROM lectures LIMIT 2;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute SELECT * FROM lectures LIMIT 2;",
+  "rows": [
+    {
+      "id": "1",
+      "title": "Week 1: From Clinical Observation to Research Question",
+      "description": "Welcome to the first session of the MedResearch Academy, a 16-week virtual series designed to empower Omani health professionals with essential research skills. In this session, we explore how to transform everyday clinical observations into meaningful research questions.",
+      "fileUrl": "NULL",
+      "fileKey": "NULL",
+      "fileName": "NULL",
+      "fileSize": "NULL",
+      "mimeType": "NULL",
+      "uploadedBy": "1",
+      "createdAt": "2026-01-01 04:19:20",
+      "updatedAt": "2026-01-01 04:19:20",
+      "videoUrl": "https://www.youtube.com/watch?v=slJYaAXdG5k",
+      "sessionDate": "NULL",
+      "zoomLink": "NULL"
+    }
+  ],
+  "messages": [
+    "30001\tBeyond PubMed: AI-Powered Literature Search - Applications and Ethics\tJoin Dr. Mohamed Al Rawahi for an exploration of cutting-edge AI tools revolutionizing medical literature search and research synthesis.",
+    "📚 Learning Objectives:",
+    "• Understand the capabilities and limitations of AI-powered literature search tools beyond traditional databases",
+    "• Learn practical applications of AI for efficient evidence synthesis and systematic reviews",
+    "• Explore ethical considerations when using AI in medical research and publication",
+    "• Discover strategies to integrate AI tools into your research workflow while maintaining academic integrity",
+    "👨‍⚕️ Speaker: Dr. Mohamed Al Rawahi, MD, MSc, FRCPC, ABIM",
+    "Senior Consultant in Cardiac Electrophysiology",
+    "⏱️ Duration: 60 minutes (20:00-21:00 Muscat Time)\tNULL\tNULL\tNULL\tNULL\tNULL\t1\t2026-01-03 13:11:44\t2026-01-14 04:56:05\thttps://youtu.be/z0fz5KCLGmI?si=KPoBu5K68DHvg_J4\t2026-01-13 16:00:00\thttps://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg"
+  ],
+  "stdout": "id\ttitle\tdescription\tfileUrl\tfileKey\tfileName\tfileSize\tmimeType\tuploadedBy\tcreatedAt\tupdatedAt\tvideoUrl\tsessionDate\tzoomLink\n1\tWeek 1: From Clinical Observation to Research Question\tWelcome to the first session of the MedResearch Academy, a 16-week virtual series designed to empower Omani health professionals with essential research skills. In this session, we explore how to transform everyday clinical observations into meaningful research questions.\tNULL\tNULL\tNULL\tNULL\tNULL\t1\t2026-01-01 04:19:20\t2026-01-01 04:19:20\thttps://www.youtube.com/watch?v=slJYaAXdG5k\tNULL\tNULL\n30001\tBeyond PubMed: AI-Powered Literature Search - Applications and Ethics\tJoin Dr. Mohamed Al Rawahi for an exploration of cutting-edge AI tools revolutionizing medical literature search and research synthesis.\n\n📚 Learning Objectives:\n• Understand the capabilities and limitations of AI-powered literature search tools beyond traditional databases\n• Learn practical applications of AI for efficient evidence synthesis and systematic reviews\n• Explore ethical considerations when using AI in medical research and publication\n• Discover strategies to integrate AI tools into your research workflow while maintaining academic integrity\n\n👨‍⚕️ Speaker: Dr. Mohamed Al Rawahi, MD, MSc, FRCPC, ABIM\nSenior Consultant in Cardiac Electrophysiology\n\n⏱️ Duration: 60 minutes (20:00-21:00 Muscat Time)\tNULL\tNULL\tNULL\tNULL\tNULL\t1\t2026-01-03 13:11:44\t2026-01-14 04:56:05\thttps://youtu.be/z0fz5KCLGmI?si=KPoBu5K68DHvg_J4\t2026-01-13 16:00:00\thttps://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg\n",
+  "stderr": "",
+  "execution_time_ms": 1548
+}

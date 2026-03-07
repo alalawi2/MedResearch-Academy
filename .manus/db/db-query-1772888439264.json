@@ -1,0 +1,52 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'lectures';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'lectures';",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "title"
+    },
+    {
+      "COLUMN_NAME": "description"
+    },
+    {
+      "COLUMN_NAME": "fileUrl"
+    },
+    {
+      "COLUMN_NAME": "fileKey"
+    },
+    {
+      "COLUMN_NAME": "fileName"
+    },
+    {
+      "COLUMN_NAME": "fileSize"
+    },
+    {
+      "COLUMN_NAME": "mimeType"
+    },
+    {
+      "COLUMN_NAME": "uploadedBy"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "videoUrl"
+    },
+    {
+      "COLUMN_NAME": "sessionDate"
+    },
+    {
+      "COLUMN_NAME": "zoomLink"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\ntitle\ndescription\nfileUrl\nfileKey\nfileName\nfileSize\nmimeType\nuploadedBy\ncreatedAt\nupdatedAt\nvideoUrl\nsessionDate\nzoomLink\n",
+  "stderr": "",
+  "execution_time_ms": 1476
+}
