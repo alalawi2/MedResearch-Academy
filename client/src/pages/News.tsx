@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,15 @@ export default function News() {
   const ITEMS_PER_PAGE = 3; // Number of items to add when clicking "Load More"
 
   const newsItems = [
+    {
+      id: 17,
+      title: "🚀 Introducing Bayan — Free Medical Board Exam Prep for Residents",
+      date: "March 2026",
+      summary: "MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform built specifically for residents in Oman and the region. Bayan features thousands of physician-reviewed clinical vignettes mapped to OMSB, Arab Board, MRCP, ABIM, USMLE, and 10+ other board exams — all based on the latest AHA, ESC, KDIGO, and IDSA guidelines. Try it now and share your feedback directly through the platform!",
+      image: "",
+      link: "https://bayan-med.vercel.app",
+      isBayanLaunch: true
+    },
     {
       id: 15,
       title: "Dr. Abdullah Al Alawi Featured on Oman TV — Nabt Jinan Program",
@@ -241,6 +251,99 @@ export default function News() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
                 {displayedNews.map((item) => (
+                  'isBayanLaunch' in item && item.isBayanLaunch ? (
+                  <div key={item.id} className="col-span-1 md:col-span-2 lg:col-span-3">
+                    <div className="relative rounded-2xl overflow-hidden border-2 border-primary/30 shadow-xl bg-gradient-to-br from-[#0a1628] via-[#0d2040] to-[#0a1628]">
+                      {/* Animated background glow */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+                        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+                      </div>
+                      <div className="relative z-10 p-8 md:p-12">
+                        {/* Header */}
+                        <div className="flex flex-wrap items-center gap-3 mb-6">
+                          <Badge className="bg-accent text-accent-foreground font-semibold px-3 py-1">🆕 New Launch</Badge>
+                          <Badge variant="outline" className="border-primary/40 text-primary-foreground/70">Free for All Residents</Badge>
+                          <Badge variant="outline" className="border-green-500/40 text-green-400">Beta</Badge>
+                        </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+                          {/* Left: Text content */}
+                          <div className="space-y-6">
+                            <div>
+                              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-3 leading-tight">
+                                Introducing <span className="text-accent">Bayan</span>
+                              </h2>
+                              <p className="text-lg text-white/70 font-medium">Master Internal Medicine. Pass Your Board Exam.</p>
+                            </div>
+                            <p className="text-white/60 leading-relaxed">
+                              A free AI-powered medical board exam preparation platform built by MedResearch Academy for residents in Oman and the region. Thousands of physician-reviewed clinical vignettes based on the latest international guidelines.
+                            </p>
+                            {/* Supported exams */}
+                            <div>
+                              <p className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">Supported Board Exams</p>
+                              <div className="flex flex-wrap gap-2">
+                                {['🇴🇲 OMSB', '🏥 Arab Board', '🇬🇧 MRCP(UK)', '🇺🇸 ABIM', '🇺🇸 USMLE', '🇦🇪 DHA/HAAD', '🇶🇦 QCHP', '🇸🇦 SMLE', '+ more'].map(exam => (
+                                  <span key={exam} className="text-xs bg-white/10 text-white/70 px-2 py-1 rounded-full border border-white/10">{exam}</span>
+                                ))}
+                              </div>
+                            </div>
+                            {/* CTA */}
+                            <div className="flex flex-wrap gap-3 pt-2">
+                              <a href="https://bayan-med.vercel.app" target="_blank" rel="noopener noreferrer">
+                                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold gap-2">
+                                  Try Bayan Free <ArrowRight className="h-5 w-5" />
+                                </Button>
+                              </a>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="outline" size="lg" className="border-white/20 text-white hover:bg-white/10 gap-2">
+                                    <Share2 className="h-4 w-4" /> Share
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => shareNews("whatsapp", item)}>Share on WhatsApp</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => shareNews("linkedin", item)}>Share on LinkedIn</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => shareNews("twitter", item)}>Share on X</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                            {/* Feedback note */}
+                            <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-4">
+                              <span className="text-2xl">💬</span>
+                              <div>
+                                <p className="text-sm font-semibold text-white/80">Your Feedback Shapes Bayan</p>
+                                <p className="text-xs text-white/50 mt-1">Rate questions and send feedback directly inside the platform after each question. Your input directly improves the question bank.</p>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Right: Feature grid */}
+                          <div className="grid grid-cols-2 gap-4">
+                            {[
+                              { icon: '🧠', title: 'Adaptive Learning', desc: 'AI adjusts difficulty to your level' },
+                              { icon: '📚', title: 'Knowledge Library', desc: 'Clinical articles with highlighted terms' },
+                              { icon: '🃏', title: 'Flashcards', desc: 'Spaced repetition review' },
+                              { icon: '📈', title: 'Analytics', desc: 'Performance tracking & insights' },
+                              { icon: '📅', title: 'Study Planner', desc: 'Weekly schedule & goals' },
+                              { icon: '🏆', title: 'Leaderboard', desc: 'Compete with fellow learners' },
+                            ].map(f => (
+                              <div key={f.title} className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-colors">
+                                <div className="text-2xl mb-2">{f.icon}</div>
+                                <p className="text-sm font-semibold text-white/90">{f.title}</p>
+                                <p className="text-xs text-white/50 mt-1">{f.desc}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Footer stats */}
+                        <div className="mt-8 pt-6 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                          <div><p className="text-2xl font-bold text-accent">10+</p><p className="text-xs text-white/50">Board Exams Covered</p></div>
+                          <div><p className="text-2xl font-bold text-accent">3-Tier</p><p className="text-xs text-white/50">Editorial Review Process</p></div>
+                          <div><p className="text-2xl font-bold text-accent">Free</p><p className="text-xs text-white/50">No subscription needed</p></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  ) : (
                   <Card key={item.id} className={`flex flex-col h-full border-border/50 shadow-sm hover:shadow-md transition-shadow overflow-hidden ${'youtubeId' in item && item.youtubeId ? 'md:col-span-2 lg:col-span-3' : ''}`}>
                     {'youtubeId' in item && item.youtubeId ? (
                       <div className="w-full relative overflow-hidden bg-black" style={{aspectRatio: '16/9'}}>
@@ -316,6 +419,7 @@ export default function News() {
                       </DropdownMenu>
                     </CardFooter>
                   </Card>
+                  )
                 ))}
               </div>
               

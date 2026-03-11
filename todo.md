@@ -194,3 +194,4 @@
 - [x] Upload Qualitative Research flyer to CDN
 - [x] Add "Designing Qualitative Research in Healthcare" session to database (March 11, 2026, 9:00 PM Muscat)
 - [x] Verify countdown timer shows on Programs page for new session
+- [x] Add outstanding Bayan launch announcement to News page with full feature showcase
