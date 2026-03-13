@@ -1,8 +1,0 @@
-{
-  "query": "UPDATE lectures SET speakerName = 'Dr. Abdullah M. Al Alawi', speakerTitle = 'Co-Founder, MedResearch Academy | Senior Medical Researcher' WHERE title = 'Choosing the Right Study Design to Achieve the Best Outcome';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures SET speakerName = 'Dr. Abdullah M. Al Alawi', speakerTitle = 'Co-Founder, MedResearch Academy | Senior Medical Researcher' WHERE title = 'Choosing the Right Study Design to Achieve the Best Outcome';",
-  "returncode": 1,
-  "logs": [
-    "ERROR 1054 (42S22) at line 1: Unknown column 'speakerName' in 'field list'"
-  ]
-}
