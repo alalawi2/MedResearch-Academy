@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <nav>
         <div className="nav-inner">
           <Link to="/" className="nav-logo">
-            <img src="/images/logo_final_v2.png" alt="MedResearch Academy" />
+            <img src="/images/logo_final_v2.png" alt="MedResearch Academy" style={{height:"52px",width:"auto",objectFit:"contain"}} />
           </Link>
           <div className="nav-links">
             <Link to="/" className={active('/')}>Home</Link>
@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <img src="/images/logo_final_v2.png" alt="MedResearch Academy" className="footer-logo" />
+              <img src="/images/logo_final_v2.png" alt="MedResearch Academy" className="footer-logo" style={{height:"70px",width:"auto",objectFit:"contain",marginBottom:"12px"}} />
               <p>A non-profit initiative dedicated to advancing medical research in Oman and beyond through open education, mentorship, and community service.</p>
             </div>
             <div>
