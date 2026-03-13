@@ -1,9 +1,0 @@
-{
-  "query": "UPDATE lectures SET zoomLink = 'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg' WHERE title LIKE '%Beyond PubMed%';",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute UPDATE lectures SET zoomLink = 'https://us02web.zoom.us/meeting/register/JF4MkhQCSgCAHDmzSA0gTg' WHERE title LIKE '%Beyond PubMed%';",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 2088
-}
