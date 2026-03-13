@@ -109,7 +109,7 @@ footer h4 { color: white; font-size: 15px; font-weight: 600; margin-bottom: 16px
 .social-links { display: flex; gap: 12px; }
 .social-link { width: 36px; height: 36px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); transition: all 0.2s; }
 .social-link:hover { background: rgba(255,255,255,0.1); color: white; }
-.footer-logo { height: 70px; width: auto; object-fit: contain; margin-bottom: 12px; }
+.footer-logo { height: 80px; width: auto; object-fit: contain; margin-bottom: 16px; }
 .search-bar { position: relative; max-width: 480px; margin: 0 auto; }
 .search-bar input { width: 100%; padding: 12px 16px 12px 44px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; font-family: var(--font-sans); background: white; outline: none; transition: border-color 0.2s; }
 .search-bar input:focus { border-color: var(--primary); }
