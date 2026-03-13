@@ -39,7 +39,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container">
           <div className="footer-grid">
             <div className="footer-brand">
-              <img src="/images/logo_final_v2.png" alt="MedResearch Academy" className="footer-logo" style={{height:"70px",width:"auto",objectFit:"contain",marginBottom:"12px"}} />
+              <img src="/images/logo_transparent.png" alt="MedResearch Academy" className="footer-logo" style={{height:"70px",width:"auto",objectFit:"contain",marginBottom:"12px"}} />
               <p>A non-profit initiative dedicated to advancing medical research in Oman and beyond through open education, mentorship, and community service.</p>
             </div>
             <div>
