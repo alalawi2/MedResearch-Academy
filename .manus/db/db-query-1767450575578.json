@@ -1,9 +1,0 @@
-{
-  "query": "INSERT INTO reminders (lectureId, email, reminderSent24h, reminderSent1h) SELECT id, 'test@example.com', 0, 0 FROM lectures WHERE title LIKE '%Beyond PubMed%' LIMIT 1;",
-  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 3gJPMgbNvxobdJv.c80c7479a201 --database kEGM3BVtTzTes7GE5TMbVx --execute INSERT INTO reminders (lectureId, email, reminderSent24h, reminderSent1h) SELECT id, 'test@example.com', 0, 0 FROM lectures WHERE title LIKE '%Beyond PubMed%' LIMIT 1;",
-  "rows": [],
-  "messages": [],
-  "stdout": "",
-  "stderr": "",
-  "execution_time_ms": 1519
-}
