@@ -45,7 +45,7 @@ export default function About() {
 
             {/* Dr. Al Rawahi */}
             <div className="profile-card">
-              <img src="/images/dr-rawahi.jpg" alt="Dr. Mohamed Al Rawahi" className="profile-img" />
+              <img src="/mohamed-alrawahi.png" alt="Dr. Mohamed Al Rawahi" className="profile-img" />
               <div className="profile-name">Dr. Mohamed Al Rawahi</div>
               <div className="profile-creds">MD, MSc, FRCPC, ABIM</div>
               <div className="profile-role">Co-Founder & Senior Mentor</div>
