@@ -97,8 +97,8 @@ export default function News() {
                     <a href="https://bayan-med.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">Try Bayan Free →</a>
                   </div>
                   <div className="bayan-features">
-                    {[['🧠','Adaptive Learning','AI adjusts to your level'],['📚','Knowledge Library','Clinical articles'],['🃏','Flashcards','Spaced repetition'],['📈','Analytics','Track your progress'],['📅','Study Planner','Weekly goals'],['🏆','Leaderboard','Compete with peers']].map(([icon,title,desc]) => (
-                      <div key={title as string} className="bayan-feature">
+                    {([['🧠','Adaptive Learning','AI adjusts to your level'],['📚','Knowledge Library','Clinical articles'],['🃏','Flashcards','Spaced repetition'],['📈','Analytics','Track your progress'],['📅','Study Planner','Weekly goals'],['🏆','Leaderboard','Compete with peers']] as [string,string,string][]).map(([icon,title,desc]) => (
+                      <div key={title} className="bayan-feature">
                         <div className="icon">{icon}</div>
                         <p>{title}</p>
                         <small>{desc}</small>
