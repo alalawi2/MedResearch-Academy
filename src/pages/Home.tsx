@@ -65,6 +65,40 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ── News Ticker Strip ── */}
+      <div className="news-ticker-wrap">
+        <div className="news-ticker-inner">
+          <span className="ticker-label">📰 NEWS</span>
+          <div className="ticker-track">
+            <div className="ticker-animate">
+              {[
+                {text:'🚀 Introducing Bayan — Free AI Medical Board Exam Prep for Residents', date:'Mar 2026', link:'https://bayan-med.vercel.app'},
+                {text:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan Program', date:'Mar 2026', link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
+                {text:'📺 Dr. Al Alawi on Oman TV — Taryaq: AI in Medicine', date:'Mar 2026', link:'https://www.youtube.com/watch?v=9NKD_sPF0x8'},
+                {text:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center Research Forum', date:'Dec 2025', link:'https://x.com/OMSB_OM/status/2005151473563557933'},
+                {text:'🚀 Launch of Medad: AI Clinical Documentation for Omani Healthcare', date:'Dec 2025', link:'https://www.medad.om/'},
+                {text:'🏆 UMC Congratulates Dr. Aisha Al Huraizi Team on National Research Award', date:'Dec 2024', link:'https://x.com/UMC_OMAN/status/1866122329937350820'},
+              ].concat([
+                {text:'🚀 Introducing Bayan — Free AI Medical Board Exam Prep for Residents', date:'Mar 2026', link:'https://bayan-med.vercel.app'},
+                {text:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan Program', date:'Mar 2026', link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
+                {text:'📺 Dr. Al Alawi on Oman TV — Taryaq: AI in Medicine', date:'Mar 2026', link:'https://www.youtube.com/watch?v=9NKD_sPF0x8'},
+                {text:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center Research Forum', date:'Dec 2025', link:'https://x.com/OMSB_OM/status/2005151473563557933'},
+                {text:'🚀 Launch of Medad: AI Clinical Documentation for Omani Healthcare', date:'Dec 2025', link:'https://www.medad.om/'},
+                {text:'🏆 UMC Congratulates Dr. Aisha Al Huraizi Team on National Research Award', date:'Dec 2024', link:'https://x.com/UMC_OMAN/status/1866122329937350820'},
+              ]).map((item, i) => (
+                <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="ticker-item">
+                  <span className="ticker-dot"></span>
+                  <span className="ticker-text">{item.text}</span>
+                  <span className="ticker-date">{item.date}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+          <Link to="/news" className="ticker-all-link">All News →</Link>
+        </div>
+      </div>
+
+      {/* ── Featured News Cards ── */}
       <section className="section section-muted">
         <div className="container">
           <div className="section-header">
@@ -73,11 +107,11 @@ export default function Home() {
           </div>
           <div className="news-grid">
             {[
-              {title:'Introducing Bayan — Free Medical Board Exam Prep',date:'March 2026',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform for residents in Oman and the region.',link:'https://bayan-med.vercel.app'},
-              {title:'Dr. Abdullah Al Alawi Featured on Oman TV',date:'March 2026',summary:'Dr. Al Alawi was featured as a guest on the Oman TV program "Nabt Jinan" during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
-              {title:'Dr. Omar Al Taie Wins First Place for Best Scientific Research',date:'December 2025',summary:'Dr. Omar Al Taie was awarded First Place for best scientific research at the 7th Annual Research Forum of the National Heart Center.',link:'https://x.com/OMSB_OM/status/2005151473563557933'},
+              {title:'🚀 Introducing Bayan — Free Medical Board Exam Prep',date:'March 2026',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform for residents in Oman and the region.',link:'https://bayan-med.vercel.app', highlight: true},
+              {title:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan',date:'March 2026',summary:'Dr. Al Alawi was featured as a guest on the Oman TV program "Nabt Jinan" during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
+              {title:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center',date:'December 2025',summary:'Dr. Omar Al Taie was awarded First Place for best scientific research at the 7th Annual Research Forum of the National Heart Center.',link:'https://x.com/OMSB_OM/status/2005151473563557933'},
             ].map(item => (
-              <div className="card" key={item.title}>
+              <div className={`card news-home-card${item.highlight ? ' news-home-card--highlight' : ''}`} key={item.title}>
                 <div className="card-body">
                   <div className="news-date">📅 {item.date}</div>
                   <div className="news-title">{item.title}</div>
