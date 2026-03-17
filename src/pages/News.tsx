@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
 const newsItems = [
-  {id:17,cat:'launch',title:'Introducing Bayan — Free Medical Board Exam Prep for Residents',date:'March 2026',dateSort:'2026-03',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform built specifically for residents in Oman and the region. Bayan features thousands of physician-reviewed clinical vignettes mapped to OMSB, Arab Board, MRCP, ABIM, USMLE, and 10+ other board exams.',link:'https://bayan-med.vercel.app',isBayan:true,youtubeId:'',image:''},
+  {id:17,cat:'launch',title:'Introducing Bayan — Free Medical Board Exam Prep for Residents',date:'March 2026',dateSort:'2026-03',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform built specifically for residents in Oman and the region. Bayan features thousands of physician-reviewed clinical vignettes mapped to OMSB, Arab Board, MRCP, ABIM, USMLE, and 10+ other board exams.',link:'https://www.bayan.edu.om',isBayan:true,youtubeId:'',image:''},
   {id:15,cat:'media',title:'Dr. Abdullah Al Alawi Featured on Oman TV — Nabt Jinan Program',date:'March 2026',dateSort:'2026-03',summary:'Dr. Abdullah M. Al Alawi was featured as a guest on the Oman TV program Nabt Jinan during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4',youtubeId:'SnowxT9f9r4',isBayan:false,image:''},
   {id:16,cat:'media',title:'Dr. Abdullah Al Alawi on Oman TV — Taryaq: AI in Medicine',date:'March 2026',dateSort:'2026-03',summary:'Dr. Al Alawi was featured on the Oman TV health program Taryaq to discuss the role of Artificial Intelligence in modern medicine.',link:'https://www.youtube.com/watch?v=9NKD_sPF0x8',youtubeId:'9NKD_sPF0x8',isBayan:false,image:''},
   {id:14,cat:'achievement',title:'Dr. Omar Al Taie Wins First Place for Best Scientific Research',date:'December 2025',dateSort:'2025-12',summary:'Dr. Omar Al Taie was awarded First Place for the best scientific research at the 7th Annual Research Forum of the National Heart Center. His study: Ten-Year Trends in Cardiac Mortality and Sudden Death in Oman (2014-2023).',link:'https://x.com/OMSB_OM/status/2005151473563557933',youtubeId:'',isBayan:false,image:''},
@@ -110,7 +110,7 @@ export default function News() {
                         <span key={e} className="exam-tag">{e}</span>
                       ))}
                     </div>
-                    <a href="https://bayan-med.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">
+                    <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">
                       Try Bayan Free →
                     </a>
                   </div>
