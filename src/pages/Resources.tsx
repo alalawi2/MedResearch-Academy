@@ -93,7 +93,7 @@ export default function Resources() {
                 <div className="exam-tags" style={{marginBottom:20}}>
                   {['🇴🇲 OMSB','🏥 Arab Board','🇬🇧 MRCP(UK)','🇺🇸 ABIM','🇺🇸 USMLE','🇦🇪 DHA/HAAD','🇶🇦 QCHP','🇸🇦 SMLE','🇦🇺 RACP','+ more'].map(e => <span key={e} className="exam-tag">{e}</span>)}
                 </div>
-                <a href="https://bayan-med.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">Launch Bayan Free →</a>
+                <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">Launch Bayan Free →</a>
               </div>
               <div className="bayan-features">
                 {[['🧠','Adaptive Learning','AI adjusts difficulty in real time'],['📚','Knowledge Library','Clinical articles with key terms'],['🃏','Flashcards','Spaced repetition for retention'],['📈','Analytics','Detailed performance tracking'],['📅','Study Planner','Weekly schedule & goals'],['🏆','Leaderboard','Compete with fellow residents']].map(([icon,title,desc]) => (
