@@ -43,7 +43,7 @@ export default function Resources() {
       <section className="section">
         <div className="container" style={{maxWidth:960}}>
 
-          {/* Pre-op Guide */}
+          {/* Pre-op Guide — periop-consult */}
           <div className="resource-card">
             <img src="/images/preop-guide-banner.png" alt="Pre-Operative Guide" className="resource-img" onError={e => (e.currentTarget.style.display='none')} />
             <div className="resource-body">
