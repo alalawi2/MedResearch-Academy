@@ -55,7 +55,7 @@ export default function Resources() {
                   <div key={t}><div style={{fontWeight:600,marginBottom:4}}>{t}</div><div style={{fontSize:13,color:'var(--text-muted)'}}>{d}</div></div>
                 ))}
               </div>
-              <a href="https://perio-guide-mencvhpz.manus.space/" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">Access Interactive Guide →</a>
+              <a href="https://www.bayan.edu.om/periop-consult" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">Access Interactive Guide →</a>
             </div>
           </div>
 
