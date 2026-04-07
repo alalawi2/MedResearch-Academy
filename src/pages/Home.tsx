@@ -137,7 +137,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Featured News Cards ── */
+      {/* ── Featured News Cards ── */}
       <section className="section section-muted">
         <div className="container">
           <div className="section-header">
