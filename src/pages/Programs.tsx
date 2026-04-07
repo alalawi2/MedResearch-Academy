@@ -46,7 +46,42 @@ export default function Programs() {
               </div>
             ))}
 
-            <div style={{marginTop:32,display:'flex',gap:16,flexWrap:'wrap'}}>
+
+            {/* ── Upcoming Event ── */}
+            <div style={{marginTop:32,marginBottom:8}}>
+              <h3 style={{fontSize:'1.1rem',marginBottom:16,color:'var(--primary)'}}>🗓️ Next Upcoming Lecture</h3>
+              <div className="event-home-card" style={{marginBottom:0}}>
+                <div className="event-home-left">
+                  <div className="event-home-date-block">
+                    <div className="event-home-month">APR</div>
+                    <div className="event-home-day">8</div>
+                    <div className="event-home-year">2026</div>
+                  </div>
+                </div>
+                <div className="event-home-center">
+                  <div className="event-home-badges">
+                    <span className="event-live-badge"><span className="event-live-dot"></span>Tomorrow</span>
+                    <span className="event-series-badge">Virtual Research Series</span>
+                  </div>
+                  <h3 className="event-home-title">AI in Medical Education</h3>
+                  <p className="event-home-desc">From global evidence to local implementation — showcasing Bayan, an AI-powered board prep platform. Presented by Dr. Abdullah M. Al Alawi.</p>
+                  <div className="event-home-meta">
+                    <span>🕗 8:00 PM Muscat (GST)</span>
+                    <span>💻 Zoom</span>
+                    <span>⏱ 60 min</span>
+                    <span>🔑 ID: 864 7984 0360 · PW: 857478</span>
+                  </div>
+                </div>
+                <div className="event-home-right">
+                  <a href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                    🎥 Join Free →
+                  </a>
+                  <Link to="/events" className="btn btn-outline" style={{marginTop:10}}>Full Details</Link>
+                </div>
+              </div>
+            </div>
+
+            <div style={{marginTop:24,display:'flex',gap:16,flexWrap:'wrap'}}>
               <Link to="/contact?subject=Virtual Research Series Inquiry" className="btn btn-primary btn-lg">Apply Now →</Link>
               <a href="https://whatsapp.com/channel/0029Vb7YmBo2ER6mtOHgja13" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg">Join WhatsApp Channel</a>
             </div>
