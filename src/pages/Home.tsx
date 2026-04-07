@@ -98,45 +98,6 @@ export default function Home() {
         </div>
       </div>
 
-
-      {/* ── Upcoming Event ── */}
-      <section className="section" style={{paddingBottom:8}}>
-        <div className="container">
-          <div className="section-header">
-            <h2>Upcoming Event</h2>
-            <p>Join us for our next free virtual lecture — open to all healthcare professionals.</p>
-          </div>
-          <div className="event-home-card">
-            <div className="event-home-left">
-              <div className="event-home-date-block">
-                <div className="event-home-month">APR</div>
-                <div className="event-home-day">8</div>
-                <div className="event-home-year">2026</div>
-              </div>
-            </div>
-            <div className="event-home-center">
-              <div className="event-home-badges">
-                <span className="event-live-badge"><span className="event-live-dot"></span>Tomorrow</span>
-                <span className="event-series-badge">Virtual Research Series</span>
-              </div>
-              <h3 className="event-home-title">AI in Medical Education</h3>
-              <p className="event-home-desc">From global evidence to local implementation — showcasing Bayan, an AI-powered board prep platform. Presented by Dr. Abdullah M. Al Alawi.</p>
-              <div className="event-home-meta">
-                <span>🕗 8:00 PM Muscat</span>
-                <span>💻 Zoom</span>
-                <span>⏱ 60 min</span>
-              </div>
-            </div>
-            <div className="event-home-right">
-              <a href="https://us02web.zoom.us/j/86479840360?pwd=cl9IYzFAcAb1oIxbZoVbW8GzhxiPOS.1" target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                🎥 Join Free →
-              </a>
-              <Link to="/events" className="btn btn-outline" style={{marginTop:10}}>View Details</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Featured News Cards ── */}
       <section className="section section-muted">
         <div className="container">
