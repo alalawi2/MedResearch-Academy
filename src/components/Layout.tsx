@@ -22,7 +22,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link to="/wall-of-impact" className={active('/wall-of-impact')}>Wall of Impact</Link>
             <Link to="/active-research" className={active('/active-research')}>Active Research</Link>
             <Link to="/news" className={active('/news')}>News</Link>
-          <Link to="/events" className={active('/events')}>Events</Link>
             <Link to="/contact" className={`nav-cta ${active('/contact')}`}>Contact</Link>
           </div>
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>☰</button>
@@ -50,7 +49,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Link to="/resources">Resources</Link>
                 <Link to="/wall-of-impact">Wall of Impact</Link>
                 <Link to="/news">News</Link>
-            <Link to="/events">Events</Link>
               </div>
             </div>
             <div>
