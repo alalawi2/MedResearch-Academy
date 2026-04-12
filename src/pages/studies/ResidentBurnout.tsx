@@ -26,7 +26,7 @@ export default function ResidentBurnout() {
             📍 Current Phase: <strong>A resident-focused pilot study at OMSB</strong>
           </div>
           <p style={{color:'rgba(255,255,255,0.8)',maxWidth:740,fontSize:'1.05rem',lineHeight:1.75,marginBottom:28}}>
-            A multi-center, prospective pilot cohort study using the Maslach Burnout Inventory (MBI) and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers — heart rate variability, sleep quality, and autonomic tone. The initial pilot cohort comprises OMSB internal medicine and general surgery residents at three hospitals in Muscat.
+            A multi-center, prospective pilot cohort study using the Copenhagen Burnout Inventory (CBI), validated psychological screening instruments (PHQ-9, GAD-7, Insomnia Severity Index), and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers — heart rate variability, sleep quality, and autonomic tone. The pilot cohort comprises 70+ OMSB internal medicine and general surgery residents at three hospitals in Muscat.
           </p>
           <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
             <a href="#overview" className="btn btn-accent">Learn More</a>
@@ -41,7 +41,7 @@ export default function ResidentBurnout() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:24}}>
             {[
               ['🏥','3 Sites','SQUH · Royal · AFH'],
-              ['👩‍⚕️','~50','Residents enrolled'],
+              ['👩‍⚕️','70+','Residents enrolled'],
               ['⏱️','12 months','Study duration'],
               ['📊','13 blocks','4-week rotations'],
             ].map(([icon,num,label]) => (
@@ -78,7 +78,7 @@ export default function ResidentBurnout() {
             <div style={{background:'white',borderRadius:16,padding:'32px',border:'1px solid var(--border)'}}>
               <h3 style={{color:'var(--primary)',marginBottom:16,fontSize:'1.3rem'}}>🎯 Primary Objective</h3>
               <p style={{color:'var(--text-muted)',lineHeight:1.75,fontSize:15}}>
-                To determine the correlation between burnout severity (measured by the Maslach Burnout Inventory) and objective biophysical parameters captured by the WHOOP wearable device in OMSB residents.
+                To determine the correlation between burnout severity (measured by the Copenhagen Burnout Inventory) and objective biophysical parameters captured by the WHOOP wearable device in OMSB residents.
               </p>
             </div>
 
@@ -89,7 +89,7 @@ export default function ResidentBurnout() {
                   'Identify associations between demographic variables (age, sex, PGY, marital status, family support) and burnout',
                   'Evaluate program-specific workload factors (calls per block, call type, weekly hours, sleep hours) against burnout outcomes',
                   'Compare burnout risk profiles between medical and surgical residents',
-                  'Build predictive models linking biophysical signatures to MBI subscale scores',
+                  'Build predictive models linking biophysical signatures to CBI subscale scores',
                 ].map(obj => (
                   <li key={obj} style={{position:'relative',paddingLeft:24,marginBottom:10}}>
                     <span style={{position:'absolute',left:0,color:'var(--accent)',fontWeight:700}}>▸</span>
@@ -117,10 +117,10 @@ export default function ResidentBurnout() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:20}}>
             {[
               {icon:'📝',title:'Study Design',desc:'Multi-center, prospective, pilot cohort study. 12-month data collection across SQUH, Royal Hospital, and Armed Forces Hospital.'},
-              {icon:'👥',title:'Sample',desc:'Convenience sample of ~50 OMSB residents — 40 internal medicine + 10 general surgery, spanning PGY-1 to PGY-5.'},
+              {icon:'👥',title:'Sample',desc:'Convenience sample of 70+ OMSB residents — internal medicine and general surgery, spanning PGY-1 to PGY-5.'},
               {icon:'⌚',title:'WHOOP Wearable',desc:'Continuous 24/7 monitoring of HRV, RHR, SpO2, skin temperature, respiratory rate, sleep stages, and daily strain.'},
-              {icon:'📊',title:'MBI Questionnaire',desc:'Maslach Burnout Inventory — 22 items measuring Emotional Exhaustion, Depersonalization, and Personal Accomplishment, administered monthly.'},
-              {icon:'🧠',title:'PROMIS-29',desc:'Eight-domain patient-reported outcomes assessment (anxiety, depression, fatigue, sleep, physical function, pain, social), administered monthly.'},
+              {icon:'📊',title:'Copenhagen Burnout Inventory',desc:'CBI — 22 items measuring personal burnout, work-related burnout, and patient-related burnout. Administered monthly at the end of each rotation block.'},
+              {icon:'🧠',title:'PHQ-9 · GAD-7 · ISI',desc:'Depression screening (PHQ-9, 9 items), anxiety screening (GAD-7, 7 items), and insomnia severity assessment (ISI, 7 items). Administered monthly alongside the CBI.'},
               {icon:'📅',title:'Rotation Log',desc:'At end of each 4-week block: calls worked, call type (24h vs shift), weekly hours, sleep hours, rotation type and site.'},
             ].map(card => (
               <div key={card.title} style={{background:'white',borderRadius:14,padding:'24px',border:'1px solid var(--border)',boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
@@ -142,8 +142,8 @@ export default function ResidentBurnout() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:18}}>
             {[
               {name:'Dr. Mohamed Al Rawahi',role:'Principal Investigator',creds:'MD, MBA, MSc',detail:'Senior Consultant Cardiac Electrophysiologist · SQUH & National Heart Center, Royal Hospital'},
-              {name:'Dr. Masoud Kashoub',role:'Co-Principal Investigator',creds:'MD',detail:'Internal Medicine, SQUH'},
-              {name:'Dr. Abdullah M. Al Alawi',role:'Co-Investigator — AI/ML Analytics Lead',creds:'BSc, MD, MSc, FRACP, FACP',detail:'PD Internal Medicine Residency, OMSB'},
+              {name:'Dr. Abdullah M. Al Alawi',role:'Co-Principal Investigator — AI/ML Analytics Lead',creds:'BSc, MD, MSc, FRACP, FACP',detail:'PD Internal Medicine Residency, OMSB'},
+              {name:'Dr. Masoud Kashoub',role:'Co-Investigator',creds:'MD',detail:'Internal Medicine, SQUH'},
               {name:'Dr. Salim Al Busaidi',role:'Co-Investigator — Recruitment Lead',creds:'MD',detail:'Internal Medicine, SQUH'},
               {name:'Dr. Jawahar Al Nou\u2019mani',role:'Co-Investigator — Site Coordinator',creds:'MD',detail:'Internal Medicine, SQUH'},
               {name:'Dr. Adil Al Riyami',role:'Co-Investigator — Policy',creds:'MD',detail:'Interventional Cardiology, SQUH'},
@@ -171,7 +171,7 @@ export default function ResidentBurnout() {
               {date:'July 2024',title:'Ethical Approvals Secured',desc:'MREC #3190 (SQU) and Royal Hospital Research Ethics Committee approvals obtained.',done:true},
               {date:'January 2025',title:'Funding Confirmed',desc:'Grant awarded by the Ministry of Higher Education, Research, and Innovation (MoHERI).',done:true},
               {date:'March 2025',title:'Recruitment & Device Distribution',desc:'70+ WHOOP devices distributed to consenting OMSB residents across three sites.',done:true},
-              {date:'March 2025 – March 2026',title:'Continuous Data Collection',desc:'Continuous biophysical monitoring with monthly MBI and PROMIS-29 assessments tied to rotation blocks.',done:true,active:true},
+              {date:'March 2025 – March 2026',title:'Continuous Data Collection',desc:'Continuous biophysical monitoring with monthly CBI, PHQ-9, GAD-7, and ISI assessments tied to rotation blocks.',done:true,active:true},
               {date:'April – June 2026',title:'Data Processing & Quality Control',desc:'WHOOP API extraction, pseudonymization, data validation, and linkage to rotation metadata.',done:false},
               {date:'July – August 2026',title:'Analysis & Interpretation',desc:'Statistical modeling (SPSS + multivariate regression) to test primary hypothesis and secondary objectives.',done:false},
               {date:'September 2026',title:'Dissemination',desc:'Manuscript submission, conference presentations, and policy briefing to OMSB leadership.',done:false},

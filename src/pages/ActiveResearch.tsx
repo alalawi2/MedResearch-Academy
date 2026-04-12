@@ -6,11 +6,11 @@ const STUDIES: StudyCardData[] = [
   {
     slug: 'resident-burnout',
     title: "The Association Between Healthcare Workers' Burnout and Biophysical Parameters",
-    shortDescription: 'A multi-center prospective cohort using the Maslach Burnout Inventory and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers (HRV, sleep, autonomic tone). Current phase: a resident-focused pilot at OMSB across three hospitals in Muscat.',
+    shortDescription: 'A multi-center prospective cohort using the Copenhagen Burnout Inventory (CBI), PHQ-9, GAD-7, ISI, and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers (HRV, sleep, autonomic tone). 70+ residents enrolled across three hospitals in Muscat.',
     status: 'recruiting',
     ethicsIds: ['MREC #3190', 'Royal Hospital EC'],
     pi: 'Dr. Mohamed Al Rawahi',
-    coPi: 'Dr. Masoud Kashoub',
+    coPi: 'Dr. Abdullah M. Al Alawi',
     studyType: 'Multi-center Prospective Cohort',
     targetPopulation: 'OMSB Residents (Oman)',
     icon: '⌚',
