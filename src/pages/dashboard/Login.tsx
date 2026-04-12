@@ -1,21 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 
 export default function Login() {
   const { user, staff, loading } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const navigate = useNavigate();
 
-  // If already authenticated AND has staff record → go to dashboard
   if (!loading && staff) return <Navigate to="/dashboard" replace />;
 
-  // If authenticated but no staff record → show "no access" message
   const authenticatedButNoStaff = !loading && user && !staff;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -26,32 +22,17 @@ export default function Login() {
     }
     setSubmitting(true);
     setError(null);
-    setInfo('Connecting...');
 
     try {
-      const { data, error: err } = await supabase.auth.signInWithPassword({
+      const { error: err } = await supabase.auth.signInWithOtp({
         email: email.trim(),
-        password,
+        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
       });
-
-      if (err) {
-        setError(err.message);
-        setInfo(null);
-        setSubmitting(false);
-        return;
-      }
-
-      if (data.user) {
-        setInfo('Authenticated! Loading your profile...');
-        // Give AuthContext time to pick up the session and load staff profile
-        setTimeout(() => {
-          setSubmitting(false);
-          setInfo(null);
-        }, 3000);
-      }
+      setSubmitting(false);
+      if (err) setError(err.message);
+      else setSent(true);
     } catch (err: any) {
-      setError(err?.message || 'Network error — check your connection and try again.');
-      setInfo(null);
+      setError(err?.message || 'Network error — check your connection.');
       setSubmitting(false);
     }
   }
@@ -59,7 +40,6 @@ export default function Login() {
   async function handleSignOut() {
     await supabase.auth.signOut();
     setError(null);
-    setInfo(null);
   }
 
   return (
@@ -79,12 +59,19 @@ export default function Login() {
               <div style={{fontSize:28,marginBottom:8}}>🔒</div>
               <div style={{fontWeight:700,color:'#92400e',marginBottom:6}}>Account Not Linked</div>
               <div style={{fontSize:13,color:'#92400e',lineHeight:1.6}}>
-                You are signed in as <strong>{user?.email}</strong> but your account is not linked to a staff profile yet. Ask the administrator to run the staff linking SQL.
+                You are signed in as <strong>{user?.email}</strong> but your account is not linked to a staff profile. Contact the principal investigator.
               </div>
             </div>
-            <button onClick={handleSignOut} className="btn btn-outline" style={{width:'100%',justifyContent:'center'}}>
-              Sign Out
-            </button>
+            <button onClick={handleSignOut} className="btn btn-outline" style={{width:'100%',justifyContent:'center'}}>Sign Out</button>
+          </div>
+        ) : sent ? (
+          <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'20px',textAlign:'center'}}>
+            <div style={{fontSize:28,marginBottom:8}}>📧</div>
+            <div style={{fontWeight:700,color:'#166534',marginBottom:6}}>Check your email</div>
+            <div style={{fontSize:13,color:'#166534',lineHeight:1.6}}>
+              We sent a login link to <strong>{email}</strong>.<br />
+              Click the link to access the dashboard.
+            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
@@ -104,30 +91,9 @@ export default function Login() {
               onFocus={e => e.target.style.borderColor = 'var(--primary)'}
               onBlur={e => e.target.style.borderColor = 'var(--border)'}
             />
-            <label style={{display:'block',fontSize:12,fontWeight:600,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              style={{
-                width:'100%',padding:'12px 16px',borderRadius:10,border:'1px solid var(--border)',
-                fontSize:15,marginBottom:16,outline:'none',fontFamily:'var(--font-sans)',transition:'border 0.2s',
-              }}
-              onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-              onBlur={e => e.target.style.borderColor = 'var(--border)'}
-            />
             {error && (
               <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#991b1b',marginBottom:12}}>
                 {error}
-              </div>
-            )}
-            {info && (
-              <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'10px 14px',fontSize:13,color:'#1e40af',marginBottom:12}}>
-                {info}
               </div>
             )}
             <button
@@ -136,7 +102,7 @@ export default function Login() {
               className="btn btn-primary"
               style={{width:'100%',justifyContent:'center',padding:'14px',fontSize:15,opacity:submitting ? 0.6 : 1}}
             >
-              {submitting ? 'Signing in...' : 'Sign In'}
+              {submitting ? 'Sending...' : 'Send Magic Link'}
             </button>
           </form>
         )}
