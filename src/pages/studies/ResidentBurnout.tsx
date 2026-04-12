@@ -30,7 +30,7 @@ export default function ResidentBurnout() {
           </p>
           <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
             <a href="#overview" className="btn btn-accent">Learn More</a>
-            <Link to="/dashboard/resident-burnout" className="btn btn-outline-white">🔒 Team Login</Link>
+            <Link to="/login" className="btn btn-outline-white">🔒 Team Login</Link>
           </div>
         </div>
       </section>
@@ -216,7 +216,7 @@ export default function ResidentBurnout() {
           <h3 style={{fontSize:'1.5rem',marginBottom:12,fontFamily:'var(--font-serif)'}}>Research Team Access</h3>
           <p style={{color:'rgba(255,255,255,0.8)',marginBottom:24,fontSize:15}}>Investigators and research assistants can access the secure study dashboard to enter rotation logs, review assessments, and export de-identified data.</p>
           <div style={{display:'flex',justifyContent:'center',gap:12,flexWrap:'wrap'}}>
-            <Link to="/dashboard/resident-burnout" className="btn btn-accent">🔒 Team Dashboard Login</Link>
+            <Link to="/login" className="btn btn-accent">🔒 Team Dashboard Login</Link>
             <a href="mailto:alalawi2@squ.edu.om" className="btn btn-outline-white">Contact Research Team</a>
           </div>
         </div>
