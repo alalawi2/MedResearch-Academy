@@ -7,6 +7,8 @@ import Lectures from './pages/Lectures';
 import Resources from './pages/Resources';
 import WallOfImpact from './pages/WallOfImpact';
 import ActiveResearch from './pages/ActiveResearch';
+import ResidentBurnout from './pages/studies/ResidentBurnout';
+import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import Contact from './pages/Contact';
 import Events from './pages/Events';
 
@@ -22,6 +24,8 @@ export default function App() {
         <Route path="/resources" element={<Resources />} />
         <Route path="/wall-of-impact" element={<WallOfImpact />} />
         <Route path="/active-research" element={<ActiveResearch />} />
+        <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />
+        <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
         <Route path="/events" element={<Events />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<Home />} />
