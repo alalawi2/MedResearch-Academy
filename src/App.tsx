@@ -20,6 +20,7 @@ import ResidentDetail from './pages/dashboard/ResidentDetail';
 import DataEntry from './pages/dashboard/DataEntry';
 import Enrollment from './pages/dashboard/Enrollment';
 import Exports from './pages/dashboard/Exports';
+import SetPassword from './pages/dashboard/SetPassword';
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
 
           {/* ── Auth ── */}
           <Route path="/login" element={<Login />} />
+          <Route path="/dashboard/set-password" element={<SetPassword />} />
 
           {/* ── Dashboard (gated by DashboardLayout) ── */}
           <Route path="/dashboard" element={<DashboardLayout />}>
