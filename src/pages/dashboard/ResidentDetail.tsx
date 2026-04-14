@@ -46,11 +46,33 @@ interface WhoopRow {
   period_end: string;
   avg_hrv_rmssd_ms: number | null;
   avg_resting_hr_bpm: number | null;
-  avg_total_sleep_min: number | null;
-  avg_sleep_efficiency_pct: number | null;
-  avg_daily_strain: number | null;
+  avg_spo2_pct: number | null;
+  avg_skin_temp_c: number | null;
   avg_recovery_score: number | null;
+  avg_total_sleep_min: number | null;
+  avg_light_sleep_min: number | null;
+  avg_deep_sleep_min: number | null;
+  avg_rem_sleep_min: number | null;
+  avg_sleep_efficiency_pct: number | null;
+  avg_sleep_consistency_pct: number | null;
+  avg_sleep_performance_pct: number | null;
+  avg_sleep_debt_min: number | null;
+  avg_respiratory_rate_bpm: number | null;
+  avg_time_in_bed_min: number | null;
+  avg_disturbance_count: number | null;
+  nap_count: number | null;
+  avg_daily_strain: number | null;
+  avg_hr_bpm: number | null;
+  max_hr_bpm: number | null;
+  avg_kilojoules: number | null;
+  hr_zone1_min: number | null;
+  hr_zone2_min: number | null;
+  hr_zone3_min: number | null;
+  hr_zone4_min: number | null;
+  hr_zone5_min: number | null;
+  workout_count: number | null;
   days_with_data: number | null;
+  pct_recorded: number | null;
   block_id: string | null;
 }
 
@@ -78,7 +100,7 @@ export default function ResidentDetail() {
       supabase.from('residents').select('*').eq('id', id).limit(1).single(),
       supabase.from('rotation_blocks').select('*').eq('resident_id', id).order('block_number').limit(13),
       supabase.from('mbi_responses').select('response_date, ee_score, dp_score, pa_score, burnout_positive, block_id').eq('resident_id', id).order('response_date').limit(13),
-      supabase.from('whoop_pulls').select('period_start, period_end, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_total_sleep_min, avg_sleep_efficiency_pct, avg_daily_strain, avg_recovery_score, days_with_data, block_id').eq('resident_id', id).order('period_start').limit(13),
+      supabase.from('whoop_pulls').select('period_start, period_end, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_recovery_score, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_respiratory_rate_bpm, avg_time_in_bed_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, days_with_data, pct_recorded, block_id').eq('resident_id', id).order('period_start', { ascending: false }).limit(13),
     ]);
 
     setResident(resResult.data);
@@ -146,20 +168,71 @@ export default function ResidentDetail() {
       {/* Latest WHOOP Data */}
       {whoopData.length > 0 && (
         <div style={{marginBottom:32}}>
-          <h2 style={{fontSize:'1.3rem',fontFamily:'var(--font-serif)',color:'var(--primary)',marginBottom:16}}>Latest WHOOP Data</h2>
+          <h2 style={{fontSize:'1.3rem',fontFamily:'var(--font-serif)',color:'var(--primary)',marginBottom:16}}>WHOOP Biophysical Data</h2>
           {whoopData.map((w, i) => (
-            <div key={i} style={{background:'white',borderRadius:14,border:'1px solid var(--border)',padding:'24px',boxShadow:'0 2px 8px rgba(0,0,0,0.03)',marginBottom:12}}>
-              <div style={{fontSize:13,color:'var(--text-muted)',marginBottom:16}}>
-                Period: <strong>{w.period_start}</strong> → <strong>{w.period_end}</strong>
-                {w.days_with_data != null && <span> · {w.days_with_data} days with data</span>}
+            <div key={i} style={{background:'white',borderRadius:14,border:'1px solid var(--border)',padding:'24px',boxShadow:'0 2px 8px rgba(0,0,0,0.03)',marginBottom:16}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:8}}>
+                <div style={{fontSize:13,color:'var(--text-muted)'}}>
+                  <strong>{w.period_start}</strong> → <strong>{w.period_end}</strong>
+                </div>
+                <div style={{display:'flex',gap:8}}>
+                  <span style={{padding:'3px 10px',borderRadius:50,fontSize:11,background:'var(--bg-muted)',color:'var(--text-muted)',fontWeight:600}}>
+                    {w.days_with_data ?? 0}/28 days
+                  </span>
+                  {w.pct_recorded != null && (
+                    <span style={{padding:'3px 10px',borderRadius:50,fontSize:11,background:'var(--bg-muted)',color:'var(--text-muted)',fontWeight:600}}>
+                      {w.pct_recorded}% recorded
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12}}>
-                <MetricCell label="HRV (ms)" value={w.avg_hrv_rmssd_ms?.toFixed(1)} color={w.avg_hrv_rmssd_ms && w.avg_hrv_rmssd_ms < 30 ? '#f59e0b' : '#16a34a'} />
-                <MetricCell label="RHR (bpm)" value={w.avg_resting_hr_bpm?.toFixed(1)} />
-                <MetricCell label="Total Sleep" value={w.avg_total_sleep_min ? `${Math.floor(w.avg_total_sleep_min / 60)}h ${Math.round(w.avg_total_sleep_min % 60)}m` : null} color={w.avg_total_sleep_min && w.avg_total_sleep_min < 420 ? '#f59e0b' : '#16a34a'} />
-                <MetricCell label="Sleep Efficiency" value={w.avg_sleep_efficiency_pct?.toFixed(1)} suffix="%" />
-                <MetricCell label="Daily Strain" value={w.avg_daily_strain?.toFixed(1)} />
-                <MetricCell label="Recovery Score" value={w.avg_recovery_score?.toFixed(0)} suffix="%" color={w.avg_recovery_score && w.avg_recovery_score < 34 ? '#dc2626' : w.avg_recovery_score && w.avg_recovery_score < 67 ? '#f59e0b' : '#16a34a'} />
+
+              {/* Recovery Metrics */}
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10,borderBottom:'2px solid var(--border)',paddingBottom:6}}>💓 Recovery</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:10}}>
+                  <MetricCell label="Recovery Score" value={w.avg_recovery_score?.toFixed(0)} suffix="%" color={w.avg_recovery_score != null ? (w.avg_recovery_score < 34 ? '#dc2626' : w.avg_recovery_score < 67 ? '#f59e0b' : '#16a34a') : undefined} />
+                  <MetricCell label="HRV RMSSD" value={w.avg_hrv_rmssd_ms?.toFixed(1)} suffix=" ms" color={w.avg_hrv_rmssd_ms != null ? (w.avg_hrv_rmssd_ms < 30 ? '#f59e0b' : '#16a34a') : undefined} />
+                  <MetricCell label="Resting Heart Rate" value={w.avg_resting_hr_bpm?.toFixed(1)} suffix=" bpm" />
+                  <MetricCell label="Blood Oxygen (SpO2)" value={w.avg_spo2_pct?.toFixed(1)} suffix="%" />
+                  <MetricCell label="Skin Temperature" value={w.avg_skin_temp_c?.toFixed(1)} suffix=" °C" />
+                  <MetricCell label="Respiratory Rate" value={w.avg_respiratory_rate_bpm?.toFixed(1)} suffix=" br/min" />
+                </div>
+              </div>
+
+              {/* Sleep Metrics */}
+              <div style={{marginBottom:20}}>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10,borderBottom:'2px solid var(--border)',paddingBottom:6}}>😴 Sleep</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:10}}>
+                  <MetricCell label="Total Sleep" value={w.avg_total_sleep_min != null ? `${Math.floor(w.avg_total_sleep_min / 60)}h ${Math.round(w.avg_total_sleep_min % 60)}m` : null} color={w.avg_total_sleep_min != null ? (w.avg_total_sleep_min < 420 ? '#dc2626' : '#16a34a') : undefined} />
+                  <MetricCell label="Time in Bed" value={w.avg_time_in_bed_min != null ? `${Math.floor(w.avg_time_in_bed_min / 60)}h ${Math.round(w.avg_time_in_bed_min % 60)}m` : null} />
+                  <MetricCell label="Light Sleep" value={w.avg_light_sleep_min != null ? `${Math.floor(w.avg_light_sleep_min / 60)}h ${Math.round(w.avg_light_sleep_min % 60)}m` : null} />
+                  <MetricCell label="Deep (SWS)" value={w.avg_deep_sleep_min != null ? `${Math.floor(w.avg_deep_sleep_min / 60)}h ${Math.round(w.avg_deep_sleep_min % 60)}m` : null} />
+                  <MetricCell label="REM Sleep" value={w.avg_rem_sleep_min != null ? `${Math.floor(w.avg_rem_sleep_min / 60)}h ${Math.round(w.avg_rem_sleep_min % 60)}m` : null} />
+                  <MetricCell label="Sleep Efficiency" value={w.avg_sleep_efficiency_pct?.toFixed(1)} suffix="%" />
+                  <MetricCell label="Sleep Consistency" value={w.avg_sleep_consistency_pct?.toFixed(1)} suffix="%" />
+                  <MetricCell label="Sleep Performance" value={w.avg_sleep_performance_pct?.toFixed(1)} suffix="%" />
+                  <MetricCell label="Sleep Debt" value={w.avg_sleep_debt_min != null ? `${Math.round(w.avg_sleep_debt_min)}m` : null} color={w.avg_sleep_debt_min != null ? (w.avg_sleep_debt_min > 60 ? '#dc2626' : '#16a34a') : undefined} />
+                  <MetricCell label="Disturbances" value={w.avg_disturbance_count?.toFixed(1)} />
+                  <MetricCell label="Naps" value={w.nap_count} />
+                </div>
+              </div>
+
+              {/* Strain & Activity */}
+              <div>
+                <div style={{fontSize:11,fontWeight:700,color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.06em',marginBottom:10,borderBottom:'2px solid var(--border)',paddingBottom:6}}>🏋️ Strain & Activity</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))',gap:10}}>
+                  <MetricCell label="Daily Strain" value={w.avg_daily_strain?.toFixed(1)} suffix=" / 21" />
+                  <MetricCell label="Avg Heart Rate" value={w.avg_hr_bpm?.toFixed(0)} suffix=" bpm" />
+                  <MetricCell label="Max Heart Rate" value={w.max_hr_bpm?.toFixed(0)} suffix=" bpm" />
+                  <MetricCell label="Energy Burned" value={w.avg_kilojoules?.toFixed(0)} suffix=" kJ" />
+                  <MetricCell label="Workouts" value={w.workout_count} />
+                  <MetricCell label="HR Zone 1" value={w.hr_zone1_min?.toFixed(0)} suffix=" min" />
+                  <MetricCell label="HR Zone 2" value={w.hr_zone2_min?.toFixed(0)} suffix=" min" />
+                  <MetricCell label="HR Zone 3" value={w.hr_zone3_min?.toFixed(0)} suffix=" min" />
+                  <MetricCell label="HR Zone 4" value={w.hr_zone4_min?.toFixed(0)} suffix=" min" />
+                  <MetricCell label="HR Zone 5" value={w.hr_zone5_min?.toFixed(0)} suffix=" min" />
+                </div>
               </div>
             </div>
           ))}
