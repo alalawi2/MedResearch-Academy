@@ -41,6 +41,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     tokenCount = tokErr ? `ERROR: ${tokErr.message}` : `${tokens?.length} tokens`;
 
+    // Test insert into whoop_tokens
+    if (req.query.test_insert === 'true') {
+      const { data: res001 } = await supabase
+        .from('residents')
+        .select('id')
+        .eq('study_participant_id', 'RES-001')
+        .limit(1)
+        .single();
+
+      if (res001) {
+        const { data: insertResult, error: insertErr } = await supabase
+          .from('whoop_tokens')
+          .insert({
+            resident_id: res001.id,
+            whoop_user_id: 'test123',
+            access_token: 'test_token',
+            refresh_token: 'test_refresh',
+            expires_at: new Date(Date.now() + 3600000).toISOString(),
+          })
+          .select('id')
+          .single();
+
+        (dbTest as any) = {
+          connection: dbTest,
+          test_insert: insertErr ? `FAILED: ${insertErr.message} (code: ${insertErr.code}, details: ${insertErr.details})` : `SUCCESS: ${insertResult?.id}`,
+        };
+
+        // Clean up test row if successful
+        if (insertResult) {
+          await supabase.from('whoop_tokens').delete().eq('id', insertResult.id);
+        }
+      }
+    }
+
   } catch (e: any) {
     dbTest = `EXCEPTION: ${e.message}`;
   }
