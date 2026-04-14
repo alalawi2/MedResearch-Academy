@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const tokens = await tokenRes.json();
-    const { access_token, refresh_token: refresh_token || null, expires_in } = tokens;
+    const { access_token, refresh_token = null, expires_in } = tokens;
 
     // Fetch WHOOP user profile
     const profileRes = await fetch(WHOOP_PROFILE_URL, {
