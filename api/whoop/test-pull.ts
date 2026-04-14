@@ -24,10 +24,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Test each endpoint
   const endpoints = [
     '/user/profile/basic',
-    '/cycle?limit=5',
-    '/recovery?limit=5',
-    '/activity/sleep?limit=5',
-    '/activity/workout?limit=5',
+    '/cycle?limit=2',
+    '/recovery?limit=2',
+    '/sleep?limit=2',
+    '/workout?limit=2',
+    '/activity/sleep?limit=2',
+    '/activity/workout?limit=2',
+    '/cycle/' + 'collection?limit=2',
+    '/recovery/collection?limit=2',
   ];
 
   for (const ep of endpoints) {
