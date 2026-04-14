@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const tokens = await tokenRes.json();
-    const { access_token, refresh_token, expires_in } = tokens;
+    const { access_token, refresh_token: refresh_token || null, expires_in } = tokens;
 
     // Fetch WHOOP user profile
     const profileRes = await fetch(WHOOP_PROFILE_URL, {
@@ -89,7 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           resident_id: existing.id,
           whoop_user_id: whoopUserId,
           access_token,
-          refresh_token,
+          refresh_token: refresh_token || null,
           expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'resident_id' });
@@ -145,7 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         resident_id: newResident.id,
         whoop_user_id: whoopUserId,
         access_token,
-        refresh_token,
+        refresh_token: refresh_token || null,
         expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
       });
 

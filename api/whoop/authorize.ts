@@ -4,6 +4,7 @@ const WHOOP_AUTH_URL = 'https://api.prod.whoop.com/oauth/oauth2/auth';
 const CLIENT_ID = process.env.WHOOP_CLIENT_ID!;
 const REDIRECT_URI = process.env.WHOOP_REDIRECT_URI!;
 const SCOPES = [
+  'offline',
   'read:profile',
   'read:body_measurement',
   'read:recovery',
