@@ -13,6 +13,7 @@ import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import Contact from './pages/Contact';
 import Events from './pages/Events';
 import Privacy from './pages/Privacy';
+import EnrollWhoop from './pages/EnrollWhoop';
 import Login from './pages/dashboard/Login';
 import DashboardLayout from './components/DashboardLayout';
 import Overview from './pages/dashboard/Overview';
@@ -42,6 +43,7 @@ export default function App() {
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/enroll/whoop" element={<EnrollWhoop />} />
 
           {/* ── Auth ── */}
           <Route path="/login" element={<Login />} />
