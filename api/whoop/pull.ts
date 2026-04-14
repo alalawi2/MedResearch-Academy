@@ -2,7 +2,8 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token';
-const WHOOP_API = 'https://api.prod.whoop.com/developer/v1';
+const WHOOP_API_V1 = 'https://api.prod.whoop.com/developer/v1';
+const WHOOP_API_V2 = 'https://api.prod.whoop.com/developer/v2';
 const CLIENT_ID = process.env.WHOOP_CLIENT_ID!;
 const CLIENT_SECRET = process.env.WHOOP_CLIENT_SECRET!;
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
@@ -54,8 +55,8 @@ async function refreshToken(token: TokenRow, supabase: any): Promise<string | nu
   }
 }
 
-async function whoopGet(path: string, accessToken: string) {
-  const res = await fetch(`${WHOOP_API}${path}`, {
+async function whoopGet(base: string, path: string, accessToken: string) {
+  const res = await fetch(`${base}${path}`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) return null;
@@ -74,10 +75,10 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   const params = `start=${startDate}T00:00:00.000Z&end=${endDate}T23:59:59.999Z`;
 
   const [recoveryData, sleepData, cycleData, workoutData] = await Promise.all([
-    whoopGet(`/recovery?${params}&limit=50`, accessToken),
-    whoopGet(`/activity/sleep?${params}&limit=50`, accessToken),
-    whoopGet(`/cycle?${params}&limit=50`, accessToken),
-    whoopGet(`/activity/workout?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/recovery?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/activity/sleep?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V1, `/cycle?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/activity/workout?${params}&limit=50`, accessToken),
   ]);
 
   const recoveries = recoveryData?.records || [];
