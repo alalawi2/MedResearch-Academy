@@ -72,14 +72,13 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   const accessToken = await refreshToken(token, supabase);
   if (!accessToken) return { error: 'token_refresh_failed', resident_id: token.resident_id };
 
-  // WHOOP v2 API uses ISO timestamps for date filtering
-  const params = `start=${startDate}&end=${endDate}`;
-
+  // Pull all available data (no date filter — WHOOP v2 uses pagination, not date params)
+  // We filter by date on our side after fetching
   const [recoveryData, sleepData, cycleData, workoutData] = await Promise.all([
-    whoopGet(WHOOP_API_V2, `/recovery?${params}&limit=50`, accessToken),
-    whoopGet(WHOOP_API_V2, `/activity/sleep?${params}&limit=50`, accessToken),
-    whoopGet(WHOOP_API_V2, `/cycle?${params}&limit=50`, accessToken),
-    whoopGet(WHOOP_API_V2, `/activity/workout?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/recovery?limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/activity/sleep?limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/cycle?limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/activity/workout?limit=50`, accessToken),
   ]);
 
   const recoveries = recoveryData?.records || [];
