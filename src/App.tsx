@@ -12,6 +12,7 @@ import ResidentBurnout from './pages/studies/ResidentBurnout';
 import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import Contact from './pages/Contact';
 import Events from './pages/Events';
+import Privacy from './pages/Privacy';
 import Login from './pages/dashboard/Login';
 import DashboardLayout from './components/DashboardLayout';
 import Overview from './pages/dashboard/Overview';
@@ -40,6 +41,7 @@ export default function App() {
           <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* ── Auth ── */}
           <Route path="/login" element={<Login />} />
