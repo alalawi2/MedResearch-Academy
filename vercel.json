@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/whoop/cron-pull",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
