@@ -56,10 +56,14 @@ async function refreshToken(token: TokenRow, supabase: any): Promise<string | nu
 }
 
 async function whoopGet(base: string, path: string, accessToken: string) {
-  const res = await fetch(`${base}${path}`, {
+  const url = `${base}${path}`;
+  const res = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    return { _error: true, status: res.status, url, body: errText.substring(0, 200) };
+  }
   return res.json();
 }
 
@@ -81,11 +85,18 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
     whoopGet(WHOOP_API_V2, `/activity/workout?limit=50`, accessToken),
   ]);
 
-  const recoveries = recoveryData?.records || [];
-  const sleeps = (sleepData?.records || []).filter((s: any) => !s.nap);
-  const naps = (sleepData?.records || []).filter((s: any) => s.nap);
-  const cycles = cycleData?.records || [];
-  const workouts = workoutData?.records || [];
+  // Check for API errors
+  const apiErrors: any = {};
+  if (recoveryData?._error) apiErrors.recovery = recoveryData;
+  if (sleepData?._error) apiErrors.sleep = sleepData;
+  if (cycleData?._error) apiErrors.cycle = cycleData;
+  if (workoutData?._error) apiErrors.workout = workoutData;
+
+  const recoveries = recoveryData?._error ? [] : (recoveryData?.records || []);
+  const sleeps = (sleepData?._error ? [] : (sleepData?.records || [])).filter((s: any) => !s.nap);
+  const naps = (sleepData?._error ? [] : (sleepData?.records || [])).filter((s: any) => s.nap);
+  const cycles = cycleData?._error ? [] : (cycleData?.records || []);
+  const workouts = workoutData?._error ? [] : (workoutData?.records || []);
 
   const scored = (arr: any[]) => arr.filter((r: any) => r.score_state === 'SCORED' && r.score);
 
@@ -172,6 +183,8 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
     ...pull,
     _debug: {
       date_range: `${startDate} to ${endDate}`,
+      api_errors: Object.keys(apiErrors).length > 0 ? apiErrors : 'none',
+      token_refreshed: accessToken !== token.access_token,
       recovery_count: recoveries.length,
       sleep_count: sleeps.length,
       cycle_count: cycles.length,
