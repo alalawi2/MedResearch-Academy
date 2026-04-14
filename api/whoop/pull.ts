@@ -72,7 +72,8 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   const accessToken = await refreshToken(token, supabase);
   if (!accessToken) return { error: 'token_refresh_failed', resident_id: token.resident_id };
 
-  const params = `start=${startDate}T00:00:00.000Z&end=${endDate}T23:59:59.999Z`;
+  // WHOOP v2 API uses ISO timestamps for date filtering
+  const params = `start=${startDate}&end=${endDate}`;
 
   const [recoveryData, sleepData, cycleData, workoutData] = await Promise.all([
     whoopGet(WHOOP_API_V2, `/recovery?${params}&limit=50`, accessToken),
@@ -218,10 +219,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       continue;
     }
 
+    // Strip debug before saving
+    const { _debug, ...pullData } = pull;
+
     // Upsert into whoop_pulls
     const { error: upsertErr } = await supabase
       .from('whoop_pulls')
-      .upsert(pull, { onConflict: 'resident_id,period_start,period_end' });
+      .upsert(pullData, { onConflict: 'resident_id,period_start,period_end' });
 
     results.push({
       resident_id: token.resident_id,
