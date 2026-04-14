@@ -22,16 +22,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const results: any = { token_expires: token.expires_at };
 
   // Test each endpoint
+  // First get cycle IDs
+  const cycleRes = await fetch(`${WHOOP_API}/cycle?limit=2`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  const cycleData = await cycleRes.json();
+  const cycleId = cycleData?.records?.[1]?.id; // use second (completed) cycle
+  results['cycle_data'] = { status: cycleRes.status, first_two: cycleData?.records?.map((r:any) => ({ id: r.id, score_state: r.score_state, start: r.start, end: r.end })) };
+
   const endpoints = [
-    '/user/profile/basic',
-    '/cycle?limit=2',
-    '/recovery?limit=2',
-    '/sleep?limit=2',
-    '/workout?limit=2',
-    '/activity/sleep?limit=2',
-    '/activity/workout?limit=2',
-    '/cycle/' + 'collection?limit=2',
-    '/recovery/collection?limit=2',
+    `/cycle/${cycleId}`,
+    `/cycle/${cycleId}/recovery`,
+    `/cycle/${cycleId}/sleep`,
+    `/body/measurement`,
+    `/user/body/measurement`,
   ];
 
   for (const ep of endpoints) {
