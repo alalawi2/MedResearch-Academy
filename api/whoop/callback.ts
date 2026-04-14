@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
       console.error('Token exchange failed:', errText);
-      return res.redirect(`${SITE_URL}/enroll/whoop?error=token_failed`);
+      return res.redirect(`${SITE_URL}/enroll/whoop?error=token_failed&detail=${encodeURIComponent(errText.substring(0, 200))}`);
     }
 
     const tokens = await tokenRes.json();

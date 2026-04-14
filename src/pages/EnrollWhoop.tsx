@@ -5,6 +5,7 @@ export default function EnrollWhoop() {
   const [params] = useSearchParams();
   const success = params.get('success');
   const error = params.get('error');
+  const detail = params.get('detail');
   const participantId = params.get('id');
 
   return (
@@ -48,13 +49,20 @@ export default function EnrollWhoop() {
             <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:20,padding:'48px 36px'}}>
               <div style={{fontSize:56,marginBottom:16}}>❌</div>
               <h2 style={{fontFamily:'var(--font-serif)',color:'#991b1b',fontSize:'1.6rem',marginBottom:12}}>Something went wrong</h2>
-              <p style={{fontSize:15,color:'#991b1b',lineHeight:1.7,marginBottom:20}}>
+              <p style={{fontSize:15,color:'#991b1b',lineHeight:1.7,marginBottom:12}}>
                 {error === 'denied' && 'You declined the WHOOP authorization. You can try again anytime.'}
-                {error === 'token_failed' && 'We couldn\'t connect to WHOOP. Please try again.'}
+                {error === 'token_failed' && 'WHOOP token exchange failed. Please try again.'}
+                {error === 'token_save_failed' && 'Failed to save your connection. Please try again.'}
                 {error === 'insert_failed' && 'There was a database error. Please contact the research team.'}
                 {error === 'study_not_found' && 'Study configuration error. Please contact the research team.'}
                 {error === 'server_error' && 'A server error occurred. Please try again or contact the research team.'}
+                {!['denied','token_failed','token_save_failed','insert_failed','study_not_found','server_error'].includes(error!) && `Error: ${error}`}
               </p>
+              {detail && (
+                <p style={{fontSize:12,color:'#991b1b',background:'#fee2e2',borderRadius:8,padding:'10px 14px',marginBottom:20,wordBreak:'break-all'}}>
+                  Detail: {detail}
+                </p>
+              )}
               <a href="/api/whoop/authorize" className="btn btn-primary">Try Again</a>
             </div>
 
