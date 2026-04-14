@@ -143,6 +143,29 @@ export default function ResidentDetail() {
         ))}
       </div>
 
+      {/* Latest WHOOP Data */}
+      {whoopData.length > 0 && (
+        <div style={{marginBottom:32}}>
+          <h2 style={{fontSize:'1.3rem',fontFamily:'var(--font-serif)',color:'var(--primary)',marginBottom:16}}>Latest WHOOP Data</h2>
+          {whoopData.map((w, i) => (
+            <div key={i} style={{background:'white',borderRadius:14,border:'1px solid var(--border)',padding:'24px',boxShadow:'0 2px 8px rgba(0,0,0,0.03)',marginBottom:12}}>
+              <div style={{fontSize:13,color:'var(--text-muted)',marginBottom:16}}>
+                Period: <strong>{w.period_start}</strong> → <strong>{w.period_end}</strong>
+                {w.days_with_data != null && <span> · {w.days_with_data} days with data</span>}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12}}>
+                <MetricCell label="HRV (ms)" value={w.avg_hrv_rmssd_ms?.toFixed(1)} color={w.avg_hrv_rmssd_ms && w.avg_hrv_rmssd_ms < 30 ? '#f59e0b' : '#16a34a'} />
+                <MetricCell label="RHR (bpm)" value={w.avg_resting_hr_bpm?.toFixed(1)} />
+                <MetricCell label="Total Sleep" value={w.avg_total_sleep_min ? `${Math.floor(w.avg_total_sleep_min / 60)}h ${Math.round(w.avg_total_sleep_min % 60)}m` : null} color={w.avg_total_sleep_min && w.avg_total_sleep_min < 420 ? '#f59e0b' : '#16a34a'} />
+                <MetricCell label="Sleep Efficiency" value={w.avg_sleep_efficiency_pct?.toFixed(1)} suffix="%" />
+                <MetricCell label="Daily Strain" value={w.avg_daily_strain?.toFixed(1)} />
+                <MetricCell label="Recovery Score" value={w.avg_recovery_score?.toFixed(0)} suffix="%" color={w.avg_recovery_score && w.avg_recovery_score < 34 ? '#dc2626' : w.avg_recovery_score && w.avg_recovery_score < 67 ? '#f59e0b' : '#16a34a'} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Block-by-block timeline */}
       <h2 style={{fontSize:'1.3rem',fontFamily:'var(--font-serif)',color:'var(--primary)',marginBottom:16}}>Block-by-Block Data</h2>
 
