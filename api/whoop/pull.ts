@@ -77,7 +77,7 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   const [recoveryData, sleepData, cycleData, workoutData] = await Promise.all([
     whoopGet(WHOOP_API_V2, `/recovery?${params}&limit=50`, accessToken),
     whoopGet(WHOOP_API_V2, `/activity/sleep?${params}&limit=50`, accessToken),
-    whoopGet(WHOOP_API_V1, `/cycle?${params}&limit=50`, accessToken),
+    whoopGet(WHOOP_API_V2, `/cycle?${params}&limit=50`, accessToken),
     whoopGet(WHOOP_API_V2, `/activity/workout?${params}&limit=50`, accessToken),
   ]);
 
@@ -168,7 +168,19 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
 
   pull.study_id = resident?.study_id || null;
 
-  return pull;
+  return {
+    ...pull,
+    _debug: {
+      params,
+      recovery_count: recoveries.length,
+      sleep_count: sleeps.length,
+      cycle_count: cycles.length,
+      workout_count: workouts.length,
+      scored_recovery: scoredRecoveries.length,
+      scored_sleep: scoredSleeps.length,
+      scored_cycle: scoredCycles.length,
+    },
+  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -215,7 +227,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       resident_id: token.resident_id,
       status: upsertErr ? 'error' : 'success',
       days_with_data: pull.days_with_data,
+      avg_hrv: pull.avg_hrv_rmssd_ms,
+      avg_rhr: pull.avg_resting_hr_bpm,
+      avg_strain: pull.avg_daily_strain,
+      avg_sleep_min: pull.avg_total_sleep_min,
+      recovery_score: pull.avg_recovery_score,
       error: upsertErr?.message,
+      debug: pull._debug,
     });
   }
 
