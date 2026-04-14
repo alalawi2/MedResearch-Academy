@@ -82,8 +82,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
 
     if (existing) {
-      // Update tokens for existing resident
-      await supabase
+      // Insert or update tokens for existing resident
+      const { error: tokenErr } = await supabase
         .from('whoop_tokens')
         .upsert({
           resident_id: existing.id,
@@ -93,6 +93,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'resident_id' });
+
+      if (tokenErr) {
+        console.error('Token upsert failed:', tokenErr);
+        return res.redirect(`${SITE_URL}/enroll/whoop?error=token_save_failed&detail=${encodeURIComponent(tokenErr.message)}`);
+      }
 
       return res.redirect(`${SITE_URL}/enroll/whoop?success=reconnected&id=${existing.study_participant_id}`);
     }
@@ -134,7 +139,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Store tokens
-    await supabase
+    const { error: newTokenErr } = await supabase
       .from('whoop_tokens')
       .insert({
         resident_id: newResident.id,
@@ -143,6 +148,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         refresh_token,
         expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
       });
+
+    if (newTokenErr) {
+      console.error('Token insert failed:', newTokenErr);
+      return res.redirect(`${SITE_URL}/enroll/whoop?error=token_save_failed&detail=${encodeURIComponent(newTokenErr.message)}`);
+    }
 
     // Log enrollment event
     await supabase
