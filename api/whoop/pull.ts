@@ -171,7 +171,7 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   return {
     ...pull,
     _debug: {
-      params,
+      date_range: `${startDate} to ${endDate}`,
       recovery_count: recoveries.length,
       sleep_count: sleeps.length,
       cycle_count: cycles.length,
