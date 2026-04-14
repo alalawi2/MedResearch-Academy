@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/(.*)", "destination": "/" }
   ]
