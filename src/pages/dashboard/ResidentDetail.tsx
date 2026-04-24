@@ -32,12 +32,12 @@ interface BlockRow {
   hours_slept_per_day: number | null;
 }
 
-interface MbiRow {
+interface CbiRow {
   response_date: string;
-  ee_score: number;
-  dp_score: number;
-  pa_score: number;
-  burnout_positive: boolean;
+  personal_score: number;
+  work_score: number;
+  patient_score: number;
+  any_burnout: boolean;
   block_id: string | null;
 }
 
@@ -85,7 +85,7 @@ export default function ResidentDetail() {
 
   const [resident, setResident] = useState<ResidentRow | null>(null);
   const [blocks, setBlocks] = useState<BlockRow[]>([]);
-  const [mbiData, setMbiData] = useState<MbiRow[]>([]);
+  const [cbiData, setCbiData] = useState<CbiRow[]>([]);
   const [whoopData, setWhoopData] = useState<WhoopRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,13 +99,13 @@ export default function ResidentDetail() {
     const [resResult, blockResult, mbiResult, whoopResult] = await Promise.all([
       supabase.from('burnout_participants').select('*').eq('id', id).limit(1).single(),
       supabase.from('rotation_blocks').select('*').eq('resident_id', id).order('block_number').limit(13),
-      supabase.from('mbi_responses').select('response_date, ee_score, dp_score, pa_score, burnout_positive, block_id').eq('resident_id', id).order('response_date').limit(13),
+      supabase.from('cbi_responses').select('response_date, personal_score, work_score, patient_score, any_burnout, block_id').eq('resident_id', id).order('response_date').limit(13),
       supabase.from('whoop_pulls').select('period_start, period_end, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_recovery_score, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_respiratory_rate_bpm, avg_time_in_bed_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, days_with_data, pct_recorded, block_id').eq('resident_id', id).order('period_start', { ascending: false }).limit(13),
     ]);
 
     setResident(resResult.data);
     setBlocks(blockResult.data ?? []);
-    setMbiData(mbiResult.data ?? []);
+    setCbiData(mbiResult.data ?? []);
     setWhoopData(whoopResult.data ?? []);
     setLoading(false);
   }
@@ -113,12 +113,7 @@ export default function ResidentDetail() {
   if (loading) return <div style={{padding:48,textAlign:'center',color:'var(--text-muted)'}}>Loading resident detail...</div>;
   if (!resident) return <div style={{padding:48,textAlign:'center',color:'var(--text-muted)'}}>Resident not found.</div>;
 
-  const burnoutColor = (cat: string | null) => cat === 'high' ? '#dc2626' : cat === 'moderate' ? '#f59e0b' : '#16a34a';
-  const mbiCategory = (ee: number, dp: number) => {
-    const eeHigh = ee >= 30;
-    const dpHigh = dp >= 12;
-    return eeHigh && dpHigh ? 'high' : (eeHigh || dpHigh) ? 'moderate' : 'low';
-  };
+  const burnoutColor = (burnout: boolean | null) => burnout ? '#dc2626' : '#16a34a';
 
   return (
     <div>
@@ -249,9 +244,8 @@ export default function ResidentDetail() {
       ) : (
         <div style={{display:'flex',flexDirection:'column',gap:16}}>
           {blocks.map(block => {
-            const mbi = mbiData.find(m => m.block_id === block.id);
+            const cbi = cbiData.find(m => m.block_id === block.id);
             const whoop = whoopData.find(w => w.block_id === block.id);
-            const bCat = mbi ? mbiCategory(mbi.ee_score, mbi.dp_score) : null;
 
             return (
               <div key={block.id} style={{background:'white',borderRadius:14,border:'1px solid var(--border)',padding:'24px',boxShadow:'0 2px 8px rgba(0,0,0,0.03)'}}>
@@ -273,16 +267,16 @@ export default function ResidentDetail() {
                   <MetricCell label="Hours/wk" value={block.hours_worked_per_week} />
                   <MetricCell label="Sleep hrs/d" value={block.hours_slept_per_day} />
 
-                  {/* MBI */}
-                  {mbi ? (
+                  {/* CBI */}
+                  {cbi ? (
                     <>
-                      <MetricCell label="EE Score" value={mbi.ee_score} color={mbi.ee_score >= 30 ? '#dc2626' : mbi.ee_score >= 18 ? '#f59e0b' : '#16a34a'} />
-                      <MetricCell label="DP Score" value={mbi.dp_score} color={mbi.dp_score >= 12 ? '#dc2626' : mbi.dp_score >= 6 ? '#f59e0b' : '#16a34a'} />
-                      <MetricCell label="PA Score" value={mbi.pa_score} color={mbi.pa_score < 33 ? '#dc2626' : mbi.pa_score <= 39 ? '#f59e0b' : '#16a34a'} />
-                      <MetricCell label="Burnout" value={bCat ?? '—'} color={burnoutColor(bCat)} />
+                      <MetricCell label="Personal" value={cbi.personal_score?.toFixed(0)} suffix="/100" color={cbi.personal_score >= 50 ? '#dc2626' : '#16a34a'} />
+                      <MetricCell label="Work" value={cbi.work_score?.toFixed(0)} suffix="/100" color={cbi.work_score >= 50 ? '#dc2626' : '#16a34a'} />
+                      <MetricCell label="Patient" value={cbi.patient_score?.toFixed(0)} suffix="/100" color={cbi.patient_score >= 50 ? '#dc2626' : '#16a34a'} />
+                      <MetricCell label="Burnout" value={cbi.any_burnout ? 'Yes' : 'No'} color={burnoutColor(cbi.any_burnout)} />
                     </>
                   ) : (
-                    <MetricCell label="MBI" value="Not entered" color="var(--text-muted)" />
+                    <MetricCell label="CBI" value="Not entered" color="var(--text-muted)" />
                   )}
 
                   {/* WHOOP */}

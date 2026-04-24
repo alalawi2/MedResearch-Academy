@@ -28,6 +28,7 @@ import ReviewQueue from './pages/dashboard/ReviewQueue';
 import ReviewDetail from './pages/dashboard/ReviewDetail';
 import SetPassword from './pages/dashboard/SetPassword';
 import ResidentLayout from './components/ResidentLayout';
+import HelpChatbot from './components/HelpChatbot';
 import ResidentLogin from './pages/resident/ResidentLogin';
 import ResidentDashboard from './pages/resident/ResidentDashboard';
 import QuestionnaireForm from './pages/resident/QuestionnaireForm';
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <HelpChatbot />
         <Routes>
           {/* ── Public pages ── */}
           <Route path="/" element={<Home />} />

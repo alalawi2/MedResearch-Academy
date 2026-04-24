@@ -74,10 +74,14 @@ export default function Exports() {
         <>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:16,marginBottom:24}}>
             {[
-              {table:'residents',label:'Residents',icon:'👥',desc:'Demographics, program, PGY level, site, enrollment status'},
+              {table:'burnout_participants',label:'Participants',icon:'👥',desc:'Demographics, program, PGY level, site, enrollment status'},
               {table:'rotation_blocks',label:'Rotation Blocks',icon:'📅',desc:'Block-by-block rotation details, call counts, hours worked/slept'},
-              {table:'mbi_responses',label:'MBI Responses',icon:'📋',desc:'All MBI submissions with EE/DP/PA scores and burnout classification'},
-              {table:'promis29_responses',label:'PROMIS-29',icon:'🧠',desc:'All PROMIS-29 assessments with 8 domain T-scores'},
+              {table:'cbi_responses',label:'CBI Responses',icon:'📋',desc:'Copenhagen Burnout Inventory — Personal/Work/Patient subscale scores'},
+              {table:'phq9_responses',label:'PHQ-9',icon:'🧠',desc:'Patient Health Questionnaire — depression severity (0-27)'},
+              {table:'gad7_responses',label:'GAD-7',icon:'😰',desc:'Generalized Anxiety Disorder — anxiety severity (0-21)'},
+              {table:'isi_responses',label:'ISI',icon:'😴',desc:'Insomnia Severity Index — sleep disturbance (0-28)'},
+              {table:'weekly_checkins',label:'Weekly Check-ins',icon:'📊',desc:'Weekly workload, on-call, sleep and stress ratings'},
+              {table:'event_logs',label:'Event Logs',icon:'📝',desc:'Contextual events (clinical, academic, personal, program)'},
               {table:'whoop_pulls',label:'WHOOP Data',icon:'⌚',desc:'4-week averaged biophysical metrics (HRV, RHR, sleep, strain, etc.)'},
             ].map(item => (
               <div key={item.table} style={{background:'white',borderRadius:14,padding:'24px',border:'1px solid var(--border)'}}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import CollapsibleInfo from '../../components/CollapsibleInfo';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -588,6 +589,74 @@ export default function ResidentDashboard() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* -------- About This Study -------- */}
+      <div style={{ marginBottom: 20 }}>
+        <CollapsibleInfo title="About This Study" icon="&#128300;">
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 4, fontSize: 14 }}>
+              Resident Burnout &amp; Biophysical Parameters
+            </div>
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: '#374151' }}>
+              This study investigates the association between healthcare workers&apos; burnout and
+              biophysical parameters using WHOOP wearable devices. It is a pilot multi-center cohort
+              study conducted at SQUH, Royal Hospital, and Armed Forces Hospital.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 4, fontSize: 13 }}>
+              What data is collected?
+            </div>
+            <ul style={{ margin: '0', paddingLeft: 18, fontSize: 13, color: '#374151' }}>
+              <li style={{ marginBottom: 4 }}>
+                <strong>WHOOP wearable:</strong> heart rate, HRV, sleep, recovery, and strain (pulled daily at 3 AM)
+              </li>
+              <li style={{ marginBottom: 4 }}>
+                <strong>Questionnaires:</strong> CBI (burnout), PHQ-9 (depression), GAD-7 (anxiety), ISI (insomnia) &mdash; monthly
+              </li>
+              <li style={{ marginBottom: 4 }}>
+                <strong>Weekly check-ins:</strong> 6 brief questions on hours, on-call shifts, sleep, and stress
+              </li>
+              <li>
+                <strong>Event logs:</strong> significant clinical, academic, personal, or program events
+              </li>
+            </ul>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 4, fontSize: 13 }}>
+              Privacy &amp; Confidentiality
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
+              Your data is pseudonymized &mdash; you are identified by a study ID (e.g. RES-002),
+              not your name. Only authorized researchers can access identifiable information. You can
+              revoke WHOOP access at any time.
+            </p>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 4, fontSize: 13 }}>
+              Ethics Approval
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
+              This study is approved by the SQU Medical Research Ethics Committee (MREC #3190) and
+              Royal Hospital ethics committee.
+            </p>
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 4, fontSize: 13 }}>
+              Contact the Research Team
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
+              Dr. Mohamed Al Rawahi &mdash; <a href="mailto:mrawahi@squ.edu.om" style={{ color: 'var(--accent)' }}>mrawahi@squ.edu.om</a>
+              <br />
+              Dr. Abdullah Al Alawi &mdash; <a href="mailto:dr.abdullahalalawi@gmail.com" style={{ color: 'var(--accent)' }}>dr.abdullahalalawi@gmail.com</a>
+            </p>
+          </div>
+        </CollapsibleInfo>
       </div>
     </div>
   );
