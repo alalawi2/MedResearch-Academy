@@ -30,7 +30,8 @@ export default function ResidentBurnout() {
           </p>
           <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
             <a href="#overview" className="btn btn-accent">Learn More</a>
-            <Link to="/login" className="btn btn-outline-white">🔒 Team Login</Link>
+            <Link to="/resident/login" className="btn btn-outline-white">🩺 Participant Login</Link>
+            <Link to="/login" className="btn btn-outline-white">🔬 Team Login</Link>
           </div>
         </div>
       </section>
@@ -210,14 +211,36 @@ export default function ResidentBurnout() {
         </div>
       </section>
 
-      {/* ── CTA strip ─────────────────────────────────────────────────── */}
+      {/* ── Portal Access ────────────────────────────────────────────── */}
+      <section className="section">
+        <div className="container" style={{maxWidth:900}}>
+          <h2 style={{fontSize:'1.8rem',color:'var(--primary)',marginBottom:8,textAlign:'center'}}>Study Portals</h2>
+          <p style={{textAlign:'center',color:'var(--text-muted)',marginBottom:32,fontSize:14}}>Access your portal based on your role in the study</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20}}>
+            <Link to="/resident/login" style={{background:'linear-gradient(135deg,#0f766e 0%,#115e59 100%)',borderRadius:16,padding:'32px 28px',textDecoration:'none',color:'white',display:'block',boxShadow:'0 4px 20px rgba(15,118,110,0.25)'}}>
+              <div style={{fontSize:36,marginBottom:12}}>🩺</div>
+              <h3 style={{fontSize:'1.2rem',fontFamily:'var(--font-serif)',marginBottom:8}}>Participant Portal</h3>
+              <p style={{fontSize:13,opacity:0.85,lineHeight:1.6,marginBottom:16}}>Enrolled residents: complete questionnaires (CBI, PHQ-9, GAD-7, ISI), weekly check-ins, and log events.</p>
+              <span style={{fontSize:14,fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>Participant Sign In →</span>
+            </Link>
+            <Link to="/login" style={{background:'linear-gradient(135deg,var(--primary) 0%,#0f2847 100%)',borderRadius:16,padding:'32px 28px',textDecoration:'none',color:'white',display:'block',boxShadow:'0 4px 20px rgba(26,58,92,0.25)'}}>
+              <div style={{fontSize:36,marginBottom:12}}>🔬</div>
+              <h3 style={{fontSize:'1.2rem',fontFamily:'var(--font-serif)',marginBottom:8}}>Research Team Dashboard</h3>
+              <p style={{fontSize:13,opacity:0.85,lineHeight:1.6,marginBottom:16}}>For investigators, coordinators, and psychologists. Review data, import results, and manage the study.</p>
+              <span style={{fontSize:14,fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>Team Login →</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Contact ──────────────────────────────────────────────────── */}
       <section style={{background:'var(--primary)',color:'white',padding:'56px 0',textAlign:'center'}}>
         <div className="container" style={{maxWidth:700}}>
-          <h3 style={{fontSize:'1.5rem',marginBottom:12,fontFamily:'var(--font-serif)'}}>Research Team Access</h3>
-          <p style={{color:'rgba(255,255,255,0.8)',marginBottom:24,fontSize:15}}>Investigators and research assistants can access the secure study dashboard to enter rotation logs, review assessments, and export de-identified data.</p>
+          <h3 style={{fontSize:'1.5rem',marginBottom:12,fontFamily:'var(--font-serif)'}}>Questions About the Study?</h3>
+          <p style={{color:'rgba(255,255,255,0.8)',marginBottom:24,fontSize:15}}>Contact the research team for enrollment, data access, or collaboration inquiries.</p>
           <div style={{display:'flex',justifyContent:'center',gap:12,flexWrap:'wrap'}}>
-            <Link to="/login" className="btn btn-accent">🔒 Team Dashboard Login</Link>
-            <a href="mailto:alalawi2@squ.edu.om" className="btn btn-outline-white">Contact Research Team</a>
+            <a href="mailto:mrawahi@squ.edu.om" className="btn btn-accent">Email PI (Dr. Al Rawahi)</a>
+            <a href="mailto:dr.abdullahalalawi@gmail.com" className="btn btn-outline-white">Email Co-PI (Dr. Al Alawi)</a>
           </div>
         </div>
       </section>
