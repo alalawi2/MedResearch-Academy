@@ -4,6 +4,18 @@ import StudyCard, { StudyCardData } from '../components/StudyCard';
 // Study portfolio — add new studies by appending to this array.
 const STUDIES: StudyCardData[] = [
   {
+    slug: 'smartblock',
+    title: 'SmartBlock: AI-Enabled Rotation Scheduling for the OMSB Internal Medicine Residency Program',
+    shortDescription: 'A three-phase mixed-methods study evaluating an AI-powered constraint optimization platform for generating equitable, curriculum-compliant rotation schedules across 3 training sites, 119 residents, and 13 blocks per academic year. Currently in system build and pilot phase.',
+    status: 'recruiting',
+    ethicsIds: ['SQUH MREC'],
+    pi: 'Dr. Abdullah M. Al Alawi',
+    coPi: 'Dr. Hala',
+    studyType: 'Mixed-methods (Interviews + System Build + Evaluation)',
+    targetPopulation: 'OMSB IM Residents & Faculty (Oman)',
+    icon: '📅',
+  },
+  {
     slug: 'resident-burnout',
     title: "The Association Between Healthcare Workers' Burnout and Biophysical Parameters",
     shortDescription: 'A multi-center prospective cohort using the Copenhagen Burnout Inventory (CBI), PHQ-9, GAD-7, ISI, and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers (HRV, sleep, autonomic tone). 70+ residents enrolled across three hospitals in Muscat.',

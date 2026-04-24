@@ -59,21 +59,6 @@ export default function Resources() {
             </div>
           </div>
 
-          {/* Clinical Calculator */}
-          <div className="resource-card" style={{borderColor:'rgba(20,184,166,0.3)'}}>
-            <img src="/images/clinical-calculator-banner.png" alt="Clinical Calculator" className="resource-img" onError={e => (e.currentTarget.style.display='none')} />
-            <div className="resource-body">
-              <span className="badge" style={{background:'rgba(20,184,166,0.1)',color:'#0d9488',marginBottom:16,display:'inline-block'}}>Clinical Decision Support</span>
-              <h2 style={{fontSize:'1.8rem',marginBottom:12}}>MedResearch Clinical Calculator Hub</h2>
-              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>Your comprehensive hub for hundreds of evidence-based medical calculators. From qSOFA sepsis scoring and vital signs assessment to specialized clinical risk stratification tools — designed for bedside use.</p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20,marginBottom:28,borderTop:'1px solid var(--border)',paddingTop:24}}>
-                {[['Hundreds of Calculators','Comprehensive medical calculation suite'],['All Specialties','Cardiology, nephrology, emergency & more'],['Evidence-Based','Validated clinical scoring systems']].map(([t,d]) => (
-                  <div key={t}><div style={{fontWeight:600,marginBottom:4}}>{t}</div><div style={{fontSize:13,color:'var(--text-muted)'}}>{d}</div></div>
-                ))}
-              </div>
-              <a href="https://qsofacalc-acewiica.manus.space" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#0d9488',color:'white'}}>Launch Calculator →</a>
-            </div>
-          </div>
 
           {/* Bayan */}
           <div className="bayan-card" style={{marginBottom:32}}>

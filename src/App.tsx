@@ -10,6 +10,7 @@ import WallOfImpact from './pages/WallOfImpact';
 import ActiveResearch from './pages/ActiveResearch';
 import ResidentBurnout from './pages/studies/ResidentBurnout';
 import ResidencyParenthood from './pages/studies/ResidencyParenthood';
+import SmartBlock from './pages/studies/SmartBlock';
 import Contact from './pages/Contact';
 import Events from './pages/Events';
 import Privacy from './pages/Privacy';
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/resources" element={<Resources />} />
           <Route path="/wall-of-impact" element={<WallOfImpact />} />
           <Route path="/active-research" element={<ActiveResearch />} />
+          <Route path="/active-research/smartblock" element={<SmartBlock />} />
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />
           <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
           <Route path="/events" element={<Events />} />
