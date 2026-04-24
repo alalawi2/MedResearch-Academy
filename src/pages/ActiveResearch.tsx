@@ -10,7 +10,7 @@ const STUDIES: StudyCardData[] = [
     status: 'recruiting',
     ethicsIds: ['SQUH MREC'],
     pi: 'Dr. Abdullah M. Al Alawi',
-    coPi: 'Dr. Hala',
+    coPi: 'Dr. Hala Al-Riyami',
     studyType: 'Mixed-methods (Interviews + System Build + Evaluation)',
     targetPopulation: 'OMSB IM Residents & Faculty (Oman)',
     icon: '📅',

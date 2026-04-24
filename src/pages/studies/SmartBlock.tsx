@@ -134,11 +134,13 @@ export default function SmartBlock() {
             </div>
             <div style={{background:'white',borderRadius:12,padding:'24px',border:'1px solid var(--border)'}}>
               <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Co-Principal Investigator</div>
-              <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Dr. Hala</div>
+              <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Dr. Hala Muslem Al-Riyami</div>
+              <div style={{fontSize:13,color:'var(--text-muted)',marginTop:4}}>IM Residency, OMSB</div>
             </div>
             <div style={{background:'white',borderRadius:12,padding:'24px',border:'1px solid var(--border)'}}>
               <div style={{fontSize:10,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Co-Investigator</div>
-              <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Dr. Marwa</div>
+              <div style={{fontSize:15,fontWeight:600,color:'var(--text)'}}>Dr. Marwa Sultan Al Sharji</div>
+              <div style={{fontSize:13,color:'var(--text-muted)',marginTop:4}}>IM Residency, OMSB</div>
             </div>
           </div>
         </div>
