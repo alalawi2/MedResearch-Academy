@@ -114,13 +114,6 @@ export default function Programs() {
             </div>
           </div>
 
-          {/* One on One */}
-          <div style={{background:'linear-gradient(135deg,var(--primary) 0%,#0d2540 100%)',borderRadius:16,padding:48,color:'white',textAlign:'center'}}>
-            <span style={{fontSize:36,display:'block',marginBottom:16}}>🤝</span>
-            <h2 style={{fontSize:'2rem',marginBottom:12,color:'white'}}>1-on-1 Research Mentorship</h2>
-            <p style={{color:'rgba(255,255,255,0.75)',maxWidth:580,margin:'0 auto 28px',fontSize:'1.05rem'}}>Personalized mentorship sessions with Dr. Al Alawi or Dr. Al Rawahi. From research idea to publication — we guide you every step of the way.</p>
-            <Link to="/contact?subject=Research Mentorship Request" className="btn btn-accent btn-lg">Request Mentorship →</Link>
-          </div>
         </div>
       </section>
     </Layout>
