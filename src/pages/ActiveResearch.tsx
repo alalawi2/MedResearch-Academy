@@ -56,6 +56,22 @@ export default function ActiveResearch() {
             {STUDIES.map(study => <StudyCard key={study.slug} study={study} />)}
           </div>
 
+          {/* ── Participant & Team portals ──────────────────────────── */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(280px,1fr))',gap:20,marginBottom:40}}>
+            <a href="/resident/login" style={{background:'linear-gradient(135deg,#0f766e 0%,#115e59 100%)',borderRadius:16,padding:'32px 28px',textDecoration:'none',color:'white',display:'block',transition:'transform 0.2s',boxShadow:'0 4px 20px rgba(15,118,110,0.25)'}}>
+              <div style={{fontSize:36,marginBottom:12}}>🩺</div>
+              <h3 style={{fontSize:'1.2rem',fontFamily:'var(--font-serif)',marginBottom:8}}>Participant Portal</h3>
+              <p style={{fontSize:13,opacity:0.85,lineHeight:1.6,marginBottom:16}}>Already enrolled? Log in to complete questionnaires, weekly check-ins, and log events.</p>
+              <span style={{fontSize:14,fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>Sign In →</span>
+            </a>
+            <a href="/login" style={{background:'linear-gradient(135deg,var(--primary) 0%,#0f2847 100%)',borderRadius:16,padding:'32px 28px',textDecoration:'none',color:'white',display:'block',transition:'transform 0.2s',boxShadow:'0 4px 20px rgba(26,58,92,0.25)'}}>
+              <div style={{fontSize:36,marginBottom:12}}>🔬</div>
+              <h3 style={{fontSize:'1.2rem',fontFamily:'var(--font-serif)',marginBottom:8}}>Research Team Dashboard</h3>
+              <p style={{fontSize:13,opacity:0.85,lineHeight:1.6,marginBottom:16}}>For investigators, coordinators, and psychologists. Review data, import results, and manage studies.</p>
+              <span style={{fontSize:14,fontWeight:600,display:'inline-flex',alignItems:'center',gap:6}}>Team Login →</span>
+            </a>
+          </div>
+
           {/* ── Join future studies CTA ─────────────────────────────── */}
           <div style={{background:'var(--bg-muted)',borderRadius:16,padding:'40px',textAlign:'center',border:'1px solid var(--border)'}}>
             <div style={{fontSize:38,marginBottom:12}}>🔬</div>
