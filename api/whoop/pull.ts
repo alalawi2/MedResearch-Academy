@@ -171,7 +171,7 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
 
   // Get study_id from resident
   const { data: resident } = await supabase
-    .from('residents')
+    .from('burnout_participants')
     .select('study_id')
     .eq('id', token.resident_id)
     .limit(1)

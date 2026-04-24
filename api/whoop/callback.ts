@@ -38,7 +38,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const tokens = await tokenRes.json();
-    const { access_token, refresh_token = null, expires_in } = tokens;
+    const { access_token, refresh_token, expires_in } = tokens;
 
     // Fetch WHOOP user profile
     const profileRes = await fetch(WHOOP_PROFILE_URL, {
@@ -57,7 +57,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Store in Supabase using service role (bypasses RLS)
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
     // Get the burnout study ID
     const { data: study } = await supabase
@@ -72,24 +74,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.redirect(`${SITE_URL}/enroll/whoop?error=study_not_found`);
     }
 
-    // Check if this WHOOP user is already enrolled
-    const { data: existing } = await supabase
-      .from('residents')
+    // Check if this WHOOP user is already enrolled (by whoop_user_id OR email)
+    const { data: existingByWhoop } = await supabase
+      .from('burnout_participants')
       .select('id, study_participant_id')
       .eq('study_id', study.id)
       .eq('whoop_user_id', whoopUserId)
       .limit(1)
       .single();
 
+    let existing = existingByWhoop;
+
+    // Also check by email for pre-registered participants
+    if (!existing && whoopEmail) {
+      const { data: existingByEmail } = await supabase
+        .from('burnout_participants')
+        .select('id, study_participant_id')
+        .eq('study_id', study.id)
+        .eq('email', whoopEmail)
+        .limit(1)
+        .single();
+      existing = existingByEmail;
+    }
+
     if (existing) {
-      // Insert or update tokens for existing resident
+      // Link WHOOP and update tokens for existing participant
+      await supabase
+        .from('burnout_participants')
+        .update({
+          whoop_user_id: whoopUserId,
+          full_name: whoopName || undefined,
+          status: 'active',
+          enrollment_date: new Date().toISOString().slice(0, 10),
+        })
+        .eq('id', existing.id);
+
       const { error: tokenErr } = await supabase
         .from('whoop_tokens')
         .upsert({
           resident_id: existing.id,
           whoop_user_id: whoopUserId,
           access_token,
-          refresh_token: refresh_token || null,
+          refresh_token: refresh_token || '',
           expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'resident_id' });
@@ -99,12 +125,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.redirect(`${SITE_URL}/enroll/whoop?error=token_save_failed&detail=${encodeURIComponent(tokenErr.message)}`);
       }
 
-      return res.redirect(`${SITE_URL}/enroll/whoop?success=reconnected&id=${existing.study_participant_id}`);
+      // Log enrollment event
+      await supabase
+        .from('enrollment_events')
+        .insert({
+          study_id: study.id,
+          resident_id: existing.id,
+          event_type: 'whoop_oauth_linked',
+          details: { whoop_user_id: whoopUserId, participant_id: existing.study_participant_id },
+        });
+
+      return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${existing.study_participant_id}`);
     }
 
-    // Generate next study participant ID
+    // New participant — generate next study participant ID
     const { data: lastResident } = await supabase
-      .from('residents')
+      .from('burnout_participants')
       .select('study_participant_id')
       .eq('study_id', study.id)
       .order('created_at', { ascending: false })
@@ -118,9 +154,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const participantId = `RES-${String(nextNum).padStart(3, '0')}`;
 
-    // Create resident record
+    // Create participant record
     const { data: newResident, error: insertErr } = await supabase
-      .from('residents')
+      .from('burnout_participants')
       .insert({
         study_id: study.id,
         study_participant_id: participantId,
@@ -134,8 +170,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .single();
 
     if (insertErr) {
-      console.error('Failed to create resident:', insertErr);
-      return res.redirect(`${SITE_URL}/enroll/whoop?error=insert_failed`);
+      console.error('Failed to create resident:', JSON.stringify(insertErr));
+      return res.redirect(`${SITE_URL}/enroll/whoop?error=insert_failed&detail=${encodeURIComponent(insertErr.message || JSON.stringify(insertErr))}`);
     }
 
     // Store tokens
@@ -145,7 +181,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         resident_id: newResident.id,
         whoop_user_id: whoopUserId,
         access_token,
-        refresh_token: refresh_token || null,
+        refresh_token: refresh_token || '',
         expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
       });
 

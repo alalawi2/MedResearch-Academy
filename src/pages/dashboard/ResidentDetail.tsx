@@ -97,7 +97,7 @@ export default function ResidentDetail() {
   async function loadAll() {
     setLoading(true);
     const [resResult, blockResult, mbiResult, whoopResult] = await Promise.all([
-      supabase.from('residents').select('*').eq('id', id).limit(1).single(),
+      supabase.from('burnout_participants').select('*').eq('id', id).limit(1).single(),
       supabase.from('rotation_blocks').select('*').eq('resident_id', id).order('block_number').limit(13),
       supabase.from('mbi_responses').select('response_date, ee_score, dp_score, pa_score, burnout_positive, block_id').eq('resident_id', id).order('response_date').limit(13),
       supabase.from('whoop_pulls').select('period_start, period_end, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_recovery_score, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_respiratory_rate_bpm, avg_time_in_bed_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, days_with_data, pct_recorded, block_id').eq('resident_id', id).order('period_start', { ascending: false }).limit(13),

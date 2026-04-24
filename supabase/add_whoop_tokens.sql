@@ -3,7 +3,7 @@ create table if not exists whoop_tokens (
   resident_id uuid unique not null references residents(id) on delete cascade,
   whoop_user_id text not null,
   access_token text not null,
-  refresh_token text not null,
+  refresh_token text not null default '',
   expires_at timestamptz not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

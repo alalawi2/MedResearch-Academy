@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     dbTest = studyErr ? `ERROR: ${studyErr.message}` : `OK (${studies?.length} studies)`;
 
     const { data: residents, error: resErr } = await supabase
-      .from('residents')
+      .from('burnout_participants')
       .select('id')
       .limit(100);
 
@@ -44,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Test insert into whoop_tokens
     if (req.query.test_insert === 'true') {
       const { data: res001 } = await supabase
-        .from('residents')
+        .from('burnout_participants')
         .select('id')
         .eq('study_participant_id', 'RES-001')
         .limit(1)

@@ -28,7 +28,7 @@ export default function Overview() {
     setLoading(true);
 
     const [resResult, mbiResult, whoopResult] = await Promise.all([
-      supabase.from('residents').select('id, status', { count: 'exact' }).eq('study_id', studyId).limit(500),
+      supabase.from('burnout_participants').select('id, status', { count: 'exact' }).eq('study_id', studyId).limit(500),
       supabase.from('mbi_responses').select('id, burnout_positive').eq('study_id', studyId).limit(1000),
       supabase.from('whoop_pulls').select('avg_hrv_rmssd_ms, avg_daily_strain').eq('study_id', studyId).limit(1000),
     ]);

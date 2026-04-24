@@ -38,7 +38,7 @@ export default function Residents() {
   async function loadResidents() {
     setLoading(true);
     const { data } = await supabase
-      .from('residents')
+      .from('burnout_participants')
       .select('id, study_participant_id, full_name, sex, age_at_enrollment, program, pgy_level, primary_site, status, enrollment_date')
       .eq('study_id', studyId)
       .order('study_participant_id')
