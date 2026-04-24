@@ -5,6 +5,9 @@ const NAV_ITEMS = [
   { path: '/dashboard', label: 'Overview', icon: '📊' },
   { path: '/dashboard/residents', label: 'Residents', icon: '👥' },
   { path: '/dashboard/data-entry', label: 'Data Entry', icon: '📝' },
+  { path: '/dashboard/import', label: 'Import Data', icon: '📥', adminOnly: true },
+  { path: '/dashboard/send-links', label: 'Send Links', icon: '🔗', adminOnly: true },
+  { path: '/dashboard/review', label: 'Review Queue', icon: '🔍' },
   { path: '/dashboard/enrollment', label: 'Enrollment', icon: '🔗' },
   { path: '/dashboard/exports', label: 'Exports', icon: '📦' },
 ];
@@ -41,6 +44,8 @@ export default function DashboardLayout() {
   }
 
   const currentStudy = studyRoles[0]; // default to first study
+  const currentRole = currentStudy?.role ?? '';
+  const isAdmin = currentRole === 'super_admin' || currentRole === 'research_admin';
 
   return (
     <div style={{minHeight:'100vh',display:'flex',background:'var(--bg-muted)'}}>
@@ -52,8 +57,10 @@ export default function DashboardLayout() {
           <div style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.85)',lineHeight:1.4}}>{currentStudy.study_slug === 'resident-burnout' ? 'Burnout Study' : currentStudy.study_slug}</div>
         </div>
         <nav style={{flex:1,padding:'8px 12px',display:'flex',flexDirection:'column',gap:2}}>
-          {NAV_ITEMS.map(item => {
-            const active = location.pathname === item.path;
+          {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
+            const active = item.path === '/dashboard'
+              ? location.pathname === '/dashboard'
+              : location.pathname.startsWith(item.path);
             return (
               <Link
                 key={item.path}

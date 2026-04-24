@@ -22,7 +22,17 @@ import ResidentDetail from './pages/dashboard/ResidentDetail';
 import DataEntry from './pages/dashboard/DataEntry';
 import Enrollment from './pages/dashboard/Enrollment';
 import Exports from './pages/dashboard/Exports';
+import BulkImport from './pages/dashboard/BulkImport';
+import SendLinks from './pages/dashboard/SendLinks';
+import ReviewQueue from './pages/dashboard/ReviewQueue';
+import ReviewDetail from './pages/dashboard/ReviewDetail';
 import SetPassword from './pages/dashboard/SetPassword';
+import ResidentLayout from './components/ResidentLayout';
+import ResidentLogin from './pages/resident/ResidentLogin';
+import ResidentDashboard from './pages/resident/ResidentDashboard';
+import QuestionnaireForm from './pages/resident/QuestionnaireForm';
+import WeeklyCheckin from './pages/resident/WeeklyCheckin';
+import EventLog from './pages/resident/EventLog';
 
 export default function App() {
   return (
@@ -55,8 +65,22 @@ export default function App() {
             <Route path="residents" element={<Residents />} />
             <Route path="residents/:id" element={<ResidentDetail />} />
             <Route path="data-entry" element={<DataEntry />} />
+            <Route path="import" element={<BulkImport />} />
+            <Route path="send-links" element={<SendLinks />} />
+            <Route path="review" element={<ReviewQueue />} />
+            <Route path="review/:instrument/:id" element={<ReviewDetail />} />
             <Route path="enrollment" element={<Enrollment />} />
             <Route path="exports" element={<Exports />} />
+          </Route>
+
+          {/* ── Resident Portal ── */}
+          <Route path="/resident/login" element={<ResidentLogin />} />
+          <Route path="/resident" element={<ResidentLayout />}>
+            <Route path="dashboard" element={<ResidentDashboard />} />
+            <Route path="questionnaire/:type" element={<QuestionnaireForm />} />
+            <Route path="questionnaire" element={<QuestionnaireForm />} />
+            <Route path="checkin" element={<WeeklyCheckin />} />
+            <Route path="events" element={<EventLog />} />
           </Route>
 
           <Route path="*" element={<Home />} />

@@ -17,11 +17,26 @@ interface StudyRole {
   site_scope: string | null;
 }
 
+export interface ResidentProfile {
+  id: string;
+  participant_id: string;
+  email: string;
+  full_name: string;
+  site: string | null;
+  pgy_level: number | null;
+  specialty: string | null;
+  enrolled_at: string | null;
+  auth_user_id: string | null;
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
   staff: StaffProfile | null;
   studyRoles: StudyRole[];
+  residentProfile: ResidentProfile | null;
+  userType: 'staff' | 'resident' | null;
+  isResident: boolean;
   loading: boolean;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -38,9 +53,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [staff, setStaff] = useState<StaffProfile | null>(null);
   const [studyRoles, setStudyRoles] = useState<StudyRole[]>([]);
+  const [residentProfile, setResidentProfile] = useState<ResidentProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function loadStaffProfile(userId: string) {
+  const userType: 'staff' | 'resident' | null = staff ? 'staff' : residentProfile ? 'resident' : null;
+  const isResident = userType === 'resident';
+
+  async function loadResidentProfile(userId: string, userEmail: string | undefined) {
+    // First try by auth_user_id
+    const { data: byId } = await supabase
+      .from('burnout_participants')
+      .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id')
+      .eq('auth_user_id', userId)
+      .limit(1)
+      .single();
+
+    if (byId) {
+      setResidentProfile(byId);
+      return;
+    }
+
+    // If not found by auth_user_id, try matching by email and auto-link
+    if (userEmail) {
+      const { data: byEmail } = await supabase
+        .from('burnout_participants')
+        .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id')
+        .eq('email', userEmail.toLowerCase())
+        .is('auth_user_id', null)
+        .limit(1)
+        .single();
+
+      if (byEmail) {
+        // Auto-link auth_user_id
+        await supabase
+          .from('burnout_participants')
+          .update({ auth_user_id: userId })
+          .eq('id', byEmail.id);
+
+        setResidentProfile({ ...byEmail, auth_user_id: userId });
+        return;
+      }
+    }
+
+    setResidentProfile(null);
+  }
+
+  async function loadStaffProfile(userId: string, userEmail: string | undefined) {
     const { data: staffRow } = await supabase
       .from('staff')
       .select('id, email, full_name, title, primary_site')
@@ -52,10 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!staffRow) {
       setStaff(null);
       setStudyRoles([]);
+      // Staff not found — try resident profile
+      await loadResidentProfile(userId, userEmail);
       return;
     }
 
     setStaff(staffRow);
+    setResidentProfile(null);
 
     const { data: roles } = await supabase
       .from('staff_study_roles')
@@ -85,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        loadStaffProfile(s.user.id).finally(() => setLoading(false));
+        loadStaffProfile(s.user.id, s.user.email).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -95,10 +156,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        loadStaffProfile(s.user.id).finally(() => setLoading(false));
+        loadStaffProfile(s.user.id, s.user.email).finally(() => setLoading(false));
       } else {
         setStaff(null);
         setStudyRoles([]);
+        setResidentProfile(null);
         setLoading(false);
       }
     });
@@ -118,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setStaff(null);
     setStudyRoles([]);
+    setResidentProfile(null);
   }
 
   function getRoleForStudy(studySlug: string) {
@@ -132,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, staff, studyRoles, loading, signIn, signOut, hasRole, getRoleForStudy }}>
+    <AuthContext.Provider value={{ user, session, staff, studyRoles, residentProfile, userType, isResident, loading, signIn, signOut, hasRole, getRoleForStudy }}>
       {children}
     </AuthContext.Provider>
   );
