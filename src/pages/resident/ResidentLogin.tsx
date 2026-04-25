@@ -23,11 +23,17 @@ export default function ResidentLogin() {
     setSubmitting(true);
     setError(null);
     try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/resident/dashboard` },
+      // Use custom endpoint to send branded email (not Supabase default)
+      const res = await fetch('/api/send-magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          redirectTo: `${window.location.origin}/resident/dashboard`,
+        }),
       });
-      if (err) setError(err.message);
+      const data = await res.json();
+      if (!res.ok) setError(data.error || 'Failed to send login link.');
       else setMode('magic-sent');
     } catch (err: any) {
       setError(err?.message || 'Network error.');
