@@ -62,10 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isResident = userType === 'resident';
 
   async function loadResidentProfile(userId: string, userEmail: string | undefined) {
+    const selectFields = 'id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed';
+
     // First try by auth_user_id
     const { data: byId } = await supabase
       .from('burnout_participants')
-      .select('id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed')
+      .select(selectFields)
       .eq('auth_user_id', userId)
       .limit(1)
       .single();
@@ -75,26 +77,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // If not found by auth_user_id, try matching by email and auto-link
-    if (userEmail) {
-      const { data: byEmail } = await supabase
-        .from('burnout_participants')
-        .select('id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed')
-        .eq('email', userEmail.toLowerCase())
-        .is('auth_user_id', null)
-        .limit(1)
-        .single();
-
-      if (byEmail) {
-        // Auto-link auth_user_id
-        await supabase
-          .from('burnout_participants')
-          .update({ auth_user_id: userId })
-          .eq('id', byEmail.id);
-
-        setResidentProfile({ ...byEmail, auth_user_id: userId });
-        return;
+    // Not found by auth_user_id — call server endpoint to link by email
+    // (server uses service role to bypass RLS)
+    try {
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (token) {
+        const res = await fetch('/api/link-resident', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        if (res.ok) {
+          // Re-fetch the now-linked profile
+          const { data: linked } = await supabase
+            .from('burnout_participants')
+            .select(selectFields)
+            .eq('auth_user_id', userId)
+            .limit(1)
+            .single();
+          if (linked) {
+            setResidentProfile(linked);
+            return;
+          }
+        }
       }
+    } catch {
+      // Server link failed, fall through
     }
 
     setResidentProfile(null);
