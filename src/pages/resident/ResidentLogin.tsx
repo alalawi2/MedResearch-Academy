@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase, supabaseConfigured } from '../../lib/supabase';
@@ -6,16 +6,25 @@ import { supabase, supabaseConfigured } from '../../lib/supabase';
 type Mode = 'password' | 'magic' | 'magic-sent';
 
 export default function ResidentLogin() {
-  const { user, residentProfile, loading } = useAuth();
+  const { user, residentProfile, staff, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [mode, setMode] = useState<Mode>('magic');
+  const [settleCount, setSettleCount] = useState(0);
+
+  // Wait for auth to fully settle (link-resident API call may still be in progress)
+  useEffect(() => {
+    if (!loading && user && !residentProfile && !staff && settleCount < 3) {
+      const timer = setTimeout(() => setSettleCount(c => c + 1), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, user, residentProfile, staff, settleCount]);
 
   if (!loading && residentProfile) return <Navigate to="/resident/dashboard" replace />;
 
-  const authenticatedButNoProfile = !loading && user && !residentProfile;
+  const authenticatedButNoProfile = !loading && user && !residentProfile && !staff && settleCount >= 3;
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -83,7 +92,13 @@ export default function ResidentLogin() {
           </p>
         </div>
 
-        {authenticatedButNoProfile ? (
+        {(loading || (user && !residentProfile && !staff && settleCount < 3)) ? (
+          <div style={{textAlign:'center',padding:'40px 0'}}>
+            <div style={{fontSize:28,marginBottom:12}}>⏳</div>
+            <div style={{color:'var(--text-muted)',fontSize:14}}>Verifying your account...</div>
+          </div>
+
+        ) : authenticatedButNoProfile ? (
           <div>
             <div style={{background:'#fef3c7',border:'1px solid #fde68a',borderRadius:12,padding:'20px',textAlign:'center',marginBottom:16}}>
               <div style={{fontSize:28,marginBottom:8}}>🔒</div>
