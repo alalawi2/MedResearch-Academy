@@ -35,6 +35,7 @@ import ResidentDashboard from './pages/resident/ResidentDashboard';
 import QuestionnaireForm from './pages/resident/QuestionnaireForm';
 import WeeklyCheckin from './pages/resident/WeeklyCheckin';
 import EventLog from './pages/resident/EventLog';
+import DemographicsForm from './pages/resident/DemographicsForm';
 
 export default function App() {
   return (
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="/resident/login" element={<ResidentLogin />} />
           <Route path="/resident" element={<ResidentLayout />}>
             <Route path="dashboard" element={<ResidentDashboard />} />
+            <Route path="demographics" element={<DemographicsForm />} />
             <Route path="questionnaire/:type" element={<QuestionnaireForm />} />
             <Route path="questionnaire" element={<QuestionnaireForm />} />
             <Route path="checkin" element={<WeeklyCheckin />} />

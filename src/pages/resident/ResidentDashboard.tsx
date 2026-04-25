@@ -272,6 +272,33 @@ export default function ResidentDashboard() {
     <div style={{ padding: '0 4px' }}>
       <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
 
+      {/* -------- Demographics Banner -------- */}
+      {!residentProfile?.demographics_completed && (
+        <Link
+          to="/resident/demographics"
+          style={{ textDecoration: 'none' }}
+        >
+          <div
+            style={{
+              padding: '16px 20px',
+              borderRadius: 10,
+              marginBottom: 20,
+              fontSize: 14,
+              lineHeight: 1.6,
+              background: '#fff7ed',
+              border: '2px solid #f97316',
+              color: '#9a3412',
+              cursor: 'pointer',
+            }}
+          >
+            <strong>Action Required:</strong> Please complete your enrollment form first.
+            <span style={{ display: 'block', marginTop: 4, fontSize: 13, fontWeight: 600, color: '#ea580c' }}>
+              Tap here to complete &rarr;
+            </span>
+          </div>
+        </Link>
+      )}
+
       {/* -------- Welcome Header -------- */}
       <div style={{ marginBottom: 24 }}>
         <h1

@@ -27,6 +27,7 @@ export interface ResidentProfile {
   specialty: string | null;
   enrolled_at: string | null;
   auth_user_id: string | null;
+  demographics_completed: boolean | null;
 }
 
 interface AuthState {
@@ -63,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // First try by auth_user_id
     const { data: byId } = await supabase
       .from('burnout_participants')
-      .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id')
+      .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id, demographics_completed')
       .eq('auth_user_id', userId)
       .limit(1)
       .single();
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userEmail) {
       const { data: byEmail } = await supabase
         .from('burnout_participants')
-        .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id')
+        .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id, demographics_completed')
         .eq('email', userEmail.toLowerCase())
         .is('auth_user_id', null)
         .limit(1)

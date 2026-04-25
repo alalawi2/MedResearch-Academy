@@ -25,6 +25,11 @@ export default function ResidentLayout() {
 
   if (!residentProfile) return <Navigate to="/resident/login" replace />;
 
+  // Redirect to demographics form if not completed (unless already on that page)
+  if (!residentProfile.demographics_completed && location.pathname !== '/resident/demographics') {
+    return <Navigate to="/resident/demographics" replace />;
+  }
+
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',background:'var(--bg-muted)'}}>
       {/* ── Header ── */}
