@@ -543,7 +543,7 @@ export default function QuestionnaireForm() {
       }
 
       const payload = {
-        study_id: residentProfile.participant_id,
+        study_id: residentProfile.study_id,
         resident_id: residentProfile.id,
         block_number: blockInfo.block,
         assessment_date: today,
@@ -766,7 +766,7 @@ export default function QuestionnaireForm() {
         )}
 
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
-          Submitted on {new Date().toISOString().slice(0, 10)} | Study ID: {residentProfile.participant_id} | {blockInfo.label}
+          Submitted on {new Date().toISOString().slice(0, 10)} | {residentProfile.study_participant_id} | {blockInfo.label}
         </div>
       </div>
     );

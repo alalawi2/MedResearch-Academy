@@ -295,7 +295,7 @@ export default function ResidentDashboard() {
   }
 
   const firstName = residentProfile?.full_name?.split(' ')[0] || 'Resident';
-  const participantId = residentProfile?.participant_id || '---';
+  const participantId = residentProfile?.study_participant_id || '---';
 
   // Determine assessment status for display
   function getAssessmentStatus(): 'done' | 'pending' | 'locked' {

@@ -19,13 +19,14 @@ interface StudyRole {
 
 export interface ResidentProfile {
   id: string;
-  participant_id: string;
+  study_id: string;
+  study_participant_id: string;
   email: string;
   full_name: string;
-  site: string | null;
+  primary_site: string | null;
   pgy_level: number | null;
-  specialty: string | null;
-  enrolled_at: string | null;
+  program: string | null;
+  enrollment_date: string | null;
   auth_user_id: string | null;
   demographics_completed: boolean | null;
 }
@@ -64,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // First try by auth_user_id
     const { data: byId } = await supabase
       .from('burnout_participants')
-      .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id, demographics_completed')
+      .select('id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed')
       .eq('auth_user_id', userId)
       .limit(1)
       .single();
@@ -78,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userEmail) {
       const { data: byEmail } = await supabase
         .from('burnout_participants')
-        .select('id, participant_id, email, full_name, site, pgy_level, specialty, enrolled_at, auth_user_id, demographics_completed')
+        .select('id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed')
         .eq('email', userEmail.toLowerCase())
         .is('auth_user_id', null)
         .limit(1)

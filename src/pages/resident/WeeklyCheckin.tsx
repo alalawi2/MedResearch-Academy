@@ -174,7 +174,7 @@ export default function WeeklyCheckin() {
     setError(null);
 
     const payload = {
-      study_id: residentProfile.participant_id,
+      study_id: residentProfile.study_id,
       resident_id: residentProfile.id,
       week_start: weekStartStr,
       hours_worked: hoursWorked,

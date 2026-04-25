@@ -116,7 +116,7 @@ export default function EventLog() {
     const { error: insertErr } = await supabase
       .from('event_logs')
       .insert({
-        study_id: residentProfile.participant_id,
+        study_id: residentProfile.study_id,
         resident_id: residentProfile.id,
         category: selectedCategory,
         event_type: selectedEvent,

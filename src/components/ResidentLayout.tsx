@@ -51,7 +51,7 @@ export default function ResidentLayout() {
               {residentProfile.full_name}
             </div>
             <div style={{fontSize:11,color:'var(--text-muted)'}}>
-              ID: {residentProfile.participant_id}
+              ID: {residentProfile.study_participant_id}
             </div>
           </div>
         </div>
