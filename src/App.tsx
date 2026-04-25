@@ -83,7 +83,6 @@ export default function App() {
           <Route path="/resident" element={<ResidentLayout />}>
             <Route path="dashboard" element={<ResidentDashboard />} />
             <Route path="demographics" element={<DemographicsForm />} />
-            <Route path="questionnaire/:type" element={<QuestionnaireForm />} />
             <Route path="questionnaire" element={<QuestionnaireForm />} />
             <Route path="checkin" element={<WeeklyCheckin />} />
             <Route path="events" element={<EventLog />} />

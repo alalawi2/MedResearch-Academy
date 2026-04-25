@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { INSTRUMENTS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS, ISI_ITEMS } from '../../lib/instruments';
-import { scoreCBI, scorePHQ9, scoreGAD7, scoreISI } from '../../lib/scoring';
+import { INSTRUMENTS, WHO5_ITEMS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS } from '../../lib/instruments';
+import { scoreWHO5, scoreCBI, scorePHQ9, scoreGAD7 } from '../../lib/scoring';
 import type { InstrumentId } from '../../lib/instruments';
 import type { Responses } from '../../lib/scoring';
 
@@ -18,32 +18,36 @@ interface ParsedRow {
 type Step = 'upload' | 'instrument' | 'preview' | 'inserting' | 'done';
 
 const TABLE_MAP: Record<InstrumentId, string> = {
+  who5: 'block_assessments',
   cbi: 'cbi_responses',
   phq9: 'phq9_responses',
   gad7: 'gad7_responses',
-  isi: 'isi_responses',
 };
 
 function getItemKeys(instrument: InstrumentId): string[] {
   switch (instrument) {
+    case 'who5': return WHO5_ITEMS.map(i => i.id);
     case 'cbi': return CBI_ITEMS.map(i => i.id);
     case 'phq9': return PHQ9_ITEMS.map(i => i.id);
     case 'gad7': return GAD7_ITEMS.map(i => i.id);
-    case 'isi': return ISI_ITEMS.map(i => i.id);
   }
 }
 
 function getValueRange(instrument: InstrumentId): [number, number] {
   switch (instrument) {
-    case 'cbi': return [1, 5];
+    case 'who5': return [0, 5];
+    case 'cbi': return [0, 100];
     case 'phq9': return [0, 3];
     case 'gad7': return [0, 3];
-    case 'isi': return [0, 4];
   }
 }
 
 function computeScores(instrument: InstrumentId, responses: Responses) {
   switch (instrument) {
+    case 'who5': {
+      const r = scoreWHO5(responses);
+      return { total_score: r.total, percent: r.percent, poor_wellbeing: r.poorWellbeing };
+    }
     case 'cbi': {
       const r = scoreCBI(responses);
       return { personal_score: r.personal.score, work_score: r.work.score, patient_score: r.patient.score, any_burnout: r.anyBurnout };
@@ -54,10 +58,6 @@ function computeScores(instrument: InstrumentId, responses: Responses) {
     }
     case 'gad7': {
       const r = scoreGAD7(responses);
-      return { total_score: r.total, severity: r.severity };
-    }
-    case 'isi': {
-      const r = scoreISI(responses);
       return { total_score: r.total, severity: r.severity };
     }
   }

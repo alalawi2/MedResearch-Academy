@@ -1,4 +1,4 @@
-// instruments.ts — Questionnaire item definitions for CBI, PHQ-9, GAD-7, ISI
+// instruments.ts — Questionnaire item definitions for WHO-5, CBI (19-item), PHQ-9, GAD-7
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -18,18 +18,29 @@ export interface QuestionnaireItem {
 
 export interface CBIItem extends QuestionnaireItem {
   subscale: 'personal' | 'work' | 'patient';
+  scaleType: 'frequency' | 'degree';
 }
 
 // ---------------------------------------------------------------------------
 // Option sets
 // ---------------------------------------------------------------------------
 
-const CBI_OPTIONS: ResponseOption[] = [
-  { value: 1, label: 'Never' },
-  { value: 2, label: 'Seldom' },
-  { value: 3, label: 'Sometimes' },
-  { value: 4, label: 'Often' },
-  { value: 5, label: 'Always' },
+/** CBI frequency scale: Always(100) ... Never(0) */
+const CBI_FREQUENCY_OPTIONS: ResponseOption[] = [
+  { value: 100, label: 'Always' },
+  { value: 75, label: 'Often' },
+  { value: 50, label: 'Sometimes' },
+  { value: 25, label: 'Seldom' },
+  { value: 0, label: 'Never/almost never' },
+];
+
+/** CBI degree scale: To a very high degree(100) ... To a very low degree(0) */
+const CBI_DEGREE_OPTIONS: ResponseOption[] = [
+  { value: 100, label: 'To a very high degree' },
+  { value: 75, label: 'To a high degree' },
+  { value: 50, label: 'Somewhat' },
+  { value: 25, label: 'To a low degree' },
+  { value: 0, label: 'To a very low degree' },
 ];
 
 const PHQ9_OPTIONS: ResponseOption[] = [
@@ -46,78 +57,57 @@ const GAD7_OPTIONS: ResponseOption[] = [
   { value: 3, label: 'Nearly every day' },
 ];
 
-const ISI_OPTIONS: ResponseOption[] = [
-  { value: 0, label: 'None' },
-  { value: 1, label: 'Mild' },
-  { value: 2, label: 'Moderate' },
-  { value: 3, label: 'Severe' },
-  { value: 4, label: 'Very severe' },
-];
-
-const ISI_SATISFACTION_OPTIONS: ResponseOption[] = [
-  { value: 0, label: 'Very satisfied' },
-  { value: 1, label: 'Satisfied' },
-  { value: 2, label: 'Moderately satisfied' },
-  { value: 3, label: 'Dissatisfied' },
-  { value: 4, label: 'Very dissatisfied' },
-];
-
-const ISI_NOTICEABLE_OPTIONS: ResponseOption[] = [
-  { value: 0, label: 'Not at all noticeable' },
-  { value: 1, label: 'A little' },
-  { value: 2, label: 'Somewhat' },
-  { value: 3, label: 'Much' },
-  { value: 4, label: 'Very much noticeable' },
-];
-
-const ISI_WORRIED_OPTIONS: ResponseOption[] = [
-  { value: 0, label: 'Not at all worried' },
-  { value: 1, label: 'A little' },
-  { value: 2, label: 'Somewhat' },
-  { value: 3, label: 'Much' },
-  { value: 4, label: 'Very much worried' },
-];
-
-const ISI_INTERFERE_OPTIONS: ResponseOption[] = [
-  { value: 0, label: 'Not at all interfering' },
-  { value: 1, label: 'A little' },
-  { value: 2, label: 'Somewhat' },
-  { value: 3, label: 'Much' },
-  { value: 4, label: 'Very much interfering' },
+/** WHO-5 response options */
+const WHO5_OPTIONS: ResponseOption[] = [
+  { value: 5, label: 'All of the time' },
+  { value: 4, label: 'Most of the time' },
+  { value: 3, label: 'More than half the time' },
+  { value: 2, label: 'Less than half the time' },
+  { value: 1, label: 'Some of the time' },
+  { value: 0, label: 'At no time' },
 ];
 
 // ---------------------------------------------------------------------------
-// CBI — Copenhagen Burnout Inventory (22 items)
+// WHO-5 — WHO Wellbeing Index (5 items)
+// ---------------------------------------------------------------------------
+
+export const WHO5_ITEMS: QuestionnaireItem[] = [
+  { id: 'who5_q1', text: 'I have felt cheerful and in good spirits', options: WHO5_OPTIONS, reverse: false },
+  { id: 'who5_q2', text: 'I have felt calm and relaxed', options: WHO5_OPTIONS, reverse: false },
+  { id: 'who5_q3', text: 'I have felt active and vigorous', options: WHO5_OPTIONS, reverse: false },
+  { id: 'who5_q4', text: 'I woke up feeling fresh and rested', options: WHO5_OPTIONS, reverse: false },
+  { id: 'who5_q5', text: 'My daily life has been filled with things that interest me', options: WHO5_OPTIONS, reverse: false },
+];
+
+// ---------------------------------------------------------------------------
+// CBI — Copenhagen Burnout Inventory (19 items)
 // ---------------------------------------------------------------------------
 
 export const CBI_ITEMS: CBIItem[] = [
-  // Personal burnout (q1–q6)
-  { id: 'cbi_q1',  subscale: 'personal', text: 'How often do you feel tired?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q2',  subscale: 'personal', text: 'How often are you physically exhausted?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q3',  subscale: 'personal', text: 'How often are you emotionally exhausted?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q4',  subscale: 'personal', text: "How often do you think: I can't take it anymore?", options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q5',  subscale: 'personal', text: 'How often do you feel worn out?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q6',  subscale: 'personal', text: 'How often do you feel weak and susceptible to illness?', options: CBI_OPTIONS, reverse: false },
+  // Personal burnout (q1–q6) — frequency scale
+  { id: 'cbi_q1',  subscale: 'personal', scaleType: 'frequency', text: 'How often do you feel tired?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q2',  subscale: 'personal', scaleType: 'frequency', text: 'How often are you physically exhausted?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q3',  subscale: 'personal', scaleType: 'frequency', text: 'How often are you emotionally exhausted?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q4',  subscale: 'personal', scaleType: 'frequency', text: "How often do you think: \"I can't take it anymore\"?", options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q5',  subscale: 'personal', scaleType: 'frequency', text: 'How often do you feel worn out?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q6',  subscale: 'personal', scaleType: 'frequency', text: 'How often do you feel weak and susceptible to illness?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
 
   // Work-related burnout (q7–q13)
-  { id: 'cbi_q7',  subscale: 'work', text: 'Is your work emotionally exhausting?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q8',  subscale: 'work', text: 'Do you feel burnt out because of your work?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q9',  subscale: 'work', text: 'Does your work frustrate you?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q10', subscale: 'work', text: 'Do you feel worn out at the end of the working day?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q11', subscale: 'work', text: 'Are you exhausted in the morning at the thought of another day at work?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q12', subscale: 'work', text: 'Do you feel that every working hour is tiring for you?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q13', subscale: 'work', text: 'Do you have enough energy for family and friends during leisure time?', options: CBI_OPTIONS, reverse: true },
+  { id: 'cbi_q7',  subscale: 'work', scaleType: 'degree', text: 'Is your work emotionally exhausting?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q8',  subscale: 'work', scaleType: 'degree', text: 'Do you feel burnt out because of your work?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q9',  subscale: 'work', scaleType: 'degree', text: 'Does your work frustrate you?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q10', subscale: 'work', scaleType: 'frequency', text: 'Do you feel worn out at the end of the working day?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q11', subscale: 'work', scaleType: 'frequency', text: 'Are you exhausted in the morning at the thought of another day at work?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q12', subscale: 'work', scaleType: 'frequency', text: 'Do you feel that every working hour is tiring for you?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q13', subscale: 'work', scaleType: 'frequency', text: 'Do you have enough energy for family and friends during leisure time?', options: CBI_FREQUENCY_OPTIONS, reverse: true },
 
-  // Patient-related burnout (q14–q22)
-  { id: 'cbi_q14', subscale: 'patient', text: 'Do you find it hard to work with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q15', subscale: 'patient', text: 'Do you find it frustrating to work with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q16', subscale: 'patient', text: 'Does it drain your energy to work with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q17', subscale: 'patient', text: 'Do you feel that you give more than you get back when you work with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q18', subscale: 'patient', text: 'Are you tired of working with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q19', subscale: 'patient', text: 'Do you sometimes wonder how long you will be able to continue working with patients?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q20', subscale: 'patient', text: 'Do you feel that working with patients is an emotional burden?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q21', subscale: 'patient', text: 'Do you feel that working with patients affects your self-esteem?', options: CBI_OPTIONS, reverse: false },
-  { id: 'cbi_q22', subscale: 'patient', text: 'Do you feel that working with patients affects your personal life?', options: CBI_OPTIONS, reverse: false },
+  // Patient-related burnout (q14–q19)
+  { id: 'cbi_q14', subscale: 'patient', scaleType: 'degree', text: 'Do you find it hard to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q15', subscale: 'patient', scaleType: 'degree', text: 'Do you find it frustrating to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q16', subscale: 'patient', scaleType: 'degree', text: 'Does it drain your energy to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q17', subscale: 'patient', scaleType: 'degree', text: 'Do you feel that you give more than you get back when you work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q18', subscale: 'patient', scaleType: 'frequency', text: 'Are you tired of working with patients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q19', subscale: 'patient', scaleType: 'frequency', text: 'Do you sometimes wonder how long you will be able to continue working with patients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
 ];
 
 // ---------------------------------------------------------------------------
@@ -151,24 +141,10 @@ export const GAD7_ITEMS: QuestionnaireItem[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// ISI — Insomnia Severity Index (7 items)
-// ---------------------------------------------------------------------------
-
-export const ISI_ITEMS: QuestionnaireItem[] = [
-  { id: 'isi_q1', text: 'Difficulty falling asleep', options: ISI_OPTIONS, reverse: false },
-  { id: 'isi_q2', text: 'Difficulty staying asleep', options: ISI_OPTIONS, reverse: false },
-  { id: 'isi_q3', text: 'Problems waking up too early', options: ISI_OPTIONS, reverse: false },
-  { id: 'isi_q4', text: 'How satisfied/dissatisfied are you with your current sleep pattern?', options: ISI_SATISFACTION_OPTIONS, reverse: false },
-  { id: 'isi_q5', text: 'How noticeable to others do you think your sleep problem is in terms of impairing the quality of your life?', options: ISI_NOTICEABLE_OPTIONS, reverse: false },
-  { id: 'isi_q6', text: 'How worried/distressed are you about your current sleep problem?', options: ISI_WORRIED_OPTIONS, reverse: false },
-  { id: 'isi_q7', text: 'To what extent do you consider your sleep problem to interfere with your daily functioning?', options: ISI_INTERFERE_OPTIONS, reverse: false },
-];
-
-// ---------------------------------------------------------------------------
 // Instrument metadata
 // ---------------------------------------------------------------------------
 
-export type InstrumentId = 'cbi' | 'phq9' | 'gad7' | 'isi';
+export type InstrumentId = 'who5' | 'cbi' | 'phq9' | 'gad7';
 
 export interface InstrumentMeta {
   id: InstrumentId;
@@ -179,11 +155,18 @@ export interface InstrumentMeta {
 }
 
 export const INSTRUMENTS: Record<InstrumentId, InstrumentMeta> = {
+  who5: {
+    id: 'who5',
+    name: 'WHO-5',
+    fullName: 'WHO-5 Well-Being Index',
+    itemCount: 5,
+    timeframe: 'Over the last 2 weeks',
+  },
   cbi: {
     id: 'cbi',
     name: 'CBI',
     fullName: 'Copenhagen Burnout Inventory',
-    itemCount: 22,
+    itemCount: 19,
     timeframe: '',
   },
   phq9: {
@@ -197,13 +180,6 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentMeta> = {
     id: 'gad7',
     name: 'GAD-7',
     fullName: 'Generalized Anxiety Disorder-7',
-    itemCount: 7,
-    timeframe: 'Over the last 2 weeks',
-  },
-  isi: {
-    id: 'isi',
-    name: 'ISI',
-    fullName: 'Insomnia Severity Index',
     itemCount: 7,
     timeframe: 'Over the last 2 weeks',
   },

@@ -2,27 +2,34 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { scoreCBI, scorePHQ9, scoreGAD7, scoreISI } from '../../lib/scoring';
+import { scoreCBI, scorePHQ9, scoreGAD7, scoreWHO5 } from '../../lib/scoring';
 import type { InstrumentId } from '../../lib/instruments';
-import { INSTRUMENTS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS, ISI_ITEMS } from '../../lib/instruments';
+import { INSTRUMENTS, WHO5_ITEMS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
 
 const TABLE_MAP: Record<InstrumentId, string> = {
+  who5: 'block_assessments',
   cbi: 'cbi_responses',
   phq9: 'phq9_responses',
   gad7: 'gad7_responses',
-  isi: 'isi_responses',
 };
 
 const ITEMS_MAP: Record<InstrumentId, (QuestionnaireItem | CBIItem)[]> = {
+  who5: WHO5_ITEMS,
   cbi: CBI_ITEMS,
   phq9: PHQ9_ITEMS,
   gad7: GAD7_ITEMS,
-  isi: ISI_ITEMS,
 };
 
 // Scoring reference information
 const SCORING_REFERENCE: Record<InstrumentId, { ranges: { label: string; range: string; color: string }[]; note?: string }> = {
+  who5: {
+    ranges: [
+      { label: 'Adequate wellbeing', range: '> 50%', color: '#16a34a' },
+      { label: 'Poor wellbeing', range: '<= 50%', color: '#dc2626' },
+    ],
+    note: 'Raw score 0-25, percentage = raw * 4. Score <= 50% suggests poor wellbeing.',
+  },
   phq9: {
     ranges: [
       { label: 'Minimal', range: '0-4', color: '#16a34a' },
@@ -39,14 +46,6 @@ const SCORING_REFERENCE: Record<InstrumentId, { ranges: { label: string; range: 
       { label: 'Mild', range: '5-9', color: '#84cc16' },
       { label: 'Moderate', range: '10-14', color: '#f59e0b' },
       { label: 'Severe', range: '15-21', color: '#dc2626' },
-    ],
-  },
-  isi: {
-    ranges: [
-      { label: 'No clinically significant insomnia', range: '0-7', color: '#16a34a' },
-      { label: 'Subthreshold insomnia', range: '8-14', color: '#f59e0b' },
-      { label: 'Moderate insomnia', range: '15-21', color: '#f97316' },
-      { label: 'Severe insomnia', range: '22-28', color: '#dc2626' },
     ],
   },
   cbi: {
@@ -202,15 +201,15 @@ export default function ReviewDetail() {
         </div>
       </div>
     );
-  } else if (instrument === 'isi') {
-    const result = scoreISI(items);
-    const sevColor = result.total >= 22 ? '#dc2626' : result.total >= 15 ? '#f97316' : result.total >= 8 ? '#f59e0b' : '#16a34a';
+  } else if (instrument === 'who5') {
+    const result = scoreWHO5(items);
+    const sevColor = result.poorWellbeing ? '#dc2626' : '#16a34a';
     scoreDisplay = (
       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-        <div style={{ fontSize: 36, fontWeight: 700, color: sevColor }}>{result.total}</div>
+        <div style={{ fontSize: 36, fontWeight: 700, color: sevColor }}>{result.percent}%</div>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 600, color: sevColor }}>{result.severity}</div>
-          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>out of 28</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: sevColor }}>{result.poorWellbeing ? 'Poor Wellbeing' : 'Adequate Wellbeing'}</div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>raw: {result.total} / 25</div>
         </div>
       </div>
     );

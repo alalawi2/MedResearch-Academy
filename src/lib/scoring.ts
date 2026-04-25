@@ -1,4 +1,4 @@
-// scoring.ts — Pure scoring functions for CBI, PHQ-9, GAD-7, ISI
+// scoring.ts — Pure scoring functions for WHO-5, CBI (19-item), PHQ-9, GAD-7
 
 import type { CBIItem } from './instruments';
 import { CBI_ITEMS } from './instruments';
@@ -7,17 +7,58 @@ import { CBI_ITEMS } from './instruments';
 // Shared types
 // ---------------------------------------------------------------------------
 
-/** Map of item id → selected numeric value */
+/** Map of item id -> selected numeric value */
 export type Responses = Record<string, number>;
 
 // ---------------------------------------------------------------------------
-// CBI scoring
+// WHO-5 scoring
+// ---------------------------------------------------------------------------
+
+export interface WHO5Result {
+  total: number;        // 0-25 raw sum
+  percent: number;      // 0-100 (total * 4)
+  poorWellbeing: boolean; // true if percent <= 50
+  answeredCount: number;
+}
+
+export function scoreWHO5(responses: Responses): WHO5Result {
+  let total = 0;
+  let answeredCount = 0;
+
+  for (let i = 1; i <= 5; i++) {
+    const val = responses[`who5_q${i}`];
+    if (val != null && val >= 0 && val <= 5) {
+      total += val;
+      answeredCount++;
+    }
+  }
+
+  const percent = total * 4;
+
+  return {
+    total,
+    percent,
+    poorWellbeing: percent <= 50,
+    answeredCount,
+  };
+}
+
+export function isWHO5Complete(responses: Responses): boolean {
+  for (let i = 1; i <= 5; i++) {
+    const v = responses[`who5_q${i}`];
+    if (v == null || v < 0 || v > 5) return false;
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// CBI scoring (19-item version)
 // ---------------------------------------------------------------------------
 
 export type CBISubscale = 'personal' | 'work' | 'patient';
 
 export interface CBISubscaleResult {
-  score: number;        // 0-100 scale
+  score: number;        // 0-100 scale (mean of item scores)
   burnout: boolean;     // true if score >= 50
   answeredCount: number;
   totalItems: number;
@@ -32,18 +73,15 @@ export interface CBIResult {
 }
 
 /**
- * Score a single CBI item, handling reverse scoring.
- * Forward: raw value mapped 1→0, 2→25, 3→50, 4→75, 5→100
- * Reverse: raw value mapped 1→100, 2→75, 3→50, 4→25, 5→0
+ * Score a single CBI item.
+ * In the 19-item CBI, option values are already on 0-100 scale (0, 25, 50, 75, 100).
+ * For reverse-scored items (q13), we invert: score = 100 - rawValue.
  */
 function scoreCBIItem(item: CBIItem, rawValue: number): number {
   if (item.reverse) {
-    // Reverse: 5=Never(100), 4=Seldom(75), 3=Sometimes(50), 2=Often(25), 1=Always(0)
-    // which is (5 - rawValue) * 25
-    return (5 - rawValue) * 25;
+    return 100 - rawValue;
   }
-  // Forward: (rawValue - 1) * 25
-  return (rawValue - 1) * 25;
+  return rawValue;
 }
 
 function scoreCBISubscale(
@@ -55,7 +93,7 @@ function scoreCBISubscale(
 
   for (const item of items) {
     const raw = responses[item.id];
-    if (raw != null && raw >= 1 && raw <= 5) {
+    if (raw != null && raw >= 0 && raw <= 100) {
       answered.push(scoreCBIItem(item, raw));
     }
   }
@@ -175,87 +213,13 @@ export function scoreGAD7(responses: Responses): GAD7Result {
 }
 
 // ---------------------------------------------------------------------------
-// ISI scoring
-// ---------------------------------------------------------------------------
-
-export type ISISeverity =
-  | 'No clinically significant insomnia'
-  | 'Subthreshold insomnia'
-  | 'Moderate insomnia'
-  | 'Severe insomnia';
-
-export interface ISIResult {
-  total: number;          // 0-28
-  severity: ISISeverity;
-  answeredCount: number;
-}
-
-function isiSeverity(total: number): ISISeverity {
-  if (total <= 7) return 'No clinically significant insomnia';
-  if (total <= 14) return 'Subthreshold insomnia';
-  if (total <= 21) return 'Moderate insomnia';
-  return 'Severe insomnia';
-}
-
-export function scoreISI(responses: Responses): ISIResult {
-  let total = 0;
-  let answeredCount = 0;
-
-  for (let i = 1; i <= 7; i++) {
-    const val = responses[`isi_q${i}`];
-    if (val != null && val >= 0 && val <= 4) {
-      total += val;
-      answeredCount++;
-    }
-  }
-
-  return {
-    total,
-    severity: isiSeverity(total),
-    answeredCount,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Combined scoring — score all instruments at once
-// ---------------------------------------------------------------------------
-
-export interface CombinedResult {
-  cbi: CBIResult;
-  phq9: PHQ9Result;
-  gad7: GAD7Result;
-  isi: ISIResult;
-  /** High-level flags for clinical attention */
-  flags: string[];
-}
-
-export function scoreAll(responses: Responses): CombinedResult {
-  const cbi = scoreCBI(responses);
-  const phq9 = scorePHQ9(responses);
-  const gad7 = scoreGAD7(responses);
-  const isi = scoreISI(responses);
-
-  const flags: string[] = [];
-
-  if (cbi.personal.burnout) flags.push('Personal burnout detected (CBI >= 50)');
-  if (cbi.work.burnout) flags.push('Work-related burnout detected (CBI >= 50)');
-  if (cbi.patient.burnout) flags.push('Patient-related burnout detected (CBI >= 50)');
-  if (phq9.suicidalIdeationFlag) flags.push('Suicidal ideation endorsed (PHQ-9 q9 > 0)');
-  if (phq9.total >= 15) flags.push(`Depression moderately severe or worse (PHQ-9 = ${phq9.total})`);
-  if (gad7.total >= 15) flags.push(`Severe anxiety (GAD-7 = ${gad7.total})`);
-  if (isi.total >= 22) flags.push(`Severe insomnia (ISI = ${isi.total})`);
-
-  return { cbi, phq9, gad7, isi, flags };
-}
-
-// ---------------------------------------------------------------------------
 // Completeness helpers
 // ---------------------------------------------------------------------------
 
 export function isCBIComplete(responses: Responses): boolean {
   return CBI_ITEMS.every((item) => {
     const v = responses[item.id];
-    return v != null && v >= 1 && v <= 5;
+    return v != null && v >= 0 && v <= 100;
   });
 }
 
@@ -275,19 +239,47 @@ export function isGAD7Complete(responses: Responses): boolean {
   return true;
 }
 
-export function isISIComplete(responses: Responses): boolean {
-  for (let i = 1; i <= 7; i++) {
-    const v = responses[`isi_q${i}`];
-    if (v == null || v < 0 || v > 4) return false;
-  }
-  return true;
+// ---------------------------------------------------------------------------
+// Combined scoring — score all instruments at once
+// ---------------------------------------------------------------------------
+
+export interface CombinedResult {
+  who5: WHO5Result;
+  cbi: CBIResult;
+  phq9: PHQ9Result;
+  gad7: GAD7Result;
+  /** High-level flags for clinical attention */
+  flags: string[];
 }
+
+export function scoreAll(responses: Responses): CombinedResult {
+  const who5 = scoreWHO5(responses);
+  const cbi = scoreCBI(responses);
+  const phq9 = scorePHQ9(responses);
+  const gad7 = scoreGAD7(responses);
+
+  const flags: string[] = [];
+
+  if (who5.poorWellbeing) flags.push(`Poor wellbeing (WHO-5 = ${who5.percent}%)`);
+  if (cbi.personal.burnout) flags.push('Personal burnout detected (CBI >= 50)');
+  if (cbi.work.burnout) flags.push('Work-related burnout detected (CBI >= 50)');
+  if (cbi.patient.burnout) flags.push('Patient-related burnout detected (CBI >= 50)');
+  if (phq9.suicidalIdeationFlag) flags.push('Suicidal ideation endorsed (PHQ-9 q9 > 0)');
+  if (phq9.total >= 15) flags.push(`Depression moderately severe or worse (PHQ-9 = ${phq9.total})`);
+  if (gad7.total >= 15) flags.push(`Severe anxiety (GAD-7 = ${gad7.total})`);
+
+  return { who5, cbi, phq9, gad7, flags };
+}
+
+// ---------------------------------------------------------------------------
+// Full assessment completeness
+// ---------------------------------------------------------------------------
 
 export function isAllComplete(responses: Responses): boolean {
   return (
+    isWHO5Complete(responses) &&
     isCBIComplete(responses) &&
     isPHQ9Complete(responses) &&
-    isGAD7Complete(responses) &&
-    isISIComplete(responses)
+    isGAD7Complete(responses)
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -22,21 +22,89 @@ interface WhoopData {
   pulled_at: string;
 }
 
-type QuestionnaireKey = 'cbi' | 'phq9' | 'gad7' | 'isi';
+/* ------------------------------------------------------------------ */
+/*  Block schedule                                                     */
+/* ------------------------------------------------------------------ */
 
-const QUESTIONNAIRE_LABELS: Record<QuestionnaireKey, string> = {
-  cbi: 'CBI (Burnout)',
-  phq9: 'PHQ-9 (Depression)',
-  gad7: 'GAD-7 (Anxiety)',
-  isi: 'ISI (Insomnia)',
-};
+interface BlockDef {
+  block: number;
+  start: string;
+  end: string;
+  label: string;
+}
 
-const QUESTIONNAIRE_TABLES: Record<QuestionnaireKey, string> = {
-  cbi: 'cbi_responses',
-  phq9: 'phq9_responses',
-  gad7: 'gad7_responses',
-  isi: 'isi_responses',
-};
+const BLOCK_SCHEDULE: BlockDef[] = [
+  { block: 1,  start: '09-01', end: '09-27', label: 'Block 1: Sep 1 - Sep 27' },
+  { block: 2,  start: '09-28', end: '10-25', label: 'Block 2: Sep 28 - Oct 25' },
+  { block: 3,  start: '10-27', end: '11-22', label: 'Block 3: Oct 27 - Nov 22' },
+  { block: 4,  start: '11-23', end: '12-20', label: 'Block 4: Nov 23 - Dec 20' },
+  { block: 5,  start: '12-21', end: '01-17', label: 'Block 5: Dec 21 - Jan 17' },
+  { block: 6,  start: '01-18', end: '02-14', label: 'Block 6: Jan 18 - Feb 14' },
+  { block: 7,  start: '02-15', end: '03-14', label: 'Block 7: Feb 15 - Mar 14' },
+  { block: 8,  start: '03-15', end: '04-11', label: 'Block 8: Mar 15 - Apr 11' },
+  { block: 9,  start: '04-12', end: '05-09', label: 'Block 9: Apr 12 - May 9' },
+  { block: 10, start: '05-10', end: '06-06', label: 'Block 10: May 10 - Jun 6' },
+  { block: 11, start: '06-07', end: '07-06', label: 'Block 11: Jun 7 - Jul 6' },
+  { block: 12, start: '07-07', end: '08-01', label: 'Block 12: Jul 7 - Aug 1' },
+  { block: 13, start: '08-02', end: '08-31', label: 'Block 13: Aug 2 - Aug 31' },
+];
+
+function getBlockDates(b: BlockDef, refYear: number): { start: Date; end: Date } {
+  const [sm, sd] = b.start.split('-').map(Number);
+  const [em, ed] = b.end.split('-').map(Number);
+  const startYear = refYear;
+  let endYear = refYear;
+  if (em < sm) endYear = refYear + 1;
+  return {
+    start: new Date(startYear, sm - 1, sd),
+    end: new Date(endYear, em - 1, ed),
+  };
+}
+
+interface CurrentBlockInfo {
+  block: number;
+  label: string;
+  startDate: Date;
+  endDate: Date;
+  canSubmit: boolean;
+  submissionOpensDate: Date;
+  daysUntilOpen: number;
+}
+
+function getCurrentBlock(): CurrentBlockInfo | null {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  const currentYear = now.getFullYear();
+  const yearsToTry = [currentYear, currentYear - 1];
+
+  for (const year of yearsToTry) {
+    for (const b of BLOCK_SCHEDULE) {
+      const { start, end } = getBlockDates(b, year);
+      if (now >= start && now <= end) {
+        const submissionOpens = new Date(start);
+        submissionOpens.setDate(submissionOpens.getDate() + 14);
+        const canSubmit = now >= submissionOpens;
+        const daysUntilOpen = canSubmit ? 0 : Math.ceil((submissionOpens.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+        return {
+          block: b.block,
+          label: b.label,
+          startDate: start,
+          endDate: end,
+          canSubmit,
+          submissionOpensDate: submissionOpens,
+          daysUntilOpen,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+function formatDateShort(d: Date): string {
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+}
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -44,22 +112,12 @@ const QUESTIONNAIRE_TABLES: Record<QuestionnaireKey, string> = {
 
 function getMondayOfCurrentWeek(): string {
   const now = new Date();
-  const day = now.getDay(); // 0=Sun … 6=Sat
+  const day = now.getDay();
   const diff = day === 0 ? -6 : 1 - day;
   const monday = new Date(now);
   monday.setDate(now.getDate() + diff);
   monday.setHours(0, 0, 0, 0);
   return monday.toISOString().slice(0, 10);
-}
-
-function getMonthRange(): { start: string; end: string } {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), 1);
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return {
-    start: start.toISOString().slice(0, 10),
-    end: end.toISOString().slice(0, 10),
-  };
 }
 
 function formatDate(iso: string): string {
@@ -93,11 +151,11 @@ function SkeletonCard({ height = 120 }: { height?: number }) {
 /*  Status Badge                                                       */
 /* ------------------------------------------------------------------ */
 
-function StatusBadge({ status }: { status: 'done' | 'pending' | 'overdue' }) {
+function StatusBadge({ status }: { status: 'done' | 'pending' | 'locked' }) {
   const colors: Record<string, { bg: string; fg: string; label: string }> = {
     done: { bg: '#dcfce7', fg: '#166534', label: 'Done' },
     pending: { bg: '#fff7ed', fg: '#9a3412', label: 'Pending' },
-    overdue: { bg: '#fef2f2', fg: '#991b1b', label: 'Overdue' },
+    locked: { bg: '#f3f4f6', fg: '#6b7280', label: 'Locked' },
   };
   const c = colors[status];
   return (
@@ -128,16 +186,13 @@ export default function ResidentDashboard() {
 
   const [loading, setLoading] = useState(true);
   const [checkinDone, setCheckinDone] = useState(false);
-  const [qStatus, setQStatus] = useState<Record<QuestionnaireKey, boolean>>({
-    cbi: false,
-    phq9: false,
-    gad7: false,
-    isi: false,
-  });
+  const [assessmentDone, setAssessmentDone] = useState(false);
   const [events, setEvents] = useState<EventLogEntry[]>([]);
   const [lastCheckin, setLastCheckin] = useState<string | null>(null);
   const [whoop, setWhoop] = useState<WhoopData | null>(null);
   const [whoopStatus, setWhoopStatus] = useState<'connected' | 'no_data' | 'not_connected'>('not_connected');
+
+  const blockInfo = useMemo(() => getCurrentBlock(), []);
 
   useEffect(() => {
     if (!residentProfile) return;
@@ -149,7 +204,6 @@ export default function ResidentDashboard() {
     if (!residentProfile) return;
     const rid = residentProfile.id;
     const mondayISO = getMondayOfCurrentWeek();
-    const { start: monthStart, end: monthEnd } = getMonthRange();
 
     try {
       // 1) Weekly check-in
@@ -160,17 +214,20 @@ export default function ResidentDashboard() {
         .eq('week_start', mondayISO)
         .limit(1);
 
-      // 2) Questionnaire statuses
-      const qPromises = (Object.keys(QUESTIONNAIRE_TABLES) as QuestionnaireKey[]).map((key) =>
-        supabase
-          .from(QUESTIONNAIRE_TABLES[key])
+      // 2) Block assessment status
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let assessmentPromise: PromiseLike<any> | null = null;
+      if (blockInfo) {
+        const startISO = blockInfo.startDate.toISOString().slice(0, 10);
+        const endISO = blockInfo.endDate.toISOString().slice(0, 10);
+        assessmentPromise = supabase
+          .from('block_assessments')
           .select('id')
           .eq('resident_id', rid)
-          .gte('response_date', monthStart)
-          .lte('response_date', monthEnd)
-          .limit(1)
-          .then(({ data }) => [key, (data?.length ?? 0) > 0] as [QuestionnaireKey, boolean])
-      );
+          .gte('assessment_date', startISO)
+          .lte('assessment_date', endISO)
+          .limit(1);
+      }
 
       // 3) Event logs
       const eventsPromise = supabase
@@ -196,26 +253,23 @@ export default function ResidentDashboard() {
         .order('pulled_at', { ascending: false })
         .limit(1);
 
-      const [checkinRes, ...qResults] = await Promise.all([
+      const results = await Promise.all([
         checkinPromise,
-        ...qPromises,
-      ]);
-
-      const [eventsRes, lastCheckinRes, whoopRes] = await Promise.all([
+        assessmentPromise,
         eventsPromise,
         lastCheckinPromise,
         whoopPromise,
       ]);
 
+      const [checkinRes, assessmentRes, eventsRes, lastCheckinRes, whoopRes] = results;
+
       // Process check-in
       setCheckinDone((checkinRes.data?.length ?? 0) > 0);
 
-      // Process questionnaire statuses
-      const newQStatus = { cbi: false, phq9: false, gad7: false, isi: false };
-      for (const [key, done] of qResults as [QuestionnaireKey, boolean][]) {
-        newQStatus[key] = done;
+      // Process block assessment
+      if (assessmentRes) {
+        setAssessmentDone(((assessmentRes as any)?.data?.length ?? 0) > 0);
       }
-      setQStatus(newQStatus);
 
       // Process events
       setEvents((eventsRes.data as EventLogEntry[]) ?? []);
@@ -231,7 +285,6 @@ export default function ResidentDashboard() {
         setWhoopStatus('connected');
       } else {
         setWhoop(null);
-        // Distinguish "no data yet" vs "not connected" — for now treat as no_data
         setWhoopStatus('no_data');
       }
     } catch (err) {
@@ -241,9 +294,16 @@ export default function ResidentDashboard() {
     }
   }
 
-  const completedCount = Object.values(qStatus).filter(Boolean).length;
   const firstName = residentProfile?.full_name?.split(' ')[0] || 'Resident';
   const participantId = residentProfile?.participant_id || '---';
+
+  // Determine assessment status for display
+  function getAssessmentStatus(): 'done' | 'pending' | 'locked' {
+    if (assessmentDone) return 'done';
+    if (!blockInfo) return 'locked';
+    if (!blockInfo.canSubmit) return 'locked';
+    return 'pending';
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
@@ -267,6 +327,8 @@ export default function ResidentDashboard() {
       </div>
     );
   }
+
+  const assessmentStatus = getAssessmentStatus();
 
   return (
     <div style={{ padding: '0 4px' }}>
@@ -369,16 +431,16 @@ export default function ResidentDashboard() {
             </div>
           </Link>
 
-          {/* Questionnaires Summary Card */}
+          {/* Block Assessment Card */}
           <Link
-            to="/resident/questionnaires"
+            to="/resident/questionnaire"
             style={{ textDecoration: 'none', color: 'inherit' }}
           >
             <div
               style={{
                 background: '#fff',
                 borderRadius: 12,
-                border: `2px solid ${completedCount === 4 ? '#22c55e' : '#f97316'}`,
+                border: `2px solid ${assessmentStatus === 'done' ? '#22c55e' : assessmentStatus === 'pending' ? '#f97316' : 'var(--border)'}`,
                 padding: '16px 14px',
                 cursor: 'pointer',
                 transition: 'box-shadow 0.15s',
@@ -386,90 +448,78 @@ export default function ResidentDashboard() {
               onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)')}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
             >
-              <div style={{ fontSize: 22, marginBottom: 8 }}>{completedCount === 4 ? '\u2705' : '\ud83d\udccb'}</div>
+              <div style={{ fontSize: 22, marginBottom: 8 }}>
+                {assessmentStatus === 'done' ? '\u2705' : assessmentStatus === 'locked' ? '\uD83D\uDD12' : '\uD83D\uDCCB'}
+              </div>
               <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6, color: 'var(--primary)' }}>
-                Questionnaires
+                Block Assessment
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>
-                {completedCount}/4 done
-              </div>
+              <StatusBadge status={assessmentStatus} />
             </div>
           </Link>
         </div>
 
-        {/* Individual Questionnaire Status List */}
+        {/* Block Assessment Detail Card */}
         <div
           style={{
             background: '#fff',
             borderRadius: 12,
             border: '1px solid var(--border)',
-            overflow: 'hidden',
+            padding: '16px',
+            marginBottom: 12,
           }}
         >
-          {(Object.keys(QUESTIONNAIRE_LABELS) as QuestionnaireKey[]).map((key, idx) => (
-            <Link
-              key={key}
-              to={`/resident/questionnaire/${key}`}
-              style={{ textDecoration: 'none', color: 'inherit' }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 16px',
-                  borderBottom: idx < 3 ? '1px solid var(--border)' : 'none',
-                  cursor: 'pointer',
-                  transition: 'background 0.12s',
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-              >
-                <span style={{ fontSize: 14, fontWeight: 500 }}>
-                  {QUESTIONNAIRE_LABELS[key]}
-                </span>
-                <StatusBadge status={qStatus[key] ? 'done' : 'pending'} />
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--primary)' }}>
+              {blockInfo ? blockInfo.label : 'No Active Block'}
+            </span>
+            <StatusBadge status={assessmentStatus} />
+          </div>
 
-      {/* -------- Completion Progress -------- */}
-      <div
-        style={{
-          background: '#fff',
-          borderRadius: 12,
-          border: '1px solid var(--border)',
-          padding: '16px',
-          marginBottom: 20,
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--primary)' }}>
-            Monthly Progress
-          </span>
-          <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>
-            {completedCount}/4 questionnaires
-          </span>
-        </div>
-        <div
-          style={{
-            height: 10,
-            background: '#e5e7eb',
-            borderRadius: 999,
-            overflow: 'hidden',
-          }}
-        >
-          <div
+          {blockInfo && (
+            <div style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              {formatDateShort(blockInfo.startDate)} - {formatDateShort(blockInfo.endDate)}
+              {assessmentStatus === 'locked' && blockInfo.daysUntilOpen > 0 && (
+                <span style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+                  Assessment opens on {formatDateShort(blockInfo.submissionOpensDate)} ({blockInfo.daysUntilOpen} days)
+                </span>
+              )}
+              {assessmentStatus === 'pending' && (
+                <span style={{ display: 'block', marginTop: 4, fontSize: 12, color: '#ea580c', fontWeight: 600 }}>
+                  Assessment is now open - please complete before the block ends
+                </span>
+              )}
+              {assessmentStatus === 'done' && (
+                <span style={{ display: 'block', marginTop: 4, fontSize: 12, color: '#16a34a', fontWeight: 600 }}>
+                  Assessment completed for this block
+                </span>
+              )}
+            </div>
+          )}
+
+          {!blockInfo && (
+            <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+              You are currently between rotation blocks.
+            </div>
+          )}
+
+          <Link
+            to="/resident/questionnaire"
             style={{
-              height: '100%',
-              width: `${(completedCount / 4) * 100}%`,
-              background: completedCount === 4 ? '#22c55e' : 'var(--accent)',
-              borderRadius: 999,
-              transition: 'width 0.4s ease',
+              display: 'block',
+              marginTop: 12,
+              padding: '10px 16px',
+              borderRadius: 8,
+              background: assessmentStatus === 'pending' ? 'var(--primary)' : 'var(--border)',
+              color: assessmentStatus === 'pending' ? 'white' : 'var(--text-muted)',
+              textDecoration: 'none',
+              textAlign: 'center',
+              fontSize: 14,
+              fontWeight: 600,
             }}
-          />
+          >
+            {assessmentStatus === 'done' ? 'View Assessment' : assessmentStatus === 'locked' ? 'Not Yet Available' : 'Start Assessment'}
+          </Link>
         </div>
       </div>
 
@@ -641,7 +691,7 @@ export default function ResidentDashboard() {
                 <strong>WHOOP wearable:</strong> heart rate, HRV, sleep, recovery, and strain (pulled daily at 3 AM)
               </li>
               <li style={{ marginBottom: 4 }}>
-                <strong>Questionnaires:</strong> CBI (burnout), PHQ-9 (depression), GAD-7 (anxiety), ISI (insomnia) &mdash; monthly
+                <strong>Block assessments:</strong> WHO-5, CBI (burnout), PHQ-9 (depression), GAD-7 (anxiety) &mdash; end of each block
               </li>
               <li style={{ marginBottom: 4 }}>
                 <strong>Weekly check-ins:</strong> 6 brief questions on hours, on-call shifts, sleep, and stress

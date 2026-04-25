@@ -26,7 +26,7 @@ export default function SendLinks() {
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [instruments, setInstruments] = useState<Set<InstrumentId>>(new Set(['cbi', 'phq9', 'gad7', 'isi']));
+  const [instruments, setInstruments] = useState<Set<InstrumentId>>(new Set(['who5', 'cbi', 'phq9', 'gad7']));
   const [completions, setCompletions] = useState<Map<string, Set<InstrumentId>>>(new Map());
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -59,7 +59,6 @@ export default function SendLinks() {
       { table: 'cbi_responses', key: 'cbi' },
       { table: 'phq9_responses', key: 'phq9' },
       { table: 'gad7_responses', key: 'gad7' },
-      { table: 'isi_responses', key: 'isi' },
     ];
 
     for (const { table, key } of tables) {
@@ -177,7 +176,6 @@ export default function SendLinks() {
                   <th style={{ textAlign: 'center', padding: '10px 8px', color: 'var(--text-muted)', fontSize: 11 }}>CBI</th>
                   <th style={{ textAlign: 'center', padding: '10px 8px', color: 'var(--text-muted)', fontSize: 11 }}>PHQ-9</th>
                   <th style={{ textAlign: 'center', padding: '10px 8px', color: 'var(--text-muted)', fontSize: 11 }}>GAD-7</th>
-                  <th style={{ textAlign: 'center', padding: '10px 8px', color: 'var(--text-muted)', fontSize: 11 }}>ISI</th>
                 </tr>
               </thead>
               <tbody>
@@ -206,7 +204,7 @@ export default function SendLinks() {
                     <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: 12 }}>
                       {p.site || '—'}
                     </td>
-                    {(['cbi', 'phq9', 'gad7', 'isi'] as InstrumentId[]).map(inst => (
+                    {(['cbi', 'phq9', 'gad7'] as InstrumentId[]).map(inst => (
                       <td key={inst} style={{ textAlign: 'center', padding: '8px' }}>
                         {hasCompleted(p.id, inst) ? (
                           <span style={{ color: '#166534', fontWeight: 700, fontSize: 14 }}>Done</span>

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 
 const NAV_ITEMS = [
   { path: '/resident/dashboard', label: 'Dashboard', icon: '🏠' },
-  { path: '/resident/questionnaire', label: 'Questionnaires', icon: '📋' },
+  { path: '/resident/questionnaire', label: 'Block Assessment', icon: '📋' },
   { path: '/resident/checkin', label: 'Check-in', icon: '✅' },
   { path: '/resident/events', label: 'Events', icon: '📅' },
 ];

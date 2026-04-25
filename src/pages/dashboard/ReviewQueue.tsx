@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { scoreCBI, scorePHQ9, scoreGAD7, scoreISI } from '../../lib/scoring';
+import { scoreCBI, scorePHQ9, scoreGAD7 } from '../../lib/scoring';
 import type { InstrumentId } from '../../lib/instruments';
 import { INSTRUMENTS } from '../../lib/instruments';
 
@@ -51,10 +51,6 @@ function buildGAD7Summary(items: Record<string, number>): string {
   return `${result.total}/${result.severity}`;
 }
 
-function buildISISummary(items: Record<string, number>): string {
-  const result = scoreISI(items);
-  return `${result.total}/${result.severity}`;
-}
 
 export default function ReviewQueue() {
   const { studyRoles } = useAuth();
@@ -75,7 +71,7 @@ export default function ReviewQueue() {
   async function loadAll() {
     setLoading(true);
 
-    const [cbiRes, phq9Res, gad7Res, isiRes] = await Promise.all([
+    const [cbiRes, phq9Res, gad7Res] = await Promise.all([
       supabase
         .from('cbi_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
@@ -88,11 +84,6 @@ export default function ReviewQueue() {
         .limit(500),
       supabase
         .from('gad7_responses')
-        .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
-        .eq('burnout_participants.study_id', studyId)
-        .limit(500),
-      supabase
-        .from('isi_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),
@@ -139,20 +130,6 @@ export default function ReviewQueue() {
         submittedAt: row.created_at,
         reviewStatus: (row.review_status ?? 'pending') as ReviewStatus,
         scoreSummary: buildGAD7Summary(row.items ?? {}),
-        q9Value: null,
-      });
-    }
-
-    for (const row of isiRes.data ?? []) {
-      const p = (row as any).burnout_participants;
-      combined.push({
-        id: row.id,
-        instrument: 'isi',
-        participantId: p?.study_participant_id ?? '—',
-        residentId: row.resident_id,
-        submittedAt: row.created_at,
-        reviewStatus: (row.review_status ?? 'pending') as ReviewStatus,
-        scoreSummary: buildISISummary(row.items ?? {}),
         q9Value: null,
       });
     }
@@ -251,7 +228,7 @@ export default function ReviewQueue() {
           <option value="cbi">CBI</option>
           <option value="phq9">PHQ-9</option>
           <option value="gad7">GAD-7</option>
-          <option value="isi">ISI</option>
+          <option value="who5">WHO-5</option>
         </select>
         <input
           type="date"

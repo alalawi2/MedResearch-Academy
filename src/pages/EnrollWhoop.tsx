@@ -31,18 +31,24 @@ export default function EnrollWhoop() {
               <div style={{background:'white',borderRadius:12,padding:'16px 24px',display:'inline-block',fontSize:'1.8rem',fontFamily:'monospace',fontWeight:700,color:'var(--primary)',border:'1px solid #bbf7d0',marginBottom:20}}>
                 {participantId}
               </div>
-              <p style={{fontSize:13,color:'#15803d',lineHeight:1.6}}>
-                No further action needed — your biophysical data will be collected automatically every 4 weeks. You'll receive the CBI, PHQ-9, GAD-7, and ISI questionnaires from the research team at the end of each rotation block.
+              <p style={{fontSize:13,color:'#15803d',lineHeight:1.6,marginBottom:24}}>
+                Your biophysical data will be collected automatically. Next step: set up your study portal account to complete questionnaires and check-ins.
               </p>
+              <a href="/resident/login" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px 28px',borderRadius:10,background:'#166534',color:'white',fontWeight:600,fontSize:15,textDecoration:'none',width:'100%',maxWidth:320,margin:'0 auto'}}>
+                Set Up Portal Account →
+              </a>
             </div>
 
           ) : success === 'reconnected' ? (
             <div style={{background:'#eff6ff',border:'1px solid #bfdbfe',borderRadius:20,padding:'48px 36px'}}>
               <div style={{fontSize:56,marginBottom:16}}>🔄</div>
               <h2 style={{fontFamily:'var(--font-serif)',color:'#1e40af',fontSize:'1.6rem',marginBottom:12}}>Reconnected!</h2>
-              <p style={{fontSize:15,color:'#1e40af',lineHeight:1.7}}>
-                Your WHOOP connection has been refreshed. Study ID: <strong>{participantId}</strong>. No further action needed.
+              <p style={{fontSize:15,color:'#1e40af',lineHeight:1.7,marginBottom:24}}>
+                Your WHOOP connection has been refreshed. Study ID: <strong>{participantId}</strong>.
               </p>
+              <a href="/resident/login" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px 28px',borderRadius:10,background:'#1e40af',color:'white',fontWeight:600,fontSize:15,textDecoration:'none',width:'100%',maxWidth:320,margin:'0 auto'}}>
+                Go to Portal →
+              </a>
             </div>
 
           ) : error ? (

@@ -7,9 +7,9 @@ export interface AlertResult {
 
 /**
  * Determine if a questionnaire response is clinically concerning.
- * @param type - Instrument type: 'phq9' | 'cbi' | 'gad7' | 'isi'
+ * @param type - Instrument type: 'phq9' | 'cbi' | 'gad7' | 'who5'
  * @param items - Map of item keys to numeric values (e.g., { q9: 2 } for PHQ-9)
- * @param totalScore - Overall total score (used for PHQ-9, GAD-7, ISI)
+ * @param totalScore - Overall total score (used for PHQ-9, GAD-7, WHO-5)
  */
 export function isConcerning(
   type: string,
