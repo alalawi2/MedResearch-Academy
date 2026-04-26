@@ -353,7 +353,6 @@ export default function Overview() {
             <thead>
               <tr>
                 <th style={styles.th}>Participant ID</th>
-                {isAdmin && <th style={styles.th}>Name</th>}
                 <th style={styles.th}>Status</th>
                 <th style={styles.th}>WHOOP</th>
                 <th style={styles.th}>Demographics</th>
@@ -363,7 +362,7 @@ export default function Overview() {
               {loading ? (
                 [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
               ) : participants.length === 0 ? (
-                <tr><td colSpan={isAdmin ? 5 : 4} style={{ ...styles.td, textAlign: 'center', color: 'var(--text-muted)' }}>No participants enrolled</td></tr>
+                <tr><td colSpan={4} style={{ ...styles.td, textAlign: 'center', color: 'var(--text-muted)' }}>No participants enrolled</td></tr>
               ) : (
                 participants.map((p, idx) => (
                   <tr
@@ -372,7 +371,6 @@ export default function Overview() {
                     onClick={() => { window.location.href = `/dashboard/residents/${p.id}`; }}
                   >
                     <td style={styles.td}><span style={styles.monoText}>{p.study_participant_id}</span></td>
-                    {isAdmin && <td style={styles.td}>{p.full_name ?? '\u2014'}</td>}
                     <td style={styles.td}>
                       <span style={{ ...styles.statusPill, background: statusColor(p.status).bg, color: statusColor(p.status).text }}>
                         {p.status}

@@ -113,7 +113,6 @@ export default function Residents() {
             <thead>
               <tr style={{borderBottom:'2px solid var(--border)',textAlign:'left'}}>
                 <th style={{padding:'12px 16px',fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Study ID</th>
-                {canSeePii && <th style={{padding:'12px 16px',fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Name</th>}
                 <th style={{padding:'12px 16px',fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Program</th>
                 <th style={{padding:'12px 16px',fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>PGY</th>
                 <th style={{padding:'12px 16px',fontSize:11,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em'}}>Site</th>
@@ -127,7 +126,6 @@ export default function Residents() {
               {filtered.map((r, i) => (
                 <tr key={r.id} style={{borderBottom:'1px solid var(--border)',background:i%2===0?'white':'var(--bg-muted)'}}>
                   <td style={{padding:'12px 16px',fontWeight:600,fontFamily:'monospace'}}>{r.study_participant_id}</td>
-                  {canSeePii && <td style={{padding:'12px 16px'}}>{r.full_name ?? '—'}</td>}
                   <td style={{padding:'12px 16px'}}>{r.program?.replace(/_/g,' ') ?? '—'}</td>
                   <td style={{padding:'12px 16px'}}>{r.pgy_level ?? '—'}</td>
                   <td style={{padding:'12px 16px'}}>{r.primary_site ?? '—'}</td>

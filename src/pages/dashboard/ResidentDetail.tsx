@@ -123,7 +123,7 @@ export default function ResidentDetail() {
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:28,flexWrap:'wrap',gap:16}}>
         <div>
           <h1 style={{fontSize:'1.8rem',fontFamily:'var(--font-serif)',color:'var(--primary)',marginBottom:4}}>
-            {canSeePii && resident.full_name ? resident.full_name : resident.study_participant_id}
+            {resident.study_participant_id}
           </h1>
           <div style={{display:'flex',gap:12,color:'var(--text-muted)',fontSize:14,flexWrap:'wrap'}}>
             <span style={{fontFamily:'monospace',fontWeight:600}}>{resident.study_participant_id}</span>
