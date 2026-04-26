@@ -67,8 +67,8 @@ export default function DashboardLayout() {
                 to={item.path}
                 style={{
                   display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,fontSize:14,fontWeight:500,
-                  color: active ? 'white' : 'rgba(255,255,255,0.65)',
-                  background: active ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  color: active ? '#fff' : 'rgba(255,255,255,0.9)',
+                  background: active ? 'rgba(255,255,255,0.18)' : 'transparent',
                   textDecoration:'none',transition:'all 0.15s',
                 }}
               >
