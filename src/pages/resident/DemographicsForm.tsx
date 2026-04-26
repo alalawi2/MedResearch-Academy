@@ -356,7 +356,7 @@ export default function DemographicsForm() {
 
     supabase
       .from('burnout_participants')
-      .select('demographics_completed, date_of_birth, gender, marital_status, region_of_origin, hometown_visits, has_children, num_children, special_care_dependents, financial_difficulties, weight_kg, height_cm, residency_level, residency_program, chronic_conditions, psychiatric_conditions, on_medications, medications_list, exercise_days, diet_types, caffeine_per_day, sleep_hours')
+      .select('demographics_completed, date_of_birth, gender, marital_status, region_of_origin, hometown_visit_frequency, has_children, number_of_children, special_care_dependents, financial_difficulties, weight_kg, height_cm, residency_level, residency_program, chronic_conditions, psychiatric_conditions, on_medications, medications_list, exercise_days_per_week, diet_type, caffeine_drinks_daily, sleep_hours_non_call')
       .eq('id', residentProfile.id)
       .limit(1)
       .single()
@@ -437,24 +437,23 @@ export default function DemographicsForm() {
         gender: form.gender,
         marital_status: form.marital_status,
         region_of_origin: form.region_of_origin,
-        hometown_visits: form.region_of_origin !== 'Muscat' ? form.hometown_visits : null,
+        hometown_visit_frequency: form.region_of_origin !== 'Muscat' ? form.hometown_visits : null,
         has_children: form.has_children === 'Yes',
-        num_children: form.has_children === 'Yes' ? form.num_children : null,
+        number_of_children: form.has_children === 'Yes' ? form.num_children : null,
         special_care_dependents: form.special_care_dependents === 'Yes',
         financial_difficulties: form.financial_difficulties === 'Yes',
         weight_kg: parseFloat(form.weight_kg),
         height_cm: parseFloat(form.height_cm),
-        bmi: bmi ? parseFloat(bmi) : null,
         residency_level: form.residency_level,
         residency_program: form.residency_program,
         chronic_conditions: form.chronic_conditions,
         psychiatric_conditions: form.psychiatric_conditions,
         on_medications: form.on_medications === 'Yes',
         medications_list: form.on_medications === 'Yes' ? form.medications_list.trim() : null,
-        exercise_days: form.exercise_days,
-        diet_types: form.diet_types,
-        caffeine_per_day: form.caffeine_per_day,
-        sleep_hours: parseFloat(form.sleep_hours),
+        exercise_days_per_week: form.exercise_days,
+        diet_type: form.diet_types,
+        caffeine_drinks_daily: form.caffeine_per_day,
+        sleep_hours_non_call: parseFloat(form.sleep_hours),
         demographics_completed: true,
       };
 
