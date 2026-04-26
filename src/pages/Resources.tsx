@@ -98,6 +98,63 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* JournalReady */}
+          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #f7f8fa 0%, #eef1f6 100%)',border:'2px solid #e2e5ea',borderRadius:16,overflow:'hidden'}}>
+            <div className="resource-body" style={{padding:32}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #1a3a5c, #0d2540)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{color:'#c8972a',fontSize:24,fontWeight:700}}>J</span>
+                </div>
+                <div>
+                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>Journal<span style={{color:'#c8972a'}}>Ready</span></span>
+                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>BY MEDRESEARCH ACADEMY</div>
+                </div>
+                <span className="badge" style={{background:'rgba(200,151,42,0.15)',color:'#8a6515',marginLeft:12}}>Beta</span>
+              </div>
+              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>From Research Idea to Published Paper — One Platform</h2>
+              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
+                JournalReady is the AI-powered publishing assistant for academic medicine. 23 specialist tools guide you through every stage of the research lifecycle — from structuring your first PICO question to formatting the final manuscript for submission.
+              </p>
+
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
+                {[
+                  ['Research Question Builder','Structure ideas with PICO/FINER frameworks, AI-guided feasibility assessment'],
+                  ['Sample Size Calculator','Wizard mode for beginners — answers 4 plain-language questions, auto-selects the right test'],
+                  ['Manuscript Formatter','Format to any journal (800+ styles), citation-manager-aware, compliance checking'],
+                  ['Reference Linker','Paste plain-text refs → auto-link via CrossRef DOI → export to EndNote/Zotero/Mendeley'],
+                  ['Journal Finder','Realistic matching by study design, sample size, and quality tier — not just topic'],
+                  ['Stats Analysis','Full pipeline: t-test, ANOVA, regression, survival analysis, ML models via Railway backend'],
+                ].map(([title, desc]) => (
+                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #e2e5ea'}}>
+                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
+                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #e2e5ea',paddingTop:20}}>
+                {[['23','AI Tools'],['6','Workflow Stages'],['800+','Journal Styles'],['Free','For Oman']].map(([num, label]) => (
+                  <div key={label} style={{textAlign:'center'}}>
+                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#c8972a'}}>{num}</div>
+                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+                <a href="https://journal-ready.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a3a5c',color:'white',border:'none'}}>Open JournalReady →</a>
+                <a href="https://journal-ready.vercel.app/author/projects" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg">Start a Research Project</a>
+              </div>
+
+              <div style={{marginTop:20,padding:16,background:'rgba(26,58,92,0.04)',borderRadius:10,border:'1px dashed #c8972a33'}}>
+                <div style={{fontSize:12,fontWeight:700,color:'#1a3a5c',marginBottom:8}}>Who is JournalReady for?</div>
+                <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.6}}>
+                  <strong>Residents writing their first paper</strong> — the wizard modes ask plain-language questions so you don&apos;t need to know which statistical test to use. <strong>Senior researchers</strong> — skip to any tool (manuscript formatter, reference auditor, journal finder) without creating a project. <strong>Supervisors</strong> — the Reference Linker converts residents&apos; plain-text citations into proper EndNote/Zotero libraries in one click.
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Publications */}
           <div>
             <h2 style={{fontSize:'1.8rem',marginBottom:8}}>Latest Publications</h2>
