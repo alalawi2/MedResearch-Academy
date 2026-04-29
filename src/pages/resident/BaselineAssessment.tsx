@@ -9,7 +9,6 @@ import {
   GAD7_ITEMS,
 } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
-import { scoreWHO5, scoreCBI, scorePHQ9, scoreGAD7 } from '../../lib/scoring';
 import type { Responses } from '../../lib/scoring';
 import {
   scoreWHO5,
