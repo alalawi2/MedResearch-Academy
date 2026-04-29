@@ -30,6 +30,8 @@ export default function ResidentLayout() {
     return <Navigate to="/resident/demographics" replace />;
   }
 
+  const isDemographics = location.pathname === '/resident/demographics';
+
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',background:'var(--bg-muted)'}}>
       {/* ── Header ── */}
@@ -73,12 +75,12 @@ export default function ResidentLayout() {
       </header>
 
       {/* ── Main Content ── */}
-      <main style={{flex:1,padding:'20px 16px',paddingBottom:80,maxWidth:600,width:'100%',margin:'0 auto'}}>
+      <main style={{flex:1,padding:'20px 16px',paddingBottom:isDemographics ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
         <Outlet />
       </main>
 
-      {/* ── Bottom Navigation ── */}
-      <nav style={{
+      {/* ── Bottom Navigation (hidden during demographics) ── */}
+      {!isDemographics && <nav style={{
         position:'fixed',
         bottom:0,
         left:0,
@@ -114,7 +116,7 @@ export default function ResidentLayout() {
             </Link>
           );
         })}
-      </nav>
+      </nav>}
     </div>
   );
 }
