@@ -36,6 +36,7 @@ import QuestionnaireForm from './pages/resident/QuestionnaireForm';
 import WeeklyCheckin from './pages/resident/WeeklyCheckin';
 import EventLog from './pages/resident/EventLog';
 import DemographicsForm from './pages/resident/DemographicsForm';
+import BaselineAssessment from './pages/resident/BaselineAssessment';
 
 export default function App() {
   return (
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="/resident" element={<ResidentLayout />}>
             <Route path="dashboard" element={<ResidentDashboard />} />
             <Route path="demographics" element={<DemographicsForm />} />
+            <Route path="baseline" element={<BaselineAssessment />} />
             <Route path="questionnaire" element={<QuestionnaireForm />} />
             <Route path="checkin" element={<WeeklyCheckin />} />
             <Route path="events" element={<EventLog />} />

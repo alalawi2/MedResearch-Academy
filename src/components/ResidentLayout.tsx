@@ -25,12 +25,17 @@ export default function ResidentLayout() {
 
   if (!residentProfile) return <Navigate to="/resident/login" replace />;
 
-  // Redirect to demographics form if not completed (unless already on that page)
+  // Redirect to demographics form if not completed
   if (!residentProfile.demographics_completed && location.pathname !== '/resident/demographics') {
     return <Navigate to="/resident/demographics" replace />;
   }
 
-  const isDemographics = location.pathname === '/resident/demographics';
+  // Redirect to baseline assessment after demographics
+  if (residentProfile.demographics_completed && !residentProfile.baseline_completed && location.pathname !== '/resident/baseline') {
+    return <Navigate to="/resident/baseline" replace />;
+  }
+
+  const hideNav = location.pathname === '/resident/demographics' || location.pathname === '/resident/baseline';
 
   return (
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',background:'var(--bg-muted)'}}>
@@ -75,12 +80,12 @@ export default function ResidentLayout() {
       </header>
 
       {/* ── Main Content ── */}
-      <main style={{flex:1,padding:'20px 16px',paddingBottom:isDemographics ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
+      <main style={{flex:1,padding:'20px 16px',paddingBottom:hideNav ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
         <Outlet />
       </main>
 
       {/* ── Bottom Navigation (hidden during demographics) ── */}
-      {!isDemographics && <nav style={{
+      {!hideNav && <nav style={{
         position:'fixed',
         bottom:0,
         left:0,
