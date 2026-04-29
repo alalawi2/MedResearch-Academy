@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
+import SupportAdvice from '../../components/SupportAdvice';
 import {
   WHO5_ITEMS,
   CBI_ITEMS,
@@ -8,6 +9,7 @@ import {
   GAD7_ITEMS,
 } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
+import { scoreWHO5, scoreCBI, scorePHQ9, scoreGAD7 } from '../../lib/scoring';
 import type { Responses } from '../../lib/scoring';
 import {
   scoreWHO5,
@@ -426,22 +428,39 @@ export default function BaselineAssessment() {
   // ---------------------------------------------------------------------------
 
   if (submitted) {
+    // Compute scores for support advice
+    const who5Score = scoreWHO5(responses);
+    const cbiScore = scoreCBI(responses);
+    const phq9Score = scorePHQ9(responses);
+    const gad7Score = scoreGAD7(responses);
+
     return (
       <div style={styles.page}>
         <div style={styles.successContainer}>
           <div style={styles.successIcon}>{'\u2705'}</div>
           <h1 style={styles.successTitle}>Baseline Complete!</h1>
           <p style={styles.successText}>
-            You're all set. Your baseline measurements have been recorded
+            Your baseline measurements have been recorded
             and will be used as a reference throughout the study.
           </p>
-          <button
-            style={styles.dashboardBtn}
-            onClick={() => { window.location.href = '/resident/dashboard'; }}
-          >
-            Go to Dashboard {'\u2192'}
-          </button>
         </div>
+
+        <SupportAdvice
+          who5Percent={who5Score.percentage}
+          cbiPersonal={cbiScore.personalScore}
+          cbiWork={cbiScore.workScore}
+          cbiPatient={cbiScore.patientScore}
+          phq9Total={phq9Score.total}
+          phq9Q9={responses.phq9_q9 ?? 0}
+          gad7Total={gad7Score.total}
+        />
+
+        <button
+          style={styles.dashboardBtn}
+          onClick={() => { window.location.href = '/resident/dashboard'; }}
+        >
+          Go to Dashboard {'\u2192'}
+        </button>
       </div>
     );
   }

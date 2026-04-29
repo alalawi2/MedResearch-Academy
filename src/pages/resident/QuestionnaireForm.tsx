@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import SupportAdvice from '../../components/SupportAdvice';
 import { supabase } from '../../lib/supabase';
 import {
   WHO5_ITEMS,
@@ -764,6 +765,16 @@ export default function QuestionnaireForm() {
             </div>
           </div>
         )}
+
+        <SupportAdvice
+          who5Percent={who5Result?.percentage ?? null}
+          cbiPersonal={cbiResult?.personalScore ?? null}
+          cbiWork={cbiResult?.workScore ?? null}
+          cbiPatient={cbiResult?.patientScore ?? null}
+          phq9Total={phq9Result?.total ?? null}
+          phq9Q9={responses.phq9_q9 ?? 0}
+          gad7Total={gad7Result?.total ?? null}
+        />
 
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
           Submitted on {new Date().toISOString().slice(0, 10)} | {residentProfile.study_participant_id} | {blockInfo.label}
