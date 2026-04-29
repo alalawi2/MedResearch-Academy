@@ -767,10 +767,10 @@ export default function QuestionnaireForm() {
         )}
 
         <SupportAdvice
-          who5Percent={who5Result?.percentage ?? null}
-          cbiPersonal={cbiResult?.personalScore ?? null}
-          cbiWork={cbiResult?.workScore ?? null}
-          cbiPatient={cbiResult?.patientScore ?? null}
+          who5Percent={who5Result?.percent ?? null}
+          cbiPersonal={cbiResult?.personal?.score ?? null}
+          cbiWork={cbiResult?.work?.score ?? null}
+          cbiPatient={cbiResult?.patient?.score ?? null}
           phq9Total={phq9Result?.total ?? null}
           phq9Q9={responses.phq9_q9 ?? 0}
           gad7Total={gad7Result?.total ?? null}

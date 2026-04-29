@@ -445,10 +445,10 @@ export default function BaselineAssessment() {
         </div>
 
         <SupportAdvice
-          who5Percent={who5Score.percentage}
-          cbiPersonal={cbiScore.personalScore}
-          cbiWork={cbiScore.workScore}
-          cbiPatient={cbiScore.patientScore}
+          who5Percent={who5Score.percent}
+          cbiPersonal={cbiScore.personal.score}
+          cbiWork={cbiScore.work.score}
+          cbiPatient={cbiScore.patient.score}
           phq9Total={phq9Score.total}
           phq9Q9={responses.phq9_q9 ?? 0}
           gad7Total={gad7Score.total}
