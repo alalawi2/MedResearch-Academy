@@ -99,21 +99,73 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
   const workouts = workoutData?._error ? [] : (workoutData?.records || []);
 
   const scored = (arr: any[]) => arr.filter((r: any) => r.score_state === 'SCORED' && r.score);
+  const fmtMin = (ms: number | null | undefined): number | null => ms != null ? ms / 60000 : null;
 
   const scoredRecoveries = scored(recoveries);
   const scoredSleeps = scored(sleeps);
   const scoredCycles = scored(cycles);
+  const scoredWorkouts = scored(workouts);
+
+  // Sleep onset/wake times
+  const sleepOnsets = scoredSleeps.map((s: any) => {
+    const d = new Date(s.start);
+    return d.getHours() * 60 + d.getMinutes();
+  });
+  const sleepWakes = scoredSleeps.map((s: any) => {
+    const d = new Date(s.end);
+    return d.getHours() * 60 + d.getMinutes();
+  });
+
+  // Restorative sleep (REM + Deep)
+  const restorativeMins = scoredSleeps.map((s: any) => {
+    const st = s.score?.stage_summary;
+    if (!st) return null;
+    return ((st.total_rem_sleep_time_milli || 0) + (st.total_slow_wave_sleep_time_milli || 0)) / 60000;
+  }).filter(Boolean) as number[];
+
+  // Sleep extended fields
+  const awakeMins = scoredSleeps.map((s: any) => fmtMin(s.score?.stage_summary?.total_awake_time_milli)).filter(Boolean) as number[];
+  const noDataMins = scoredSleeps.map((s: any) => fmtMin(s.score?.stage_summary?.total_no_data_time_milli)).filter(Boolean) as number[];
+  const sleepCycles = scoredSleeps.map((s: any) => s.score?.stage_summary?.sleep_cycle_count).filter((v: any) => v != null) as number[];
+  const sleepNeedBaseline = scoredSleeps.map((s: any) => s.score?.sleep_needed?.baseline_milli != null ? s.score.sleep_needed.baseline_milli / 60000 : null).filter(Boolean) as number[];
+  const sleepNeedStrain = scoredSleeps.map((s: any) => s.score?.sleep_needed?.need_from_recent_strain_milli != null ? s.score.sleep_needed.need_from_recent_strain_milli / 60000 : null).filter(Boolean) as number[];
+  const sleepNeedNap = scoredSleeps.map((s: any) => s.score?.sleep_needed?.need_from_recent_nap_milli != null ? s.score.sleep_needed.need_from_recent_nap_milli / 60000 : null).filter(Boolean) as number[];
+
+  // Calibrating flag
+  const anyCalibrating = scoredRecoveries.some((r: any) => r.score.user_calibrating === true);
+
+  // HR zones (including zone 0) and workout metrics
+  let z0 = 0, z1 = 0, z2 = 0, z3 = 0, z4 = 0, z5 = 0;
+  scoredWorkouts.forEach((w: any) => {
+    const zd = w.score?.zone_duration;
+    if (zd) {
+      z0 += zd.zone_zero_milli || 0;
+      z1 += zd.zone_one_milli || 0;
+      z2 += zd.zone_two_milli || 0;
+      z3 += zd.zone_three_milli || 0;
+      z4 += zd.zone_four_milli || 0;
+      z5 += zd.zone_five_milli || 0;
+    }
+  });
+  const distances = scoredWorkouts.map((w: any) => w.score?.distance_meter).filter((v: any) => v != null && v > 0) as number[];
+  const sportNames = workouts.map((w: any) => w.sport_name).filter(Boolean) as string[];
+  const topSport = sportNames.length > 0
+    ? sportNames.sort((a, b) => sportNames.filter(v => v === b).length - sportNames.filter(v => v === a).length)[0]
+    : null;
 
   const pull = {
     resident_id: token.resident_id,
     study_id: null as string | null,
     period_start: startDate,
     period_end: endDate,
+    // Recovery
     avg_hrv_rmssd_ms: avg(scoredRecoveries.map((r: any) => r.score.hrv_rmssd_milli).filter(Boolean)),
     avg_resting_hr_bpm: avg(scoredRecoveries.map((r: any) => r.score.resting_heart_rate).filter(Boolean)),
     avg_spo2_pct: avg(scoredRecoveries.map((r: any) => r.score.spo2_percentage).filter(Boolean)),
     avg_skin_temp_c: avg(scoredRecoveries.map((r: any) => r.score.skin_temp_celsius).filter(Boolean)),
     avg_recovery_score: avg(scoredRecoveries.map((r: any) => r.score.recovery_score).filter(Boolean)),
+    any_calibrating: anyCalibrating,
+    // Sleep
     avg_total_sleep_min: avg(scoredSleeps.map((s: any) => {
       const st = s.score?.stage_summary;
       if (!st) return null;
@@ -128,46 +180,35 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
     avg_respiratory_rate_bpm: avg(scoredSleeps.map((s: any) => s.score?.respiratory_rate).filter(Boolean)),
     avg_time_in_bed_min: avg(scoredSleeps.map((s: any) => s.score?.stage_summary?.total_in_bed_time_milli / 60000).filter(Boolean)),
     avg_disturbance_count: avg(scoredSleeps.map((s: any) => s.score?.stage_summary?.disturbance_count).filter(Boolean)),
-    avg_sleep_debt_min: null as number | null,
+    avg_sleep_debt_min: avg(scoredSleeps.map((s: any) => s.score?.sleep_needed?.need_from_sleep_debt_milli != null ? s.score.sleep_needed.need_from_sleep_debt_milli / 60000 : null).filter(Boolean)),
     nap_count: naps.length,
+    avg_awake_time_min: avg(awakeMins),
+    avg_no_data_time_min: avg(noDataMins),
+    avg_sleep_cycle_count: avg(sleepCycles),
+    avg_sleep_need_baseline_min: avg(sleepNeedBaseline),
+    avg_sleep_need_from_strain_min: avg(sleepNeedStrain),
+    avg_sleep_need_from_nap_min: avg(sleepNeedNap),
+    avg_sleep_onset_min: avg(sleepOnsets),
+    avg_wake_time_min: avg(sleepWakes),
+    avg_restorative_sleep_min: avg(restorativeMins),
+    // Strain & Activity
     avg_daily_strain: avg(scoredCycles.map((c: any) => c.score?.strain).filter(Boolean)),
     avg_hr_bpm: avg(scoredCycles.map((c: any) => c.score?.average_heart_rate).filter(Boolean)),
     max_hr_bpm: scoredCycles.length > 0 ? Math.max(...scoredCycles.map((c: any) => c.score?.max_heart_rate || 0)) : null,
     avg_kilojoules: avg(scoredCycles.map((c: any) => c.score?.kilojoule).filter(Boolean)),
-    hr_zone1_min: null as number | null,
-    hr_zone2_min: null as number | null,
-    hr_zone3_min: null as number | null,
-    hr_zone4_min: null as number | null,
-    hr_zone5_min: null as number | null,
+    hr_zone0_min: z0 > 0 ? z0 / 60000 : null,
+    hr_zone1_min: z1 > 0 ? z1 / 60000 : null,
+    hr_zone2_min: z2 > 0 ? z2 / 60000 : null,
+    hr_zone3_min: z3 > 0 ? z3 / 60000 : null,
+    hr_zone4_min: z4 > 0 ? z4 / 60000 : null,
+    hr_zone5_min: z5 > 0 ? z5 / 60000 : null,
     workout_count: workouts.length,
+    avg_workout_distance_m: avg(distances),
+    top_sport_name: topSport,
+    // Data quality
     days_with_data: scoredCycles.length,
     pct_recorded: scoredCycles.length > 0 ? Math.round((scoredCycles.length / 28) * 100) : 0,
   };
-
-  // Get zone data from workouts
-  if (workouts.length > 0) {
-    const zones = workouts
-      .filter((w: any) => w.score?.zone_duration)
-      .flatMap((w: any) => {
-        const zd = w.score.zone_duration;
-        return [zd];
-      });
-    if (zones.length > 0) {
-      const sumZones = zones.reduce((acc: any, z: any) => {
-        acc.z1 += z.zone_one_milli || 0;
-        acc.z2 += z.zone_two_milli || 0;
-        acc.z3 += z.zone_three_milli || 0;
-        acc.z4 += z.zone_four_milli || 0;
-        acc.z5 += z.zone_five_milli || 0;
-        return acc;
-      }, { z1: 0, z2: 0, z3: 0, z4: 0, z5: 0 });
-      pull.hr_zone1_min = sumZones.z1 / 60000;
-      pull.hr_zone2_min = sumZones.z2 / 60000;
-      pull.hr_zone3_min = sumZones.z3 / 60000;
-      pull.hr_zone4_min = sumZones.z4 / 60000;
-      pull.hr_zone5_min = sumZones.z5 / 60000;
-    }
-  }
 
   // Get study_id from resident
   const { data: resident } = await supabase

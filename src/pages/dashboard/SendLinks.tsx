@@ -6,10 +6,10 @@ import type { InstrumentId } from '../../lib/instruments';
 
 interface Participant {
   id: string;
-  participant_id: string;
+  study_participant_id: string;
   full_name: string;
   email: string;
-  site: string | null;
+  primary_site: string | null;
   pgy_level: number | null;
 }
 
@@ -41,7 +41,7 @@ export default function SendLinks() {
     // Fetch participants
     const { data: parts } = await supabase
       .from('burnout_participants')
-      .select('id, participant_id, full_name, email, site, pgy_level')
+      .select('id, study_participant_id, full_name, email, primary_site, pgy_level')
       .eq('status', 'active')
       .limit(500);
 
@@ -199,10 +199,10 @@ export default function SendLinks() {
                     </td>
                     <td style={{ padding: '8px 12px' }}>
                       <div style={{ fontWeight: 500 }}>{p.full_name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.participant_id} {p.pgy_level ? `· PGY-${p.pgy_level}` : ''}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.study_participant_id} {p.pgy_level ? `· PGY-${p.pgy_level}` : ''}</div>
                     </td>
                     <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: 12 }}>
-                      {p.site || '—'}
+                      {p.primary_site || '—'}
                     </td>
                     {(['cbi', 'phq9', 'gad7'] as InstrumentId[]).map(inst => (
                       <td key={inst} style={{ textAlign: 'center', padding: '8px' }}>

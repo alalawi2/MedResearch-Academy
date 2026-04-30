@@ -135,13 +135,36 @@ async function pullResident(token: TokenRow, supabase: any) {
     const st = s.score?.stage_summary;
     if (!st) return null;
     return ((st.total_rem_sleep_time_milli || 0) + (st.total_slow_wave_sleep_time_milli || 0)) / 60000;
-  }).filter(Boolean);
+  }).filter(Boolean) as number[];
 
-  // HR zone totals from workouts
-  let z1 = 0, z2 = 0, z3 = 0, z4 = 0, z5 = 0;
+  // Awake time, no-data time, sleep cycles
+  const awakeMins = sleeps.map((s: any) => formatMin(s.score?.stage_summary?.total_awake_time_milli)).filter(Boolean) as number[];
+  const noDataMins = sleeps.map((s: any) => formatMin(s.score?.stage_summary?.total_no_data_time_milli)).filter(Boolean) as number[];
+  const sleepCycles = sleeps.map((s: any) => s.score?.stage_summary?.sleep_cycle_count).filter((v: any) => v != null) as number[];
+
+  // Sleep need breakdown
+  const sleepNeedBaseline = sleeps.map((s: any) => {
+    const sn = s.score?.sleep_needed;
+    return sn?.baseline_milli != null ? sn.baseline_milli / 60000 : null;
+  }).filter(Boolean) as number[];
+  const sleepNeedStrain = sleeps.map((s: any) => {
+    const sn = s.score?.sleep_needed;
+    return sn?.need_from_recent_strain_milli != null ? sn.need_from_recent_strain_milli / 60000 : null;
+  }).filter(Boolean) as number[];
+  const sleepNeedNap = sleeps.map((s: any) => {
+    const sn = s.score?.sleep_needed;
+    return sn?.need_from_recent_nap_milli != null ? sn.need_from_recent_nap_milli / 60000 : null;
+  }).filter(Boolean) as number[];
+
+  // Calibrating flag
+  const anyCalibrating = recoveries.some((r: any) => r.score.user_calibrating === true);
+
+  // HR zone totals from workouts (including zone 0)
+  let z0 = 0, z1 = 0, z2 = 0, z3 = 0, z4 = 0, z5 = 0;
   workouts.forEach((w: any) => {
     const zd = w.score?.zone_duration;
     if (zd) {
+      z0 += zd.zone_zero_milli || 0;
       z1 += zd.zone_one_milli || 0;
       z2 += zd.zone_two_milli || 0;
       z3 += zd.zone_three_milli || 0;
@@ -149,6 +172,13 @@ async function pullResident(token: TokenRow, supabase: any) {
       z5 += zd.zone_five_milli || 0;
     }
   });
+
+  // Workout distance and sport names
+  const distances = workouts.map((w: any) => w.score?.distance_meter).filter((v: any) => v != null && v > 0) as number[];
+  const sportNames = workouts.map((w: any) => w.sport_name).filter(Boolean) as string[];
+  const topSport = sportNames.length > 0
+    ? sportNames.sort((a, b) => sportNames.filter(v => v === b).length - sportNames.filter(v => v === a).length)[0]
+    : null;
 
   const pullData = {
     study_id: resident?.study_id || null,
@@ -186,13 +216,27 @@ async function pullResident(token: TokenRow, supabase: any) {
     avg_hr_bpm: avg(cycles.map((c: any) => c.score?.average_heart_rate).filter(Boolean)),
     max_hr_bpm: cycles.length > 0 ? Math.max(...cycles.map((c: any) => c.score?.max_heart_rate || 0)) : null,
     avg_kilojoules: avg(cycles.map((c: any) => c.score?.kilojoule).filter(Boolean)),
+    hr_zone0_min: z0 > 0 ? z0 / 60000 : null,
     hr_zone1_min: z1 > 0 ? z1 / 60000 : null,
     hr_zone2_min: z2 > 0 ? z2 / 60000 : null,
     hr_zone3_min: z3 > 0 ? z3 / 60000 : null,
     hr_zone4_min: z4 > 0 ? z4 / 60000 : null,
     hr_zone5_min: z5 > 0 ? z5 / 60000 : null,
     workout_count: workouts.length,
+    avg_workout_distance_m: avg(distances),
+    top_sport_name: topSport,
+    // Sleep extended
+    avg_awake_time_min: avg(awakeMins),
+    avg_no_data_time_min: avg(noDataMins),
+    avg_sleep_cycle_count: avg(sleepCycles),
+    avg_sleep_need_baseline_min: avg(sleepNeedBaseline),
+    avg_sleep_need_from_strain_min: avg(sleepNeedStrain),
+    avg_sleep_need_from_nap_min: avg(sleepNeedNap),
+    avg_sleep_onset_min: avg(sleepOnsets),
+    avg_wake_time_min: avg(sleepWakes),
+    avg_restorative_sleep_min: avg(restorativeMins),
     // Data quality
+    any_calibrating: anyCalibrating,
     days_with_data: cycles.length,
     pct_recorded: cycles.length > 0 ? Math.round((cycles.length / 25) * 100) : 0,
     pulled_at: new Date().toISOString(),

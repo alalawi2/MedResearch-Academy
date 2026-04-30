@@ -21,16 +21,12 @@ interface CollectionKPIs {
 }
 
 interface BurnoutOverview {
-  avgPersonal: number | null;
   avgWork: number | null;
-  avgPatient: number | null;
-  burnoutRate: number | null;
   avgPHQ9: number | null;
   phqModerateRate: number | null;
   avgGAD7: number | null;
   gadModerateRate: number | null;
-  avgWHO5: number | null;
-  poorWellbeingRate: number | null;
+  avgISI: number | null;
   assessmentCount: number;
 }
 
@@ -148,12 +144,12 @@ export default function Overview() {
         setParticipants(parts);
       }
 
-      /* Collection KPIs */
-      const [baRes, wcRes, elRes, prRes] = await Promise.all([
+      /* Collection KPIs — query actual tables */
+      const [baRes, wcRes, elRes, whoopCountRes] = await Promise.all([
         supabase.from('block_assessments').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
         supabase.from('weekly_checkins').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
         supabase.from('event_logs').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
-        supabase.from('block_assessments').select('id', { count: 'exact' }).eq('study_id', studyId).eq('review_status', 'pending').limit(1),
+        supabase.from('whoop_pulls').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
       ]);
 
       if (!cancelled) {
@@ -161,42 +157,41 @@ export default function Overview() {
           blockAssessments: baRes.count ?? 0,
           weeklyCheckins: wcRes.count ?? 0,
           eventsLogged: elRes.count ?? 0,
-          pendingReviews: prRes.count ?? 0,
+          pendingReviews: whoopCountRes.count ?? 0,
         });
       }
 
-      /* Burnout Overview */
-      const { data: baData } = await supabase
-        .from('block_assessments')
-        .select('cbi_personal_score, cbi_work_score, cbi_patient_score, cbi_any_burnout, phq9_total, gad7_total, who5_percent')
-        .eq('study_id', studyId)
-        .limit(1000);
+      /* Burnout Overview — query actual tables */
+      const [cbiRes, phqRes, gadRes, isiRes] = await Promise.all([
+        supabase.from('cbi_responses').select('work_score').eq('study_id', studyId).limit(1000),
+        supabase.from('phq9_responses').select('total_score').eq('study_id', studyId).limit(1000),
+        supabase.from('gad7_responses').select('total_score').eq('study_id', studyId).limit(1000),
+        supabase.from('isi_responses').select('total_score').eq('study_id', studyId).limit(1000),
+      ]);
 
-      const assessments = baData ?? [];
+      const cbiRows = cbiRes.data ?? [];
+      const phqRows = phqRes.data ?? [];
+      const gadRows = gadRes.data ?? [];
+      const isiRows = isiRes.data ?? [];
+      const totalAssessments = cbiRows.length + phqRows.length + gadRows.length + isiRows.length;
+
       if (!cancelled) {
-        if (assessments.length === 0) {
-          setBurnout({ avgPersonal: null, avgWork: null, avgPatient: null, burnoutRate: null, avgPHQ9: null, phqModerateRate: null, avgGAD7: null, gadModerateRate: null, avgWHO5: null, poorWellbeingRate: null, assessmentCount: 0 });
+        if (totalAssessments === 0) {
+          setBurnout({ avgWork: null, avgPHQ9: null, phqModerateRate: null, avgGAD7: null, gadModerateRate: null, avgISI: null, assessmentCount: 0 });
         } else {
-          const personal = assessments.map(a => a.cbi_personal_score).filter((v): v is number => v != null);
-          const work = assessments.map(a => a.cbi_work_score).filter((v): v is number => v != null);
-          const patient = assessments.map(a => a.cbi_patient_score).filter((v): v is number => v != null);
-          const burned = assessments.filter(a => a.cbi_any_burnout === true).length;
-          const phq = assessments.map(a => a.phq9_total).filter((v): v is number => v != null);
-          const gad = assessments.map(a => a.gad7_total).filter((v): v is number => v != null);
-          const who5 = assessments.map(a => a.who5_percent).filter((v): v is number => v != null);
+          const work = cbiRows.map(a => a.work_score).filter((v): v is number => v != null);
+          const phq = phqRows.map(a => a.total_score).filter((v): v is number => v != null);
+          const gad = gadRows.map(a => a.total_score).filter((v): v is number => v != null);
+          const isiScores = isiRows.map(a => a.total_score).filter((v): v is number => v != null);
 
           setBurnout({
-            avgPersonal: avg(personal),
             avgWork: avg(work),
-            avgPatient: avg(patient),
-            burnoutRate: assessments.length > 0 ? (burned / assessments.length) * 100 : null,
             avgPHQ9: avg(phq),
             phqModerateRate: phq.length > 0 ? (phq.filter(v => v >= 10).length / phq.length) * 100 : null,
             avgGAD7: avg(gad),
             gadModerateRate: gad.length > 0 ? (gad.filter(v => v >= 10).length / gad.length) * 100 : null,
-            avgWHO5: avg(who5),
-            poorWellbeingRate: who5.length > 0 ? (who5.filter(v => v <= 50).length / who5.length) * 100 : null,
-            assessmentCount: assessments.length,
+            avgISI: avg(isiScores),
+            assessmentCount: totalAssessments,
           });
         }
       }
@@ -221,12 +216,16 @@ export default function Overview() {
           }
         }
 
-        setWhoop({
-          avgHRV: avg(latest.map(r => r.avg_hrv_rmssd_ms).filter((v): v is number => v != null)),
-          avgRecovery: avg(latest.map(r => r.avg_recovery_score).filter((v): v is number => v != null)),
-          avgSleepHours: avg(latest.map(r => r.avg_total_sleep_min != null ? r.avg_total_sleep_min / 60 : null).filter((v): v is number => v != null)),
-          avgStrain: avg(latest.map(r => r.avg_daily_strain).filter((v): v is number => v != null)),
-        });
+        if (latest.length === 0) {
+          setWhoop(null);
+        } else {
+          setWhoop({
+            avgHRV: avg(latest.map(r => r.avg_hrv_rmssd_ms).filter((v): v is number => v != null)),
+            avgRecovery: avg(latest.map(r => r.avg_recovery_score).filter((v): v is number => v != null)),
+            avgSleepHours: avg(latest.map(r => r.avg_total_sleep_min != null ? r.avg_total_sleep_min / 60 : null).filter((v): v is number => v != null)),
+            avgStrain: avg(latest.map(r => r.avg_daily_strain).filter((v): v is number => v != null)),
+          });
+        }
       }
 
       if (!cancelled) setLoading(false);
@@ -254,7 +253,7 @@ export default function Overview() {
       { label: 'Block Assessments', value: collection.blockAssessments, color: '#2563eb', bg: '#eff6ff', icon: clipboardIcon },
       { label: 'Weekly Check-ins', value: collection.weeklyCheckins, color: '#16a34a', bg: '#f0fdf4', icon: calendarIcon },
       { label: 'Events Logged', value: collection.eventsLogged, color: '#d97706', bg: '#fffbeb', icon: flagIcon },
-      { label: 'Pending Reviews', value: collection.pendingReviews, color: collection.pendingReviews > 0 ? '#dc2626' : '#16a34a', bg: collection.pendingReviews > 0 ? '#fef2f2' : '#f0fdf4', icon: reviewIcon },
+      { label: 'WHOOP Pulls', value: collection.pendingReviews, color: '#7c3aed', bg: '#f5f3ff', icon: whoopIcon },
     ];
   }, [collection]);
 
@@ -315,16 +314,12 @@ export default function Overview() {
             <p style={styles.emptyText}>No assessments yet</p>
           ) : burnout ? (
             <div style={styles.metricsGrid}>
-              <MetricRow label="CBI Personal" value={fmt(burnout.avgPersonal)} />
               <MetricRow label="CBI Work" value={fmt(burnout.avgWork)} />
-              <MetricRow label="CBI Patient" value={fmt(burnout.avgPatient)} />
-              <MetricRow label="Burnout Rate" value={pct(burnout.burnoutRate)} warn={burnout.burnoutRate != null && burnout.burnoutRate > 30} />
               <MetricRow label="Avg PHQ-9" value={fmt(burnout.avgPHQ9)} />
               <MetricRow label="PHQ-9 Moderate+" value={pct(burnout.phqModerateRate)} warn={burnout.phqModerateRate != null && burnout.phqModerateRate > 25} />
               <MetricRow label="Avg GAD-7" value={fmt(burnout.avgGAD7)} />
               <MetricRow label="GAD-7 Moderate+" value={pct(burnout.gadModerateRate)} warn={burnout.gadModerateRate != null && burnout.gadModerateRate > 25} />
-              <MetricRow label="Avg WHO-5 %" value={fmt(burnout.avgWHO5, 0)} />
-              <MetricRow label="Poor Wellbeing" value={pct(burnout.poorWellbeingRate)} warn={burnout.poorWellbeingRate != null && burnout.poorWellbeingRate > 30} />
+              <MetricRow label="Avg ISI" value={fmt(burnout.avgISI)} />
             </div>
           ) : null}
         </Section>

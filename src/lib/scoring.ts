@@ -213,6 +213,44 @@ export function scoreGAD7(responses: Responses): GAD7Result {
 }
 
 // ---------------------------------------------------------------------------
+// ISI scoring
+// ---------------------------------------------------------------------------
+
+export type ISISeverity = 'No clinically significant insomnia' | 'Subthreshold insomnia' | 'Moderate clinical insomnia' | 'Severe clinical insomnia';
+
+export interface ISIResult {
+  total: number;          // 0-28
+  severity: ISISeverity;
+  answeredCount: number;
+}
+
+function isiSeverity(total: number): ISISeverity {
+  if (total <= 7) return 'No clinically significant insomnia';
+  if (total <= 14) return 'Subthreshold insomnia';
+  if (total <= 21) return 'Moderate clinical insomnia';
+  return 'Severe clinical insomnia';
+}
+
+export function scoreISI(responses: Responses): ISIResult {
+  let total = 0;
+  let answeredCount = 0;
+
+  for (let i = 1; i <= 7; i++) {
+    const val = responses[`isi_q${i}`];
+    if (val != null && val >= 0 && val <= 4) {
+      total += val;
+      answeredCount++;
+    }
+  }
+
+  return {
+    total,
+    severity: isiSeverity(total),
+    answeredCount,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Completeness helpers
 // ---------------------------------------------------------------------------
 
@@ -239,6 +277,14 @@ export function isGAD7Complete(responses: Responses): boolean {
   return true;
 }
 
+export function isISIComplete(responses: Responses): boolean {
+  for (let i = 1; i <= 7; i++) {
+    const v = responses[`isi_q${i}`];
+    if (v == null || v < 0 || v > 4) return false;
+  }
+  return true;
+}
+
 // ---------------------------------------------------------------------------
 // Combined scoring — score all instruments at once
 // ---------------------------------------------------------------------------
@@ -248,6 +294,7 @@ export interface CombinedResult {
   cbi: CBIResult;
   phq9: PHQ9Result;
   gad7: GAD7Result;
+  isi: ISIResult;
   /** High-level flags for clinical attention */
   flags: string[];
 }
@@ -257,6 +304,7 @@ export function scoreAll(responses: Responses): CombinedResult {
   const cbi = scoreCBI(responses);
   const phq9 = scorePHQ9(responses);
   const gad7 = scoreGAD7(responses);
+  const isi = scoreISI(responses);
 
   const flags: string[] = [];
 
@@ -267,8 +315,9 @@ export function scoreAll(responses: Responses): CombinedResult {
   if (phq9.suicidalIdeationFlag) flags.push('Suicidal ideation endorsed (PHQ-9 q9 > 0)');
   if (phq9.total >= 15) flags.push(`Depression moderately severe or worse (PHQ-9 = ${phq9.total})`);
   if (gad7.total >= 15) flags.push(`Severe anxiety (GAD-7 = ${gad7.total})`);
+  if (isi.total >= 15) flags.push(`Clinical insomnia (ISI = ${isi.total})`);
 
-  return { who5, cbi, phq9, gad7, flags };
+  return { who5, cbi, phq9, gad7, isi, flags };
 }
 
 // ---------------------------------------------------------------------------
@@ -280,6 +329,7 @@ export function isAllComplete(responses: Responses): boolean {
     isWHO5Complete(responses) &&
     isCBIComplete(responses) &&
     isPHQ9Complete(responses) &&
-    isGAD7Complete(responses)
+    isGAD7Complete(responses) &&
+    isISIComplete(responses)
   );
 }

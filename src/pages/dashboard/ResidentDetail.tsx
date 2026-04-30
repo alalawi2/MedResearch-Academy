@@ -34,10 +34,14 @@ interface BlockRow {
 
 interface CbiRow {
   response_date: string;
-  personal_score: number;
   work_score: number;
-  patient_score: number;
-  any_burnout: boolean;
+  block_id: string | null;
+}
+
+interface IsiRow {
+  response_date: string;
+  total_score: number;
+  severity: string;
   block_id: string | null;
 }
 
@@ -86,6 +90,7 @@ export default function ResidentDetail() {
   const [resident, setResident] = useState<ResidentRow | null>(null);
   const [blocks, setBlocks] = useState<BlockRow[]>([]);
   const [cbiData, setCbiData] = useState<CbiRow[]>([]);
+  const [isiData, setIsiData] = useState<IsiRow[]>([]);
   const [whoopData, setWhoopData] = useState<WhoopRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -96,24 +101,24 @@ export default function ResidentDetail() {
 
   async function loadAll() {
     setLoading(true);
-    const [resResult, blockResult, mbiResult, whoopResult] = await Promise.all([
-      supabase.from('burnout_participants').select('*').eq('id', id).limit(1).single(),
-      supabase.from('rotation_blocks').select('*').eq('resident_id', id).order('block_number').limit(13),
-      supabase.from('cbi_responses').select('response_date, personal_score, work_score, patient_score, any_burnout, block_id').eq('resident_id', id).order('response_date').limit(13),
+    const [resResult, blockResult, cbiResult, isiResult, whoopResult] = await Promise.all([
+      supabase.from('burnout_participants').select('id, study_participant_id, full_name, sex, age_at_enrollment, program, pgy_level, primary_site, status, enrollment_date, marital_status, number_of_kids').eq('id', id).limit(1).single(),
+      supabase.from('rotation_blocks').select('id, block_number, rotation_name, rotation_type, rotation_site, period_start, period_end, calls_count, primary_call_type, hours_worked_per_week, hours_slept_per_day').eq('resident_id', id).order('block_number').limit(13),
+      supabase.from('cbi_responses').select('response_date, work_score, block_id').eq('resident_id', id).order('response_date').limit(13),
+      supabase.from('isi_responses').select('response_date, total_score, severity, block_id').eq('resident_id', id).order('response_date').limit(13),
       supabase.from('whoop_pulls').select('period_start, period_end, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_recovery_score, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_respiratory_rate_bpm, avg_time_in_bed_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, days_with_data, pct_recorded, block_id').eq('resident_id', id).order('period_start', { ascending: false }).limit(13),
     ]);
 
     setResident(resResult.data);
     setBlocks(blockResult.data ?? []);
-    setCbiData(mbiResult.data ?? []);
+    setCbiData(cbiResult.data ?? []);
+    setIsiData(isiResult.data ?? []);
     setWhoopData(whoopResult.data ?? []);
     setLoading(false);
   }
 
   if (loading) return <div style={{padding:48,textAlign:'center',color:'var(--text-muted)'}}>Loading resident detail...</div>;
   if (!resident) return <div style={{padding:48,textAlign:'center',color:'var(--text-muted)'}}>Resident not found.</div>;
-
-  const burnoutColor = (burnout: boolean | null) => burnout ? '#dc2626' : '#16a34a';
 
   return (
     <div>
@@ -245,6 +250,7 @@ export default function ResidentDetail() {
         <div style={{display:'flex',flexDirection:'column',gap:16}}>
           {blocks.map(block => {
             const cbi = cbiData.find(m => m.block_id === block.id);
+            const isi = isiData.find(m => m.block_id === block.id);
             const whoop = whoopData.find(w => w.block_id === block.id);
 
             return (
@@ -269,14 +275,16 @@ export default function ResidentDetail() {
 
                   {/* CBI */}
                   {cbi ? (
-                    <>
-                      <MetricCell label="Personal" value={cbi.personal_score?.toFixed(0)} suffix="/100" color={cbi.personal_score >= 50 ? '#dc2626' : '#16a34a'} />
-                      <MetricCell label="Work" value={cbi.work_score?.toFixed(0)} suffix="/100" color={cbi.work_score >= 50 ? '#dc2626' : '#16a34a'} />
-                      <MetricCell label="Patient" value={cbi.patient_score?.toFixed(0)} suffix="/100" color={cbi.patient_score >= 50 ? '#dc2626' : '#16a34a'} />
-                      <MetricCell label="Burnout" value={cbi.any_burnout ? 'Yes' : 'No'} color={burnoutColor(cbi.any_burnout)} />
-                    </>
+                    <MetricCell label="CBI Work" value={cbi.work_score?.toFixed(0)} suffix="/100" color={cbi.work_score >= 50 ? '#dc2626' : '#16a34a'} />
                   ) : (
                     <MetricCell label="CBI" value="Not entered" color="var(--text-muted)" />
+                  )}
+
+                  {/* ISI */}
+                  {isi ? (
+                    <MetricCell label="ISI" value={isi.total_score} suffix="/28" color={isi.total_score >= 15 ? '#dc2626' : isi.total_score >= 8 ? '#f59e0b' : '#16a34a'} />
+                  ) : (
+                    <MetricCell label="ISI" value="Not entered" color="var(--text-muted)" />
                   )}
 
                   {/* WHOOP */}

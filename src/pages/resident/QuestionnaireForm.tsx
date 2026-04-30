@@ -8,6 +8,7 @@ import {
   CBI_ITEMS,
   PHQ9_ITEMS,
   GAD7_ITEMS,
+  ISI_ITEMS,
 } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
 import type { Responses } from '../../lib/scoring';
@@ -16,12 +17,14 @@ import {
   scoreCBI,
   scorePHQ9,
   scoreGAD7,
+  scoreISI,
   isWHO5Complete,
   isCBIComplete,
   isPHQ9Complete,
   isGAD7Complete,
+  isISIComplete,
 } from '../../lib/scoring';
-import type { WHO5Result, CBIResult, PHQ9Result, GAD7Result } from '../../lib/scoring';
+import type { WHO5Result, CBIResult, PHQ9Result, GAD7Result, ISIResult } from '../../lib/scoring';
 
 // ---------------------------------------------------------------------------
 // Block schedule
@@ -120,6 +123,7 @@ const PARTS = [
   { id: 3, title: 'CBI Burnout', icon: '\uD83D\uDD25' },
   { id: 4, title: 'PHQ-9 Depression', icon: '\uD83D\uDCAD' },
   { id: 5, title: 'GAD-7 Anxiety', icon: '\uD83D\uDCA8' },
+  { id: 6, title: 'ISI Insomnia', icon: '\uD83D\uDCA4' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -386,6 +390,7 @@ export default function QuestionnaireForm() {
   const [cbiResult, setCbiResult] = useState<CBIResult | null>(null);
   const [phq9Result, setPhq9Result] = useState<PHQ9Result | null>(null);
   const [gad7Result, setGad7Result] = useState<GAD7Result | null>(null);
+  const [isiResult, setIsiResult] = useState<ISIResult | null>(null);
 
   const blockInfo = useMemo(() => getCurrentBlock(), []);
 
@@ -438,6 +443,7 @@ export default function QuestionnaireForm() {
   const cbiComplete = useMemo(() => isCBIComplete(responses), [responses]);
   const phq9Complete = useMemo(() => isPHQ9Complete(responses), [responses]);
   const gad7Complete = useMemo(() => isGAD7Complete(responses), [responses]);
+  const isiComplete = useMemo(() => isISIComplete(responses), [responses]);
 
   const partComplete = useCallback((part: number): boolean => {
     switch (part) {
@@ -446,11 +452,12 @@ export default function QuestionnaireForm() {
       case 3: return cbiComplete;
       case 4: return phq9Complete;
       case 5: return gad7Complete;
+      case 6: return isiComplete;
       default: return false;
     }
-  }, [isRotationComplete, who5Complete, cbiComplete, phq9Complete, gad7Complete]);
+  }, [isRotationComplete, who5Complete, cbiComplete, phq9Complete, gad7Complete, isiComplete]);
 
-  const allComplete = isRotationComplete && who5Complete && cbiComplete && phq9Complete && gad7Complete;
+  const allComplete = isRotationComplete && who5Complete && cbiComplete && phq9Complete && gad7Complete && isiComplete;
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -469,7 +476,7 @@ export default function QuestionnaireForm() {
   }
 
   function handleNext() {
-    if (currentPart < 5) setCurrentPart(currentPart + 1);
+    if (currentPart < 6) setCurrentPart(currentPart + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -513,11 +520,13 @@ export default function QuestionnaireForm() {
       const cbi = scoreCBI(responses);
       const phq9 = scorePHQ9(responses);
       const gad7 = scoreGAD7(responses);
+      const isi = scoreISI(responses);
 
       setWho5Result(who5);
       setCbiResult(cbi);
       setPhq9Result(phq9);
       setGad7Result(gad7);
+      setIsiResult(isi);
 
       // Build WHO-5 items
       const who5Items: Record<string, number> = {};
@@ -541,6 +550,12 @@ export default function QuestionnaireForm() {
       const gad7Items: Record<string, number> = {};
       for (let i = 1; i <= 7; i++) {
         gad7Items[`gad7_q${i}`] = responses[`gad7_q${i}`];
+      }
+
+      // Build ISI items
+      const isiItems: Record<string, number> = {};
+      for (let i = 1; i <= 7; i++) {
+        isiItems[`isi_q${i}`] = responses[`isi_q${i}`];
       }
 
       const payload = {
@@ -586,10 +601,69 @@ export default function QuestionnaireForm() {
         gad7_total: gad7.total,
         gad7_severity: gad7.severity,
 
+        // ISI
+        isi_items: isiItems,
+        isi_total: isi.total,
+        isi_severity: isi.severity,
+
         review_status: 'pending',
       };
 
       const { error: insertError } = await supabase.from('block_assessments').insert(payload);
+
+      // Also save to individual instrument tables
+      const blockRes = await supabase
+        .from('rotation_blocks')
+        .select('id')
+        .eq('resident_id', residentProfile.id)
+        .eq('block_number', blockInfo.block)
+        .limit(1)
+        .single();
+      const blockId = blockRes.data?.id || null;
+
+      await Promise.all([
+        supabase.from('cbi_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          block_id: blockId,
+          response_date: today,
+          items: cbiItems,
+          personal_score: cbi.personal.score,
+          work_score: cbi.work.score,
+          patient_score: cbi.patient.score,
+          personal_burnout: cbi.personal.burnout,
+          work_burnout: cbi.work.burnout,
+          patient_burnout: cbi.patient.burnout,
+          any_burnout: cbi.anyBurnout,
+        }),
+        supabase.from('phq9_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          block_id: blockId,
+          response_date: today,
+          items: phq9Items,
+          total_score: phq9.total,
+          severity: phq9.severity.toLowerCase().replace(/ /g, '_'),
+        }),
+        supabase.from('gad7_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          block_id: blockId,
+          response_date: today,
+          items: gad7Items,
+          total_score: gad7.total,
+          severity: gad7.severity.toLowerCase().replace(/ /g, '_'),
+        }),
+        supabase.from('isi_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          block_id: blockId,
+          response_date: today,
+          items: isiItems,
+          total_score: isi.total,
+          severity: isi.severity.toLowerCase().replace(/ /g, '_').replace(/clinically_significant_/g, ''),
+        }),
+      ]);
 
       if (insertError) {
         setError(insertError.message);
@@ -732,7 +806,7 @@ export default function QuestionnaireForm() {
               </span>
             </div>
             <div style={{ ...styles.summaryRow, borderBottom: 'none' }}>
-              <span>Patient-Related Burnout</span>
+              <span>Client-Related Burnout</span>
               <span style={{ fontWeight: 600 }}>
                 {cbiResult.patient.score.toFixed(1)} - {cbiResult.patient.burnout ? 'Burnout' : 'No Burnout'}
               </span>
@@ -762,6 +836,19 @@ export default function QuestionnaireForm() {
             <div style={{ ...styles.summaryRow, borderBottom: 'none' }}>
               <span>Total Score</span>
               <span style={{ fontWeight: 600 }}>{gad7Result.total} / 21 - {gad7Result.severity}</span>
+            </div>
+          </div>
+        )}
+
+        {/* ISI */}
+        {isiResult && (
+          <div style={styles.summaryCard}>
+            <div style={{ fontWeight: 600, color: 'var(--primary)', marginBottom: 12, fontSize: 15 }}>
+              ISI Insomnia
+            </div>
+            <div style={{ ...styles.summaryRow, borderBottom: 'none' }}>
+              <span>Total Score</span>
+              <span style={{ fontWeight: 600 }}>{isiResult.total} / 28 - {isiResult.severity}</span>
             </div>
           </div>
         )}
@@ -1021,7 +1108,7 @@ export default function QuestionnaireForm() {
     const subscales = [
       { key: 'personal' as const, label: 'Personal Burnout', startIdx: 0 },
       { key: 'work' as const, label: 'Work-Related Burnout', startIdx: 6 },
-      { key: 'patient' as const, label: 'Patient-Related Burnout', startIdx: 13 },
+      { key: 'patient' as const, label: 'Client-Related Burnout', startIdx: 13 },
     ];
 
     return (
@@ -1085,11 +1172,27 @@ export default function QuestionnaireForm() {
   }
 
   // ---------------------------------------------------------------------------
+  // Part 6: ISI
+  // ---------------------------------------------------------------------------
+
+  function renderISI() {
+    return (
+      <>
+        <div style={styles.sectionHeader}>Insomnia Severity Index</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+          Please rate the current (i.e., last 2 weeks) severity of your insomnia problem(s).
+        </div>
+        {ISI_ITEMS.map((item, i) => renderQuestion(item, i))}
+      </>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Main render
   // ---------------------------------------------------------------------------
 
   const currentPartDef = PARTS[currentPart - 1];
-  const isLastPart = currentPart === 5;
+  const isLastPart = currentPart === 6;
 
   return (
     <div style={styles.page}>
@@ -1119,7 +1222,7 @@ export default function QuestionnaireForm() {
       {/* Part title */}
       <div style={{ marginBottom: 4 }}>
         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-          Part {currentPart} of 5
+          Part {currentPart} of 6
         </span>
       </div>
       <h1 style={styles.heading}>
@@ -1139,6 +1242,7 @@ export default function QuestionnaireForm() {
       {currentPart === 3 && renderCBI()}
       {currentPart === 4 && renderPHQ9()}
       {currentPart === 5 && renderGAD7()}
+      {currentPart === 6 && renderISI()}
 
       {/* Navigation */}
       <div style={styles.navRow}>

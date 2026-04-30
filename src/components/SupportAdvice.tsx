@@ -11,6 +11,7 @@ interface SupportAdviceProps {
   phq9Total: number | null;
   phq9Q9: number;
   gad7Total: number | null;
+  isiTotal?: number | null;
 }
 
 export default function SupportAdvice({
@@ -21,6 +22,7 @@ export default function SupportAdvice({
   phq9Total,
   phq9Q9,
   gad7Total,
+  isiTotal,
 }: SupportAdviceProps) {
   const concerns: string[] = [];
 
@@ -44,6 +46,9 @@ export default function SupportAdvice({
   }
   if (who5Percent != null && who5Percent <= 50) {
     concerns.push('Your wellbeing score suggests you may benefit from some support.');
+  }
+  if (isiTotal != null && isiTotal >= 15) {
+    concerns.push('Your insomnia score suggests clinical insomnia. Sleep support may be helpful.');
   }
 
   if (concerns.length === 0) return null;

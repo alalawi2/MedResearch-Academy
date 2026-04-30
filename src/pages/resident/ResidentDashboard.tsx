@@ -9,12 +9,52 @@ import CollapsibleInfo from '../../components/CollapsibleInfo';
 /* ------------------------------------------------------------------ */
 
 interface WhoopPull {
+  // Recovery
   avg_recovery_score: number | null;
   avg_hrv_rmssd_ms: number | null;
   avg_resting_hr_bpm: number | null;
+  avg_spo2_pct: number | null;
+  avg_skin_temp_c: number | null;
+  avg_respiratory_rate_bpm: number | null;
+  any_calibrating: boolean | null;
+  // Sleep
   avg_total_sleep_min: number | null;
-  avg_daily_strain: number | null;
+  avg_light_sleep_min: number | null;
+  avg_deep_sleep_min: number | null;
+  avg_rem_sleep_min: number | null;
+  avg_restorative_sleep_min: number | null;
   avg_sleep_efficiency_pct: number | null;
+  avg_sleep_consistency_pct: number | null;
+  avg_sleep_performance_pct: number | null;
+  avg_sleep_debt_min: number | null;
+  avg_time_in_bed_min: number | null;
+  avg_awake_time_min: number | null;
+  avg_no_data_time_min: number | null;
+  avg_sleep_cycle_count: number | null;
+  avg_sleep_need_baseline_min: number | null;
+  avg_sleep_need_from_strain_min: number | null;
+  avg_sleep_need_from_nap_min: number | null;
+  avg_sleep_onset_min: number | null;
+  avg_wake_time_min: number | null;
+  avg_disturbance_count: number | null;
+  nap_count: number | null;
+  // Strain & Activity
+  avg_daily_strain: number | null;
+  avg_hr_bpm: number | null;
+  max_hr_bpm: number | null;
+  avg_kilojoules: number | null;
+  hr_zone0_min: number | null;
+  hr_zone1_min: number | null;
+  hr_zone2_min: number | null;
+  hr_zone3_min: number | null;
+  hr_zone4_min: number | null;
+  hr_zone5_min: number | null;
+  workout_count: number | null;
+  avg_workout_distance_m: number | null;
+  top_sport_name: string | null;
+  // Data quality
+  days_with_data: number | null;
+  pct_recorded: number | null;
   pulled_at: string;
 }
 
@@ -260,6 +300,60 @@ function SkeletonCard({ height = 120 }: { height?: number }) {
   return <div className="dash-skeleton" style={{ height, marginBottom: 16 }} />;
 }
 
+/* WHOOP detail section with title */
+function WhoopSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.navy, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, borderBottom: `2px solid ${COLORS.border}`, paddingBottom: 4 }}>
+        {title}
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* Single WHOOP metric cell */
+function WhoopMetric({ label, value, unit, decimals = 1, format, warn, textValue }: {
+  label: string;
+  value: number | null;
+  unit?: string;
+  decimals?: number;
+  format?: 'time' | 'clock' | 'text';
+  warn?: boolean;
+  textValue?: string;
+}) {
+  let display = '--';
+  if (format === 'text' && textValue) {
+    display = textValue;
+  } else if (value != null) {
+    if (format === 'time') {
+      const h = Math.floor(value / 60);
+      const m = Math.round(value % 60);
+      display = `${h}h ${m}m`;
+    } else if (format === 'clock') {
+      const h = Math.floor(value / 60) % 24;
+      const m = Math.round(value % 60);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      display = `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+    } else {
+      display = decimals === 0 ? `${Math.round(value)}` : value.toFixed(decimals);
+    }
+  }
+
+  return (
+    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 8, padding: '8px 10px' }}>
+      <div style={{ fontSize: 10, fontWeight: 600, color: COLORS.gray, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: warn ? '#dc2626' : COLORS.navy }}>
+        {display}
+        {unit && value != null && format !== 'text' && <span style={{ fontSize: 10, fontWeight: 400, color: COLORS.gray, marginLeft: 2 }}>{unit}</span>}
+      </div>
+    </div>
+  );
+}
+
 /* Circular progress ring */
 function MetricRing({
   value,
@@ -413,10 +507,10 @@ export default function ResidentDashboard() {
     const monthStart = getMonthStart();
 
     try {
-      // 1) WHOOP — latest pull
+      // 1) WHOOP — latest pull (all fields)
       const whoopP = supabase
         .from('whoop_pulls')
-        .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_total_sleep_min, avg_daily_strain, avg_sleep_efficiency_pct, pulled_at')
+        .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_respiratory_rate_bpm, any_calibrating, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_restorative_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_time_in_bed_min, avg_awake_time_min, avg_no_data_time_min, avg_sleep_cycle_count, avg_sleep_need_baseline_min, avg_sleep_need_from_strain_min, avg_sleep_need_from_nap_min, avg_sleep_onset_min, avg_wake_time_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone0_min, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, avg_workout_distance_m, top_sport_name, days_with_data, pct_recorded, pulled_at')
         .eq('resident_id', rid)
         .order('pulled_at', { ascending: false })
         .limit(1);
@@ -655,60 +749,103 @@ export default function ResidentDashboard() {
         </div>
 
         {whoop ? (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 16,
-              justifyItems: 'center',
-            }}
-          >
-            <MetricRing
-              value={whoop.avg_recovery_score}
-              max={100}
-              color={whoop.avg_recovery_score != null ? recoveryColor(whoop.avg_recovery_score) : COLORS.grayLight}
-              label="Recovery"
-              display={whoop.avg_recovery_score != null ? `${Math.round(whoop.avg_recovery_score)}%` : '--'}
-            />
-            <MetricRing
-              value={whoop.avg_hrv_rmssd_ms}
-              max={200}
-              color={COLORS.teal}
-              label="HRV"
-              display={whoop.avg_hrv_rmssd_ms != null ? `${Math.round(whoop.avg_hrv_rmssd_ms)}` : '--'}
-              unit="ms"
-            />
-            <MetricRing
-              value={whoop.avg_resting_hr_bpm}
-              max={100}
-              color={COLORS.navy}
-              label="Resting HR"
-              display={whoop.avg_resting_hr_bpm != null ? `${Math.round(whoop.avg_resting_hr_bpm)}` : '--'}
-              unit="bpm"
-            />
-            <MetricRing
-              value={whoop.avg_total_sleep_min}
-              max={600}
-              color={whoop.avg_total_sleep_min != null ? sleepColor(whoop.avg_total_sleep_min) : COLORS.grayLight}
-              label="Sleep"
-              display={whoop.avg_total_sleep_min != null ? formatMinutesToHM(whoop.avg_total_sleep_min) : '--'}
-              unit={whoop.avg_total_sleep_min != null ? 'h:m' : ''}
-            />
-            <MetricRing
-              value={whoop.avg_daily_strain}
-              max={21}
-              color="#6366f1"
-              label="Strain"
-              display={whoop.avg_daily_strain != null ? `${whoop.avg_daily_strain.toFixed(1)}` : '--'}
-              unit="/21"
-            />
-            <MetricRing
-              value={whoop.avg_sleep_efficiency_pct}
-              max={100}
-              color={COLORS.tealLight}
-              label="Sleep Eff."
-              display={whoop.avg_sleep_efficiency_pct != null ? `${Math.round(whoop.avg_sleep_efficiency_pct)}%` : '--'}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Top ring metrics */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 16,
+                justifyItems: 'center',
+              }}
+            >
+              <MetricRing
+                value={whoop.avg_recovery_score}
+                max={100}
+                color={whoop.avg_recovery_score != null ? recoveryColor(whoop.avg_recovery_score) : COLORS.grayLight}
+                label="Recovery"
+                display={whoop.avg_recovery_score != null ? `${Math.round(whoop.avg_recovery_score)}%` : '--'}
+              />
+              <MetricRing
+                value={whoop.avg_hrv_rmssd_ms}
+                max={200}
+                color={COLORS.teal}
+                label="HRV"
+                display={whoop.avg_hrv_rmssd_ms != null ? `${Math.round(whoop.avg_hrv_rmssd_ms)}` : '--'}
+                unit="ms"
+              />
+              <MetricRing
+                value={whoop.avg_daily_strain}
+                max={21}
+                color="#6366f1"
+                label="Strain"
+                display={whoop.avg_daily_strain != null ? `${whoop.avg_daily_strain.toFixed(1)}` : '--'}
+                unit="/21"
+              />
+            </div>
+
+            {/* Recovery details */}
+            <WhoopSection title="Recovery">
+              <WhoopMetric label="Resting HR" value={whoop.avg_resting_hr_bpm} unit="bpm" decimals={0} />
+              <WhoopMetric label="SpO2" value={whoop.avg_spo2_pct} unit="%" decimals={1} />
+              <WhoopMetric label="Skin Temp" value={whoop.avg_skin_temp_c} unit="°C" decimals={1} />
+              <WhoopMetric label="Respiratory Rate" value={whoop.avg_respiratory_rate_bpm} unit="br/min" decimals={1} />
+            </WhoopSection>
+
+            {/* Sleep details */}
+            <WhoopSection title="Sleep">
+              <WhoopMetric label="Total Sleep" value={whoop.avg_total_sleep_min} format="time" warn={whoop.avg_total_sleep_min != null && whoop.avg_total_sleep_min < 420} />
+              <WhoopMetric label="Time in Bed" value={whoop.avg_time_in_bed_min} format="time" />
+              <WhoopMetric label="Awake in Bed" value={whoop.avg_awake_time_min} format="time" />
+              <WhoopMetric label="Light Sleep" value={whoop.avg_light_sleep_min} format="time" />
+              <WhoopMetric label="Deep (SWS)" value={whoop.avg_deep_sleep_min} format="time" />
+              <WhoopMetric label="REM Sleep" value={whoop.avg_rem_sleep_min} format="time" />
+              <WhoopMetric label="Restorative" value={whoop.avg_restorative_sleep_min} format="time" />
+              <WhoopMetric label="Sleep Cycles" value={whoop.avg_sleep_cycle_count} decimals={1} />
+              <WhoopMetric label="Efficiency" value={whoop.avg_sleep_efficiency_pct} unit="%" decimals={0} />
+              <WhoopMetric label="Consistency" value={whoop.avg_sleep_consistency_pct} unit="%" decimals={0} />
+              <WhoopMetric label="Performance" value={whoop.avg_sleep_performance_pct} unit="%" decimals={0} />
+              <WhoopMetric label="Sleep Debt" value={whoop.avg_sleep_debt_min} unit="min" decimals={0} warn={whoop.avg_sleep_debt_min != null && whoop.avg_sleep_debt_min > 60} />
+              <WhoopMetric label="Disturbances" value={whoop.avg_disturbance_count} decimals={1} />
+              <WhoopMetric label="Naps" value={whoop.nap_count} decimals={0} />
+              <WhoopMetric label="No-Data Time" value={whoop.avg_no_data_time_min} unit="min" decimals={0} />
+            </WhoopSection>
+
+            {/* Sleep Timing & Need */}
+            <WhoopSection title="Sleep Timing & Need">
+              <WhoopMetric label="Avg Bedtime" value={whoop.avg_sleep_onset_min} format="clock" />
+              <WhoopMetric label="Avg Wake Time" value={whoop.avg_wake_time_min} format="clock" />
+              <WhoopMetric label="Baseline Need" value={whoop.avg_sleep_need_baseline_min} format="time" />
+              <WhoopMetric label="Need from Strain" value={whoop.avg_sleep_need_from_strain_min} unit="min" decimals={0} />
+              <WhoopMetric label="Need from Nap" value={whoop.avg_sleep_need_from_nap_min} unit="min" decimals={0} />
+            </WhoopSection>
+
+            {/* Strain & Activity details */}
+            <WhoopSection title="Strain & Activity">
+              <WhoopMetric label="Avg Heart Rate" value={whoop.avg_hr_bpm} unit="bpm" decimals={0} />
+              <WhoopMetric label="Max Heart Rate" value={whoop.max_hr_bpm} unit="bpm" decimals={0} />
+              <WhoopMetric label="Energy Burned" value={whoop.avg_kilojoules} unit="kJ" decimals={0} />
+              <WhoopMetric label="Workouts" value={whoop.workout_count} decimals={0} />
+              {whoop.avg_workout_distance_m != null && <WhoopMetric label="Avg Distance" value={whoop.avg_workout_distance_m} unit="m" decimals={0} />}
+              {whoop.top_sport_name && <WhoopMetric label="Top Activity" value={null} format="text" textValue={whoop.top_sport_name} />}
+            </WhoopSection>
+
+            {/* HR Zones */}
+            <WhoopSection title="Heart Rate Zones">
+              <WhoopMetric label="Zone 0 (Rest)" value={whoop.hr_zone0_min} unit="min" decimals={0} />
+              <WhoopMetric label="Zone 1" value={whoop.hr_zone1_min} unit="min" decimals={0} />
+              <WhoopMetric label="Zone 2" value={whoop.hr_zone2_min} unit="min" decimals={0} />
+              <WhoopMetric label="Zone 3" value={whoop.hr_zone3_min} unit="min" decimals={0} />
+              <WhoopMetric label="Zone 4" value={whoop.hr_zone4_min} unit="min" decimals={0} />
+              <WhoopMetric label="Zone 5" value={whoop.hr_zone5_min} unit="min" decimals={0} />
+            </WhoopSection>
+
+            {/* Data quality */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', fontSize: 11, color: COLORS.gray }}>
+              <span>{whoop.days_with_data ?? 0} days with data</span>
+              <span>{whoop.pct_recorded != null ? `${whoop.pct_recorded}% recorded` : ''}</span>
+              {whoop.any_calibrating && <span style={{ color: '#f59e0b' }}>Device calibrating</span>}
+            </div>
           </div>
         ) : (
           <div

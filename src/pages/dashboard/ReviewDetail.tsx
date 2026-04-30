@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { scoreCBI, scorePHQ9, scoreGAD7, scoreWHO5 } from '../../lib/scoring';
+import { scoreCBI, scorePHQ9, scoreGAD7, scoreWHO5, scoreISI } from '../../lib/scoring';
 import type { InstrumentId } from '../../lib/instruments';
-import { INSTRUMENTS, WHO5_ITEMS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS } from '../../lib/instruments';
+import { INSTRUMENTS, WHO5_ITEMS, CBI_ITEMS, PHQ9_ITEMS, GAD7_ITEMS, ISI_ITEMS } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
 
 const TABLE_MAP: Record<InstrumentId, string> = {
@@ -12,6 +12,7 @@ const TABLE_MAP: Record<InstrumentId, string> = {
   cbi: 'cbi_responses',
   phq9: 'phq9_responses',
   gad7: 'gad7_responses',
+  isi: 'isi_responses',
 };
 
 const ITEMS_MAP: Record<InstrumentId, (QuestionnaireItem | CBIItem)[]> = {
@@ -19,6 +20,7 @@ const ITEMS_MAP: Record<InstrumentId, (QuestionnaireItem | CBIItem)[]> = {
   cbi: CBI_ITEMS,
   phq9: PHQ9_ITEMS,
   gad7: GAD7_ITEMS,
+  isi: ISI_ITEMS,
 };
 
 // Scoring reference information
@@ -55,6 +57,14 @@ const SCORING_REFERENCE: Record<InstrumentId, { ranges: { label: string; range: 
       { label: 'Critically high', range: '>= 75', color: '#7f1d1d' },
     ],
     note: 'Each subscale (Personal, Work, Patient) scored independently on 0-100 scale.',
+  },
+  isi: {
+    ranges: [
+      { label: 'No clinically significant insomnia', range: '0-7', color: '#16a34a' },
+      { label: 'Subthreshold insomnia', range: '8-14', color: '#84cc16' },
+      { label: 'Moderate clinical insomnia', range: '15-21', color: '#f59e0b' },
+      { label: 'Severe clinical insomnia', range: '22-28', color: '#dc2626' },
+    ],
   },
 };
 

@@ -71,7 +71,7 @@ export default function ReviewQueue() {
   async function loadAll() {
     setLoading(true);
 
-    const [cbiRes, phq9Res, gad7Res] = await Promise.all([
+    const [cbiRes, phq9Res, gad7Res, isiRes] = await Promise.all([
       supabase
         .from('cbi_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
@@ -85,6 +85,11 @@ export default function ReviewQueue() {
       supabase
         .from('gad7_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
+        .eq('burnout_participants.study_id', studyId)
+        .limit(500),
+      supabase
+        .from('isi_responses')
+        .select('id, resident_id, items, total_score, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),
     ]);
@@ -130,6 +135,20 @@ export default function ReviewQueue() {
         submittedAt: row.created_at,
         reviewStatus: (row.review_status ?? 'pending') as ReviewStatus,
         scoreSummary: buildGAD7Summary(row.items ?? {}),
+        q9Value: null,
+      });
+    }
+
+    for (const row of (isiRes.data ?? []) as any[]) {
+      const p = row.burnout_participants;
+      combined.push({
+        id: row.id,
+        instrument: 'isi',
+        participantId: p?.study_participant_id ?? '—',
+        residentId: row.resident_id,
+        submittedAt: row.created_at,
+        reviewStatus: (row.review_status ?? 'pending') as ReviewStatus,
+        scoreSummary: `ISI: ${row.total_score ?? '—'}/28`,
         q9Value: null,
       });
     }
@@ -229,6 +248,7 @@ export default function ReviewQueue() {
           <option value="phq9">PHQ-9</option>
           <option value="gad7">GAD-7</option>
           <option value="who5">WHO-5</option>
+          <option value="isi">ISI</option>
         </select>
         <input
           type="date"

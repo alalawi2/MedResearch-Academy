@@ -7,6 +7,7 @@ import {
   CBI_ITEMS,
   PHQ9_ITEMS,
   GAD7_ITEMS,
+  ISI_ITEMS,
 } from '../../lib/instruments';
 import type { QuestionnaireItem, CBIItem } from '../../lib/instruments';
 import type { Responses } from '../../lib/scoring';
@@ -15,10 +16,12 @@ import {
   scoreCBI,
   scorePHQ9,
   scoreGAD7,
+  scoreISI,
   isWHO5Complete,
   isCBIComplete,
   isPHQ9Complete,
   isGAD7Complete,
+  isISIComplete,
 } from '../../lib/scoring';
 
 // ---------------------------------------------------------------------------
@@ -30,6 +33,7 @@ const PARTS = [
   { id: 2, title: 'CBI Burnout', icon: '\uD83D\uDD25' },
   { id: 3, title: 'PHQ-9 Depression', icon: '\uD83D\uDCAD' },
   { id: 4, title: 'GAD-7 Anxiety', icon: '\uD83D\uDCA8' },
+  { id: 5, title: 'ISI Insomnia', icon: '\uD83D\uDCA4' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -239,6 +243,7 @@ export default function BaselineAssessment() {
   const cbiComplete = useMemo(() => isCBIComplete(responses), [responses]);
   const phq9Complete = useMemo(() => isPHQ9Complete(responses), [responses]);
   const gad7Complete = useMemo(() => isGAD7Complete(responses), [responses]);
+  const isiComplete = useMemo(() => isISIComplete(responses), [responses]);
 
   const partComplete = useCallback((part: number): boolean => {
     switch (part) {
@@ -246,11 +251,12 @@ export default function BaselineAssessment() {
       case 2: return cbiComplete;
       case 3: return phq9Complete;
       case 4: return gad7Complete;
+      case 5: return isiComplete;
       default: return false;
     }
-  }, [who5Complete, cbiComplete, phq9Complete, gad7Complete]);
+  }, [who5Complete, cbiComplete, phq9Complete, gad7Complete, isiComplete]);
 
-  const allComplete = who5Complete && cbiComplete && phq9Complete && gad7Complete;
+  const allComplete = who5Complete && cbiComplete && phq9Complete && gad7Complete && isiComplete;
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -261,7 +267,7 @@ export default function BaselineAssessment() {
   }
 
   function handleNext() {
-    if (currentPart < 4) setCurrentPart(currentPart + 1);
+    if (currentPart < 5) setCurrentPart(currentPart + 1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -300,6 +306,7 @@ export default function BaselineAssessment() {
       const cbi = scoreCBI(responses);
       const phq9 = scorePHQ9(responses);
       const gad7 = scoreGAD7(responses);
+      const isi = scoreISI(responses);
 
       // Build WHO-5 items
       const who5Items: Record<string, number> = {};
@@ -323,6 +330,12 @@ export default function BaselineAssessment() {
       const gad7Items: Record<string, number> = {};
       for (let i = 1; i <= 7; i++) {
         gad7Items[`gad7_q${i}`] = responses[`gad7_q${i}`];
+      }
+
+      // Build ISI items
+      const isiItems: Record<string, number> = {};
+      for (let i = 1; i <= 7; i++) {
+        isiItems[`isi_q${i}`] = responses[`isi_q${i}`];
       }
 
       const today = new Date().toISOString().slice(0, 10);
@@ -358,12 +371,58 @@ export default function BaselineAssessment() {
         gad7_total: gad7.total,
         gad7_severity: gad7.severity,
 
+        // ISI
+        isi_items: isiItems,
+        isi_total: isi.total,
+        isi_severity: isi.severity,
+
         review_status: 'pending',
       };
 
       const { error: insertError } = await supabase
         .from('block_assessments')
         .insert(payload);
+
+      // Also save to individual instrument tables
+      await Promise.all([
+        supabase.from('cbi_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          response_date: today,
+          items: cbiItems,
+          personal_score: cbi.personal.score,
+          work_score: cbi.work.score,
+          patient_score: cbi.patient.score,
+          personal_burnout: cbi.personal.burnout,
+          work_burnout: cbi.work.burnout,
+          patient_burnout: cbi.patient.burnout,
+          any_burnout: cbi.anyBurnout,
+        }),
+        supabase.from('phq9_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          response_date: today,
+          items: phq9Items,
+          total_score: phq9.total,
+          severity: phq9.severity.toLowerCase().replace(/ /g, '_'),
+        }),
+        supabase.from('gad7_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          response_date: today,
+          items: gad7Items,
+          total_score: gad7.total,
+          severity: gad7.severity.toLowerCase().replace(/ /g, '_'),
+        }),
+        supabase.from('isi_responses').insert({
+          study_id: residentProfile.study_id,
+          resident_id: residentProfile.id,
+          response_date: today,
+          items: isiItems,
+          total_score: isi.total,
+          severity: isi.severity.toLowerCase().replace(/ /g, '_').replace(/clinically_significant_/g, ''),
+        }),
+      ]);
 
       if (insertError) {
         setError(insertError.message);
@@ -519,7 +578,7 @@ export default function BaselineAssessment() {
     const subscales = [
       { key: 'personal' as const, label: 'Personal Burnout', startIdx: 0 },
       { key: 'work' as const, label: 'Work-Related Burnout', startIdx: 6 },
-      { key: 'patient' as const, label: 'Patient-Related Burnout', startIdx: 13 },
+      { key: 'patient' as const, label: 'Client-Related Burnout', startIdx: 13 },
     ];
 
     return (
@@ -582,11 +641,27 @@ export default function BaselineAssessment() {
   }
 
   // ---------------------------------------------------------------------------
+  // Part 5: ISI
+  // ---------------------------------------------------------------------------
+
+  function renderISI() {
+    return (
+      <>
+        <div style={styles.sectionHeader}>Insomnia Severity Index</div>
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.5 }}>
+          Please rate the current (i.e., last 2 weeks) severity of your insomnia problem(s).
+        </div>
+        {ISI_ITEMS.map((item, i) => renderQuestion(item, i))}
+      </>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Main render
   // ---------------------------------------------------------------------------
 
   const currentPartDef = PARTS[currentPart - 1];
-  const isLastPart = currentPart === 4;
+  const isLastPart = currentPart === 5;
 
   return (
     <div style={styles.page}>
@@ -609,7 +684,7 @@ export default function BaselineAssessment() {
       {/* Part title */}
       <div style={{ marginBottom: 4 }}>
         <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-          Part {currentPart} of 4
+          Part {currentPart} of 5
         </span>
       </div>
       <h2 style={{ ...styles.heading, fontSize: '1.2rem', marginBottom: 16 }}>
@@ -628,6 +703,7 @@ export default function BaselineAssessment() {
       {currentPart === 2 && renderCBI()}
       {currentPart === 3 && renderPHQ9()}
       {currentPart === 4 && renderGAD7()}
+      {currentPart === 5 && renderISI()}
 
       {/* Navigation */}
       <div style={styles.navRow}>

@@ -101,13 +101,13 @@ export const CBI_ITEMS: CBIItem[] = [
   { id: 'cbi_q12', subscale: 'work', scaleType: 'frequency', text: 'Do you feel that every working hour is tiring for you?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
   { id: 'cbi_q13', subscale: 'work', scaleType: 'frequency', text: 'Do you have enough energy for family and friends during leisure time?', options: CBI_FREQUENCY_OPTIONS, reverse: true },
 
-  // Patient-related burnout (q14–q19)
-  { id: 'cbi_q14', subscale: 'patient', scaleType: 'degree', text: 'Do you find it hard to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
-  { id: 'cbi_q15', subscale: 'patient', scaleType: 'degree', text: 'Do you find it frustrating to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
-  { id: 'cbi_q16', subscale: 'patient', scaleType: 'degree', text: 'Does it drain your energy to work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
-  { id: 'cbi_q17', subscale: 'patient', scaleType: 'degree', text: 'Do you feel that you give more than you get back when you work with patients?', options: CBI_DEGREE_OPTIONS, reverse: false },
-  { id: 'cbi_q18', subscale: 'patient', scaleType: 'frequency', text: 'Are you tired of working with patients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
-  { id: 'cbi_q19', subscale: 'patient', scaleType: 'frequency', text: 'Do you sometimes wonder how long you will be able to continue working with patients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  // Client-related burnout (q14–q19)
+  { id: 'cbi_q14', subscale: 'patient', scaleType: 'degree', text: 'Do you find it hard to work with clients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q15', subscale: 'patient', scaleType: 'degree', text: 'Do you find it frustrating to work with clients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q16', subscale: 'patient', scaleType: 'degree', text: 'Does it drain your energy to work with clients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q17', subscale: 'patient', scaleType: 'degree', text: 'Do you feel that you give more than you get back when you work with clients?', options: CBI_DEGREE_OPTIONS, reverse: false },
+  { id: 'cbi_q18', subscale: 'patient', scaleType: 'frequency', text: 'Are you tired of working with clients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
+  { id: 'cbi_q19', subscale: 'patient', scaleType: 'frequency', text: 'Do you sometimes wonder how long you will be able to continue working with clients?', options: CBI_FREQUENCY_OPTIONS, reverse: false },
 ];
 
 // ---------------------------------------------------------------------------
@@ -141,10 +141,66 @@ export const GAD7_ITEMS: QuestionnaireItem[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// ISI — Insomnia Severity Index (7 items)
+//   Each item 0-4. Total 0-28.
+//   None 0-7, Subthreshold 8-14, Moderate 15-21, Severe 22-28.
+// ---------------------------------------------------------------------------
+
+const ISI_OPTIONS: ResponseOption[] = [
+  { value: 0, label: 'None' },
+  { value: 1, label: 'Mild' },
+  { value: 2, label: 'Moderate' },
+  { value: 3, label: 'Severe' },
+  { value: 4, label: 'Very severe' },
+];
+
+const ISI_SATISFACTION_OPTIONS: ResponseOption[] = [
+  { value: 0, label: 'Very satisfied' },
+  { value: 1, label: 'Satisfied' },
+  { value: 2, label: 'Neutral' },
+  { value: 3, label: 'Dissatisfied' },
+  { value: 4, label: 'Very dissatisfied' },
+];
+
+const ISI_NOTICEABLE_OPTIONS: ResponseOption[] = [
+  { value: 0, label: 'Not at all noticeable' },
+  { value: 1, label: 'Barely' },
+  { value: 2, label: 'Somewhat' },
+  { value: 3, label: 'Much' },
+  { value: 4, label: 'Very much noticeable' },
+];
+
+const ISI_WORRIED_OPTIONS: ResponseOption[] = [
+  { value: 0, label: 'Not at all worried' },
+  { value: 1, label: 'A little' },
+  { value: 2, label: 'Somewhat' },
+  { value: 3, label: 'Much' },
+  { value: 4, label: 'Very much worried' },
+];
+
+const ISI_INTERFERE_OPTIONS: ResponseOption[] = [
+  { value: 0, label: 'Not at all interfering' },
+  { value: 1, label: 'A little' },
+  { value: 2, label: 'Somewhat' },
+  { value: 3, label: 'Much' },
+  { value: 4, label: 'Very much interfering' },
+];
+
+export const ISI_ITEMS: QuestionnaireItem[] = [
+  { id: 'isi_q1', text: 'Difficulty falling asleep', options: ISI_OPTIONS, reverse: false },
+  { id: 'isi_q2', text: 'Difficulty staying asleep', options: ISI_OPTIONS, reverse: false },
+  { id: 'isi_q3', text: 'Problems waking up too early', options: ISI_OPTIONS, reverse: false },
+  { id: 'isi_q4', text: 'How satisfied/dissatisfied are you with your current sleep pattern?', options: ISI_SATISFACTION_OPTIONS, reverse: false },
+  { id: 'isi_q5', text: 'How noticeable to others do you think your sleep problem is in terms of impairing the quality of your life?', options: ISI_NOTICEABLE_OPTIONS, reverse: false },
+  { id: 'isi_q6', text: 'How worried/distressed are you about your current sleep problem?', options: ISI_WORRIED_OPTIONS, reverse: false },
+  { id: 'isi_q7', text: 'To what extent do you consider your sleep problem to currently interfere with your daily functioning (e.g., daytime fatigue, mood, ability to function at work/daily chores, concentration, memory, mood, etc.)?', options: ISI_INTERFERE_OPTIONS, reverse: false },
+];
+
+// ---------------------------------------------------------------------------
 // Instrument metadata
 // ---------------------------------------------------------------------------
 
-export type InstrumentId = 'who5' | 'cbi' | 'phq9' | 'gad7';
+export type InstrumentId = 'who5' | 'cbi' | 'phq9' | 'gad7' | 'isi';
 
 export interface InstrumentMeta {
   id: InstrumentId;
@@ -180,6 +236,13 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentMeta> = {
     id: 'gad7',
     name: 'GAD-7',
     fullName: 'Generalized Anxiety Disorder-7',
+    itemCount: 7,
+    timeframe: 'Over the last 2 weeks',
+  },
+  isi: {
+    id: 'isi',
+    name: 'ISI',
+    fullName: 'Insomnia Severity Index',
     itemCount: 7,
     timeframe: 'Over the last 2 weeks',
   },

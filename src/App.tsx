@@ -28,6 +28,7 @@ import SendLinks from './pages/dashboard/SendLinks';
 import ReviewQueue from './pages/dashboard/ReviewQueue';
 import ReviewDetail from './pages/dashboard/ReviewDetail';
 import SetPassword from './pages/dashboard/SetPassword';
+import NotFound from './pages/NotFound';
 import ResidentLayout from './components/ResidentLayout';
 import HelpChatbot from './components/HelpChatbot';
 import ResidentLogin from './pages/resident/ResidentLogin';
@@ -90,7 +91,7 @@ export default function App() {
             <Route path="events" element={<EventLog />} />
           </Route>
 
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
