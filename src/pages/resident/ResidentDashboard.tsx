@@ -503,10 +503,20 @@ export default function ResidentDashboard() {
 
   async function fetchAll() {
     if (!residentProfile) return;
+
+    // Ensure we have a valid session before querying
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      setFetchErrors(['No active session — please log out and log back in']);
+      setLoading(false);
+      return;
+    }
+
     const rid = residentProfile.id;
     const mondayISO = getMondayOfCurrentWeek();
     const monthStart = getMonthStart();
     const errors: string[] = [];
+    errors.push(`Session OK | rid: ${rid.slice(0, 8)}...`);
 
     // 1) WHOOP — latest pull
     const w = await supabase
@@ -576,10 +586,11 @@ export default function ResidentDashboard() {
     if (t.error) errors.push(`Trends: ${t.error.message}`);
     else setTrends(((t.data as WeeklyCheckinTrend[]) ?? []).reverse());
 
-    if (errors.length > 0) {
-      console.error('Dashboard fetch errors:', errors);
-      setFetchErrors(errors);
-    }
+    // Always show debug info for now
+    errors.push(`WHOOP: ${w.data?.length ?? 0} rows, err=${w.error?.message ?? 'none'}`);
+    errors.push(`Checkin: ${c.data?.length ?? 0} rows, err=${c.error?.message ?? 'none'}`);
+    errors.push(`Events: ${e.data?.length ?? 0} rows, err=${e.error?.message ?? 'none'}`);
+    setFetchErrors(errors);
     setLoading(false);
   }
 
@@ -624,16 +635,16 @@ export default function ResidentDashboard() {
     <div style={{ padding: '16px 12px', maxWidth: 720, margin: '0 auto' }}>
       <style>{DASHBOARD_CSS}</style>
 
-      {/* -------- Error Banner (debug) -------- */}
+      {/* -------- Debug Banner -------- */}
       {fetchErrors.length > 0 && (
         <div style={{
           padding: '12px 16px', borderRadius: 12, marginBottom: 16,
-          background: '#fef2f2', border: '1px solid #fecaca', fontSize: 12, color: '#991b1b',
+          background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 11, color: '#1e40af',
         }}>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>Data loading issues ({fetchErrors.length}):</div>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Debug Info (temporary):</div>
           {fetchErrors.map((err, i) => <div key={i}>{err}</div>)}
-          <div style={{ marginTop: 6, fontSize: 11, color: '#b91c1c' }}>
-            Resident ID: {residentProfile?.id?.slice(0, 8)}... | Auth: {residentProfile?.auth_user_id?.slice(0, 8)}...
+          <div style={{ marginTop: 6, fontSize: 10, color: '#3b82f6' }}>
+            Profile: {residentProfile?.study_participant_id} | ID: {residentProfile?.id?.slice(0, 8)}... | Auth: {residentProfile?.auth_user_id?.slice(0, 8)}...
           </div>
         </div>
       )}
