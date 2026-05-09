@@ -79,10 +79,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  // Look up staff record by auth_user_id
+  const { data: staffRow } = await supabase
+    .from('staff')
+    .select('id')
+    .eq('auth_user_id', user.id)
+    .eq('active', true)
+    .limit(1)
+    .single();
+
+  if (!staffRow) {
+    return res.status(403).json({ error: 'Staff account not found' });
+  }
+
+  // Check role in staff_study_roles
   const { data: staffRole } = await supabase
-    .from('study_staff')
+    .from('staff_study_roles')
     .select('role')
-    .eq('user_id', user.id)
+    .eq('staff_id', staffRow.id)
     .limit(1)
     .single();
 

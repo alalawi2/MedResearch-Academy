@@ -53,8 +53,8 @@ export default function DashboardLayout() {
       <aside style={{width:240,background:'var(--primary)',color:'white',display:'flex',flexDirection:'column',position:'fixed',top:0,bottom:0,left:0,zIndex:50}}>
         <div style={{padding:'20px 20px 12px'}}>
           <img src="/images/logo_transparent.png" alt="MedResearch" style={{height:36,marginBottom:12,filter:'brightness(2)'}} />
-          <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4}}>Dashboard</div>
-          <div style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.85)',lineHeight:1.4}}>{currentStudy.study_slug === 'resident-burnout' ? 'Burnout Study' : currentStudy.study_slug}</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.75)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4,fontWeight:700}}>Dashboard</div>
+          <div style={{fontSize:14,fontWeight:700,color:'#fff',lineHeight:1.4}}>{currentStudy.study_slug === 'resident-burnout' ? 'Burnout Study' : currentStudy.study_slug}</div>
         </div>
         <nav style={{flex:1,padding:'8px 12px',display:'flex',flexDirection:'column',gap:2}}>
           {NAV_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => {
@@ -66,9 +66,10 @@ export default function DashboardLayout() {
                 key={item.path}
                 to={item.path}
                 style={{
-                  display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,fontSize:14,fontWeight:500,
-                  color: active ? '#fff' : 'rgba(255,255,255,0.9)',
-                  background: active ? 'rgba(255,255,255,0.18)' : 'transparent',
+                  display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,fontSize:14,
+                  color: '#fff',
+                  background: active ? 'rgba(255,255,255,0.22)' : 'transparent',
+                  fontWeight: active ? 700 : 500,
                   textDecoration:'none',transition:'all 0.15s',
                 }}
               >
@@ -79,11 +80,11 @@ export default function DashboardLayout() {
           })}
         </nav>
         <div style={{padding:'16px 16px 20px',borderTop:'1px solid rgba(255,255,255,0.1)'}}>
-          <div style={{fontSize:13,fontWeight:600,color:'rgba(255,255,255,0.85)',marginBottom:2}}>{staff.full_name}</div>
-          <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',marginBottom:10}}>{currentStudy.role.replace('_',' ')}</div>
+          <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>{staff.full_name}</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.75)',marginBottom:10,fontWeight:600,textTransform:'capitalize'}}>{currentStudy.role.replace(/_/g,' ')}</div>
           <button
             onClick={signOut}
-            style={{width:'100%',padding:'8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.2)',background:'transparent',color:'rgba(255,255,255,0.7)',cursor:'pointer',fontSize:12,fontWeight:600}}
+            style={{width:'100%',padding:'8px',borderRadius:6,border:'1px solid rgba(255,255,255,0.35)',background:'rgba(255,255,255,0.08)',color:'#fff',cursor:'pointer',fontSize:12,fontWeight:600}}
           >
             Sign Out
           </button>
