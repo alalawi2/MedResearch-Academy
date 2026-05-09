@@ -35,8 +35,15 @@ interface BurnoutOverview {
 interface WhoopSummary {
   avgHRV: number | null;
   avgRecovery: number | null;
+  avgRHR: number | null;
   avgSleepHours: number | null;
+  avgSleepEfficiency: number | null;
+  avgSleepDebt: number | null;
   avgStrain: number | null;
+  avgSpO2: number | null;
+  avgRespRate: number | null;
+  avgSkinTemp: number | null;
+  participantCount: number;
 }
 
 interface Participant {
@@ -206,7 +213,7 @@ export default function Overview() {
       /* WHOOP Biometrics — latest pull per participant */
       const { data: whoopData } = await supabase
         .from('whoop_pulls')
-        .select('resident_id, avg_hrv_rmssd_ms, avg_recovery_score, avg_total_sleep_min, avg_daily_strain, pulled_at')
+        .select('resident_id, avg_hrv_rmssd_ms, avg_recovery_score, avg_resting_hr_bpm, avg_total_sleep_min, avg_sleep_efficiency_pct, avg_sleep_debt_min, avg_daily_strain, avg_spo2_pct, avg_respiratory_rate_bpm, avg_skin_temp_c, pulled_at')
         .eq('study_id', studyId)
         .order('pulled_at', { ascending: false })
         .limit(1000);
@@ -226,11 +233,19 @@ export default function Overview() {
         if (latest.length === 0) {
           setWhoop(null);
         } else {
+          const nums = (arr: (number | null)[]) => arr.filter((v): v is number => v != null);
           setWhoop({
-            avgHRV: avg(latest.map(r => r.avg_hrv_rmssd_ms).filter((v): v is number => v != null)),
-            avgRecovery: avg(latest.map(r => r.avg_recovery_score).filter((v): v is number => v != null)),
-            avgSleepHours: avg(latest.map(r => r.avg_total_sleep_min != null ? r.avg_total_sleep_min / 60 : null).filter((v): v is number => v != null)),
-            avgStrain: avg(latest.map(r => r.avg_daily_strain).filter((v): v is number => v != null)),
+            avgHRV: avg(nums(latest.map(r => r.avg_hrv_rmssd_ms))),
+            avgRecovery: avg(nums(latest.map(r => r.avg_recovery_score))),
+            avgRHR: avg(nums(latest.map(r => r.avg_resting_hr_bpm))),
+            avgSleepHours: avg(nums(latest.map(r => r.avg_total_sleep_min != null ? r.avg_total_sleep_min / 60 : null))),
+            avgSleepEfficiency: avg(nums(latest.map(r => r.avg_sleep_efficiency_pct))),
+            avgSleepDebt: avg(nums(latest.map(r => r.avg_sleep_debt_min))),
+            avgStrain: avg(nums(latest.map(r => r.avg_daily_strain))),
+            avgSpO2: avg(nums(latest.map(r => r.avg_spo2_pct))),
+            avgRespRate: avg(nums(latest.map(r => r.avg_respiratory_rate_bpm))),
+            avgSkinTemp: avg(nums(latest.map(r => r.avg_skin_temp_c))),
+            participantCount: latest.length,
           });
         }
       }
@@ -368,10 +383,17 @@ export default function Overview() {
             <div style={styles.loadingBox}><div style={{ ...styles.skeletonLine, width: '50%', height: 16 }} /></div>
           ) : whoop ? (
             <div style={styles.metricsGrid}>
-              <MetricRow label="Avg HRV (ms)" value={fmt(whoop.avgHRV)} />
+              <MetricRow label="Participants" value={String(whoop.participantCount)} />
               <MetricRow label="Avg Recovery" value={fmt(whoop.avgRecovery, 0, '%')} />
-              <MetricRow label="Avg Sleep" value={fmt(whoop.avgSleepHours, 1, ' hrs')} />
-              <MetricRow label="Avg Strain" value={fmt(whoop.avgStrain)} />
+              <MetricRow label="Avg HRV" value={fmt(whoop.avgHRV, 1, ' ms')} />
+              <MetricRow label="Avg Resting HR" value={fmt(whoop.avgRHR, 0, ' bpm')} />
+              <MetricRow label="Avg Sleep" value={fmt(whoop.avgSleepHours, 1, ' hrs')} warn={whoop.avgSleepHours != null && whoop.avgSleepHours < 7} />
+              <MetricRow label="Sleep Efficiency" value={fmt(whoop.avgSleepEfficiency, 0, '%')} />
+              <MetricRow label="Sleep Debt" value={fmt(whoop.avgSleepDebt, 0, ' min')} warn={whoop.avgSleepDebt != null && whoop.avgSleepDebt > 60} />
+              <MetricRow label="Avg Strain" value={fmt(whoop.avgStrain, 1, ' /21')} />
+              <MetricRow label="Avg SpO2" value={fmt(whoop.avgSpO2, 1, '%')} />
+              <MetricRow label="Respiratory Rate" value={fmt(whoop.avgRespRate, 1, ' br/min')} />
+              <MetricRow label="Skin Temp" value={fmt(whoop.avgSkinTemp, 1, ' °C')} />
             </div>
           ) : (
             <p style={styles.emptyText}>No WHOOP data yet — try pulling data below</p>
