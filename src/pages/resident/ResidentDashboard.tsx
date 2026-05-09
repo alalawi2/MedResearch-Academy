@@ -491,6 +491,7 @@ export default function ResidentDashboard() {
   const [eventCount, setEventCount] = useState(0);
   const [events, setEvents] = useState<EventLogEntry[]>([]);
   const [trends, setTrends] = useState<WeeklyCheckinTrend[]>([]);
+  const [fetchErrors, setFetchErrors] = useState<string[]>([]);
 
   const blockInfo = useMemo(() => getCurrentBlock(), []);
 
@@ -505,76 +506,80 @@ export default function ResidentDashboard() {
     const rid = residentProfile.id;
     const mondayISO = getMondayOfCurrentWeek();
     const monthStart = getMonthStart();
+    const errors: string[] = [];
 
-    // Each query runs independently — one failure won't break others
-    try {
-      const { data: wData } = await supabase
-        .from('whoop_pulls')
-        .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_respiratory_rate_bpm, any_calibrating, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_restorative_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_time_in_bed_min, avg_awake_time_min, avg_no_data_time_min, avg_sleep_cycle_count, avg_sleep_need_baseline_min, avg_sleep_need_from_strain_min, avg_sleep_need_from_nap_min, avg_sleep_onset_min, avg_wake_time_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone0_min, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, avg_workout_distance_m, top_sport_name, days_with_data, pct_recorded, pulled_at')
+    // 1) WHOOP — latest pull
+    const w = await supabase
+      .from('whoop_pulls')
+      .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_respiratory_rate_bpm, any_calibrating, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_restorative_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_time_in_bed_min, avg_awake_time_min, avg_no_data_time_min, avg_sleep_cycle_count, avg_sleep_need_baseline_min, avg_sleep_need_from_strain_min, avg_sleep_need_from_nap_min, avg_sleep_onset_min, avg_wake_time_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone0_min, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, avg_workout_distance_m, top_sport_name, days_with_data, pct_recorded, pulled_at')
+      .eq('resident_id', rid)
+      .order('pulled_at', { ascending: false })
+      .limit(1);
+    if (w.error) errors.push(`WHOOP: ${w.error.message}`);
+    else if (w.data && w.data.length > 0) setWhoop(w.data[0] as WhoopPull);
+
+    // 2) Block assessment for current block
+    if (blockInfo) {
+      const startISO = blockInfo.startDate.toISOString().slice(0, 10);
+      const endISO = blockInfo.endDate.toISOString().slice(0, 10);
+      const a = await supabase
+        .from('block_assessments')
+        .select('id, assessment_date')
         .eq('resident_id', rid)
-        .order('pulled_at', { ascending: false })
+        .gte('assessment_date', startISO)
+        .lte('assessment_date', endISO)
         .limit(1);
-      if (wData && wData.length > 0) setWhoop(wData[0] as WhoopPull);
-    } catch (e) { console.error('WHOOP fetch error:', e); }
-
-    try {
-      if (blockInfo) {
-        const startISO = blockInfo.startDate.toISOString().slice(0, 10);
-        const endISO = blockInfo.endDate.toISOString().slice(0, 10);
-        const { data: aData } = await supabase
-          .from('block_assessments')
-          .select('id, assessment_date')
-          .eq('resident_id', rid)
-          .gte('assessment_date', startISO)
-          .lte('assessment_date', endISO)
-          .limit(1);
-        if (aData && aData.length > 0) {
-          setAssessmentDone(true);
-          setAssessmentDate(aData[0].assessment_date);
-        }
+      if (a.error) errors.push(`Assessment: ${a.error.message}`);
+      else if (a.data && a.data.length > 0) {
+        setAssessmentDone(true);
+        setAssessmentDate(a.data[0].assessment_date);
       }
-    } catch (e) { console.error('Assessment fetch error:', e); }
+    }
 
-    try {
-      const { data: cData } = await supabase
-        .from('weekly_checkins')
-        .select('id')
-        .eq('resident_id', rid)
-        .eq('week_start', mondayISO)
-        .limit(1);
-      setCheckinDone((cData?.length ?? 0) > 0);
-    } catch (e) { console.error('Checkin fetch error:', e); }
+    // 3) Weekly check-in this week
+    const c = await supabase
+      .from('weekly_checkins')
+      .select('id')
+      .eq('resident_id', rid)
+      .eq('week_start', mondayISO)
+      .limit(1);
+    if (c.error) errors.push(`Checkin: ${c.error.message}`);
+    else setCheckinDone((c.data?.length ?? 0) > 0);
 
-    try {
-      const { data: eData } = await supabase
-        .from('event_logs')
-        .select('id, event_type, category, event_date, description')
-        .eq('resident_id', rid)
-        .order('event_date', { ascending: false })
-        .limit(5);
-      setEvents((eData as EventLogEntry[]) ?? []);
-    } catch (e) { console.error('Events fetch error:', e); }
+    // 4) Event logs — last 5
+    const e = await supabase
+      .from('event_logs')
+      .select('id, event_type, category, event_date, description')
+      .eq('resident_id', rid)
+      .order('event_date', { ascending: false })
+      .limit(5);
+    if (e.error) errors.push(`Events: ${e.error.message}`);
+    else setEvents((e.data as EventLogEntry[]) ?? []);
 
-    try {
-      const { count } = await supabase
-        .from('event_logs')
-        .select('id', { count: 'exact', head: true })
-        .eq('resident_id', rid)
-        .gte('event_date', monthStart)
-        .limit(1000);
-      setEventCount(count ?? 0);
-    } catch (e) { console.error('Event count error:', e); }
+    // 5) Event count this month
+    const ec = await supabase
+      .from('event_logs')
+      .select('id', { count: 'exact', head: true })
+      .eq('resident_id', rid)
+      .gte('event_date', monthStart)
+      .limit(1000);
+    if (ec.error) errors.push(`EventCount: ${ec.error.message}`);
+    else setEventCount(ec.count ?? 0);
 
-    try {
-      const { data: tData } = await supabase
-        .from('weekly_checkins')
-        .select('week_start, stress_level, sleep_rating, hours_worked')
-        .eq('resident_id', rid)
-        .order('week_start', { ascending: false })
-        .limit(4);
-      setTrends(((tData as WeeklyCheckinTrend[]) ?? []).reverse());
-    } catch (e) { console.error('Trends fetch error:', e); }
+    // 6) Weekly check-in trends — last 4 weeks
+    const t = await supabase
+      .from('weekly_checkins')
+      .select('week_start, stress_level, sleep_rating, hours_worked')
+      .eq('resident_id', rid)
+      .order('week_start', { ascending: false })
+      .limit(4);
+    if (t.error) errors.push(`Trends: ${t.error.message}`);
+    else setTrends(((t.data as WeeklyCheckinTrend[]) ?? []).reverse());
 
+    if (errors.length > 0) {
+      console.error('Dashboard fetch errors:', errors);
+      setFetchErrors(errors);
+    }
     setLoading(false);
   }
 
@@ -618,6 +623,20 @@ export default function ResidentDashboard() {
   return (
     <div style={{ padding: '16px 12px', maxWidth: 720, margin: '0 auto' }}>
       <style>{DASHBOARD_CSS}</style>
+
+      {/* -------- Error Banner (debug) -------- */}
+      {fetchErrors.length > 0 && (
+        <div style={{
+          padding: '12px 16px', borderRadius: 12, marginBottom: 16,
+          background: '#fef2f2', border: '1px solid #fecaca', fontSize: 12, color: '#991b1b',
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Data loading issues ({fetchErrors.length}):</div>
+          {fetchErrors.map((err, i) => <div key={i}>{err}</div>)}
+          <div style={{ marginTop: 6, fontSize: 11, color: '#b91c1c' }}>
+            Resident ID: {residentProfile?.id?.slice(0, 8)}... | Auth: {residentProfile?.auth_user_id?.slice(0, 8)}...
+          </div>
+        </div>
+      )}
 
       {/* -------- Demographics Banner -------- */}
       {!residentProfile?.demographics_completed && (
