@@ -50,7 +50,7 @@ export default function DashboardLayout() {
   return (
     <div style={{minHeight:'100vh',display:'flex',background:'var(--bg-muted)'}}>
       {/* ── Sidebar ── */}
-      <aside style={{width:240,background:'var(--primary)',color:'white',display:'flex',flexDirection:'column',position:'fixed',top:0,bottom:0,left:0,zIndex:50}}>
+      <aside style={{width:240,background:'#000000',color:'white',display:'flex',flexDirection:'column',position:'fixed',top:0,bottom:0,left:0,zIndex:50}}>
         <div style={{padding:'20px 20px 12px'}}>
           <img src="/images/logo_transparent.png" alt="MedResearch" style={{height:36,marginBottom:12,filter:'brightness(2)'}} />
           <div style={{fontSize:11,color:'rgba(255,255,255,0.75)',textTransform:'uppercase',letterSpacing:'0.08em',marginBottom:4,fontWeight:700}}>Dashboard</div>
@@ -68,7 +68,7 @@ export default function DashboardLayout() {
                 style={{
                   display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,fontSize:14,
                   color: '#fff',
-                  background: active ? 'rgba(255,255,255,0.22)' : 'transparent',
+                  background: active ? 'rgba(255,255,255,0.15)' : 'transparent',
                   fontWeight: active ? 700 : 500,
                   textDecoration:'none',transition:'all 0.15s',
                 }}
@@ -79,7 +79,7 @@ export default function DashboardLayout() {
             );
           })}
         </nav>
-        <div style={{padding:'16px 16px 20px',borderTop:'1px solid rgba(255,255,255,0.1)'}}>
+        <div style={{padding:'16px 16px 20px',borderTop:'1px solid rgba(255,255,255,0.15)'}}>
           <div style={{fontSize:13,fontWeight:700,color:'#fff',marginBottom:2}}>{staff.full_name}</div>
           <div style={{fontSize:11,color:'rgba(255,255,255,0.75)',marginBottom:10,fontWeight:600,textTransform:'capitalize'}}>{currentStudy.role.replace(/_/g,' ')}</div>
           <button
