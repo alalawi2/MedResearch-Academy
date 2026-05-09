@@ -17,6 +17,7 @@ interface CollectionKPIs {
   blockAssessments: number;
   weeklyCheckins: number;
   eventsLogged: number;
+  whoopPulls: number;
   pendingReviews: number;
 }
 
@@ -27,6 +28,7 @@ interface BurnoutOverview {
   avgGAD7: number | null;
   gadModerateRate: number | null;
   avgISI: number | null;
+  isiModerateRate: number | null;
   assessmentCount: number;
 }
 
@@ -147,11 +149,12 @@ export default function Overview() {
       }
 
       /* Collection KPIs — query actual tables */
-      const [baRes, wcRes, elRes, whoopCountRes] = await Promise.all([
+      const [baRes, wcRes, elRes, whoopCountRes, pendingRes] = await Promise.all([
         supabase.from('block_assessments').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
         supabase.from('weekly_checkins').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
         supabase.from('event_logs').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
         supabase.from('whoop_pulls').select('id', { count: 'exact' }).eq('study_id', studyId).limit(1),
+        supabase.from('block_assessments').select('id', { count: 'exact' }).eq('study_id', studyId).eq('review_status', 'pending').limit(1),
       ]);
 
       if (!cancelled) {
@@ -159,7 +162,8 @@ export default function Overview() {
           blockAssessments: baRes.count ?? 0,
           weeklyCheckins: wcRes.count ?? 0,
           eventsLogged: elRes.count ?? 0,
-          pendingReviews: whoopCountRes.count ?? 0,
+          whoopPulls: whoopCountRes.count ?? 0,
+          pendingReviews: pendingRes.count ?? 0,
         });
       }
 
@@ -179,7 +183,7 @@ export default function Overview() {
 
       if (!cancelled) {
         if (totalAssessments === 0) {
-          setBurnout({ avgWork: null, avgPHQ9: null, phqModerateRate: null, avgGAD7: null, gadModerateRate: null, avgISI: null, assessmentCount: 0 });
+          setBurnout({ avgWork: null, avgPHQ9: null, phqModerateRate: null, avgGAD7: null, gadModerateRate: null, avgISI: null, isiModerateRate: null, assessmentCount: 0 });
         } else {
           const work = cbiRows.map(a => a.work_score).filter((v): v is number => v != null);
           const phq = phqRows.map(a => a.total_score).filter((v): v is number => v != null);
@@ -193,6 +197,7 @@ export default function Overview() {
             avgGAD7: avg(gad),
             gadModerateRate: gad.length > 0 ? (gad.filter(v => v >= 10).length / gad.length) * 100 : null,
             avgISI: avg(isiScores),
+            isiModerateRate: isiScores.length > 0 ? (isiScores.filter(v => v >= 15).length / isiScores.length) * 100 : null,
             assessmentCount: totalAssessments,
           });
         }
@@ -285,7 +290,7 @@ export default function Overview() {
       { label: 'Block Assessments', value: collection.blockAssessments, color: '#2563eb', bg: '#eff6ff', icon: clipboardIcon },
       { label: 'Weekly Check-ins', value: collection.weeklyCheckins, color: '#16a34a', bg: '#f0fdf4', icon: calendarIcon },
       { label: 'Events Logged', value: collection.eventsLogged, color: '#d97706', bg: '#fffbeb', icon: flagIcon },
-      { label: 'WHOOP Pulls', value: collection.pendingReviews, color: '#7c3aed', bg: '#f5f3ff', icon: whoopIcon },
+      { label: 'WHOOP Pulls', value: collection.whoopPulls, color: '#7c3aed', bg: '#f5f3ff', icon: whoopIcon },
     ];
   }, [collection]);
 
@@ -352,6 +357,7 @@ export default function Overview() {
               <MetricRow label="Avg GAD-7" value={fmt(burnout.avgGAD7)} />
               <MetricRow label="GAD-7 Moderate+" value={pct(burnout.gadModerateRate)} warn={burnout.gadModerateRate != null && burnout.gadModerateRate > 25} />
               <MetricRow label="Avg ISI" value={fmt(burnout.avgISI)} />
+              <MetricRow label="ISI Moderate+" value={pct(burnout.isiModerateRate)} warn={burnout.isiModerateRate != null && burnout.isiModerateRate > 25} />
             </div>
           ) : null}
         </Section>
