@@ -61,7 +61,7 @@ interface WhoopPull {
 interface EventLogEntry {
   id: string;
   event_type: string;
-  event_category: string | null;
+  category: string | null;
   event_date: string;
   description: string | null;
 }
@@ -541,7 +541,7 @@ export default function ResidentDashboard() {
       // 4) Event logs — last 5
       const eventsP = supabase
         .from('event_logs')
-        .select('id, event_type, event_category, event_date, description')
+        .select('id, event_type, category, event_date, description')
         .eq('resident_id', rid)
         .order('event_date', { ascending: false })
         .limit(5);
@@ -1117,7 +1117,7 @@ export default function ResidentDashboard() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {events.map((evt, i) => {
-              const catColor = CATEGORY_COLORS[evt.event_category ?? ''] ?? COLORS.gray;
+              const catColor = CATEGORY_COLORS[evt.category ?? ''] ?? COLORS.gray;
               return (
                 <div
                   key={evt.id}
