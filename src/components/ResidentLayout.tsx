@@ -1,5 +1,40 @@
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+/* Error Boundary — catches React crashes and shows them visually */
+class DashboardErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Dashboard crash:', error, info);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, maxWidth: 600, margin: '0 auto' }}>
+          <div style={{ background: '#fef2f2', border: '2px solid #dc2626', borderRadius: 12, padding: 24 }}>
+            <h2 style={{ color: '#dc2626', margin: '0 0 12px', fontSize: 18 }}>Dashboard Error</h2>
+            <pre style={{ fontSize: 12, color: '#991b1b', whiteSpace: 'pre-wrap', wordBreak: 'break-all', margin: '0 0 12px', background: '#fff', padding: 12, borderRadius: 8 }}>
+              {this.state.error.message}
+              {'\n\n'}
+              {this.state.error.stack?.split('\n').slice(0, 5).join('\n')}
+            </pre>
+            <button onClick={() => window.location.reload()} style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const NAV_ITEMS = [
   { path: '/resident/dashboard', label: 'Dashboard', icon: '🏠' },
@@ -104,7 +139,9 @@ export default function ResidentLayout() {
 
       {/* ── Main Content ── */}
       <main style={{flex:1,padding:'20px 16px',paddingBottom:hideNav ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
-        <Outlet />
+        <DashboardErrorBoundary>
+          <Outlet />
+        </DashboardErrorBoundary>
       </main>
 
       {/* ── Bottom Navigation (hidden during demographics) ── */}
