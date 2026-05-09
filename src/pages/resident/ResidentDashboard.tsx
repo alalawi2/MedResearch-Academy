@@ -562,33 +562,45 @@ export default function ResidentDashboard() {
         .order('week_start', { ascending: false })
         .limit(4);
 
-      const [whoopRes, assessRes, checkinRes, eventsRes, eventCountRes, trendsRes] = await Promise.all([
+      const results = await Promise.allSettled([
         whoopP, assessP, checkinP, eventsP, eventCountP, trendsP,
       ]);
 
+      const val = (i: number) => results[i].status === 'fulfilled' ? (results[i] as any).value : null;
+
       // WHOOP
-      if (whoopRes.data && whoopRes.data.length > 0) {
+      const whoopRes = val(0);
+      if (whoopRes?.data && whoopRes.data.length > 0) {
         setWhoop(whoopRes.data[0] as WhoopPull);
       }
 
       // Assessment
-      if (assessRes) {
-        const data = (assessRes as any)?.data;
-        if (data && data.length > 0) {
-          setAssessmentDone(true);
-          setAssessmentDate(data[0].assessment_date);
-        }
+      const assessRes = val(1);
+      if (assessRes?.data && assessRes.data.length > 0) {
+        setAssessmentDone(true);
+        setAssessmentDate(assessRes.data[0].assessment_date);
       }
 
       // Check-in
-      setCheckinDone((checkinRes.data?.length ?? 0) > 0);
+      const checkinRes = val(2);
+      setCheckinDone((checkinRes?.data?.length ?? 0) > 0);
 
       // Events
-      setEvents((eventsRes.data as EventLogEntry[]) ?? []);
-      setEventCount(eventCountRes.count ?? 0);
+      const eventsRes = val(3);
+      setEvents((eventsRes?.data as EventLogEntry[]) ?? []);
+      const eventCountRes = val(4);
+      setEventCount(eventCountRes?.count ?? 0);
 
       // Trends
-      setTrends(((trendsRes.data as WeeklyCheckinTrend[]) ?? []).reverse());
+      const trendsRes = val(5);
+      setTrends(((trendsRes?.data as WeeklyCheckinTrend[]) ?? []).reverse());
+
+      // Log any errors for debugging
+      results.forEach((r, i) => {
+        if (r.status === 'rejected') console.error(`Dashboard query ${i} failed:`, r.reason);
+        const v = r.status === 'fulfilled' ? (r as any).value : null;
+        if (v?.error) console.error(`Dashboard query ${i} Supabase error:`, v.error);
+      });
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
