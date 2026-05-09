@@ -784,6 +784,43 @@ export default function ResidentDashboard() {
               />
             </div>
 
+            {/* Quick insights */}
+            <div style={{
+              background: 'rgba(0,0,0,0.02)',
+              borderRadius: 10,
+              padding: '12px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.navy, marginBottom: 2 }}>Your Snapshot</div>
+              {whoop.avg_recovery_score != null && (
+                <div style={{ fontSize: 12, color: '#374151' }}>
+                  {whoop.avg_recovery_score >= 67
+                    ? 'Your recovery is in the green zone — your body is well recovered and ready for strain.'
+                    : whoop.avg_recovery_score >= 34
+                    ? 'Your recovery is moderate — consider balancing your workload and prioritizing sleep.'
+                    : 'Your recovery is low — your body may need rest. Consider lighter activity and earlier bedtime.'}
+                </div>
+              )}
+              {whoop.avg_total_sleep_min != null && (
+                <div style={{ fontSize: 12, color: '#374151' }}>
+                  {whoop.avg_total_sleep_min >= 420
+                    ? `You are averaging ${Math.floor(whoop.avg_total_sleep_min / 60)}h ${Math.round(whoop.avg_total_sleep_min % 60)}m of sleep — meeting the recommended 7+ hours.`
+                    : `You are averaging ${Math.floor(whoop.avg_total_sleep_min / 60)}h ${Math.round(whoop.avg_total_sleep_min % 60)}m of sleep — below the recommended 7 hours. Try to protect your sleep on non-call nights.`}
+                </div>
+              )}
+              {whoop.avg_daily_strain != null && (
+                <div style={{ fontSize: 12, color: '#374151' }}>
+                  {whoop.avg_daily_strain >= 14
+                    ? 'Your strain is high — ensure adequate recovery to prevent overtraining.'
+                    : whoop.avg_daily_strain >= 8
+                    ? 'Your strain level is moderate — a good balance of activity and recovery.'
+                    : 'Your strain is low — this may reflect reduced physical activity or a lighter workload.'}
+                </div>
+              )}
+            </div>
+
             {/* Recovery details */}
             <WhoopSection title="Recovery">
               <WhoopMetric label="Resting HR" value={whoop.avg_resting_hr_bpm} unit="bpm" decimals={0} />
@@ -848,23 +885,65 @@ export default function ResidentDashboard() {
             </div>
           </div>
         ) : (
-          <div
-            style={{
-              textAlign: 'center',
-              padding: '32px 16px',
-              color: COLORS.gray,
-              fontSize: 13,
-              lineHeight: 1.6,
-            }}
-          >
+          <div style={{ textAlign: 'center', padding: '32px 16px' }}>
             <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>&#9201;</div>
-            Awaiting WHOOP data — your first data pull will happen overnight
+            <div style={{ color: COLORS.navy, fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Awaiting WHOOP Data</div>
+            <div style={{ color: COLORS.gray, fontSize: 13, lineHeight: 1.6, marginBottom: 12 }}>
+              Your WHOOP data is pulled automatically every night at 3 AM. Make sure you are wearing your WHOOP band and it is charged.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', maxWidth: 300, margin: '0 auto' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
+                <span style={{ color: COLORS.teal }}>1.</span> Wear your WHOOP 24/7
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
+                <span style={{ color: COLORS.teal }}>2.</span> Keep it charged (charge during a shower)
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
+                <span style={{ color: COLORS.teal }}>3.</span> Data appears here the next morning
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {/* ================================================================ */}
-      {/* 3. ACTION CARDS ROW                                              */}
+      {/* 3. QUICK GUIDE BANNER                                            */}
+      {/* ================================================================ */}
+      <div
+        className="dash-card"
+        style={{
+          padding: '16px 20px',
+          marginBottom: 20,
+          animation: 'dashFadeIn 0.55s ease',
+          background: 'linear-gradient(135deg, #eff6ff, #f0f9ff)',
+          border: '1px solid #bfdbfe',
+        }}
+      >
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af', marginBottom: 8 }}>
+          What you need to do each week
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
+            <span style={{ fontSize: 14 }}>&#9201;</span>
+            <span><strong>Wear your WHOOP</strong> — data is pulled automatically every night at 3 AM</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
+            <span style={{ fontSize: 14 }}>&#128203;</span>
+            <span><strong>Weekly check-in</strong> — takes 2 minutes, due every week (hours, calls, sleep, stress)</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
+            <span style={{ fontSize: 14 }}>&#128221;</span>
+            <span><strong>Log events</strong> — record significant clinical, academic, or personal events as they happen</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
+            <span style={{ fontSize: 14 }}>&#128196;</span>
+            <span><strong>Block assessment</strong> — opens in week 3 of each rotation block (WHO-5, CBI, PHQ-9, GAD-7, ISI)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ================================================================ */}
+      {/* 4. ACTION CARDS ROW                                              */}
       {/* ================================================================ */}
       <div
         style={{
@@ -1012,6 +1091,48 @@ export default function ResidentDashboard() {
       </div>
 
       {/* ================================================================ */}
+      {/* 4b. YOUR STUDY PROGRESS                                          */}
+      {/* ================================================================ */}
+      <div
+        className="dash-card"
+        style={{
+          padding: '20px 16px',
+          marginBottom: 20,
+          animation: 'dashFadeIn 0.65s ease',
+        }}
+      >
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.navy, margin: '0 0 14px', letterSpacing: -0.2 }}>
+          Your Study Progress
+        </h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            { label: 'Demographics', done: residentProfile?.demographics_completed, desc: 'Enrollment form' },
+            { label: 'Baseline Assessment', done: residentProfile?.baseline_completed, desc: 'Initial WHO-5, CBI, PHQ-9, GAD-7, ISI' },
+            { label: 'WHOOP Connected', done: !!whoop, desc: whoop ? `${whoop.days_with_data ?? 0} days of data collected` : 'Waiting for first data pull' },
+            { label: 'Weekly Check-in', done: checkinDone, desc: checkinDone ? 'Completed this week' : 'Due this week' },
+            { label: 'Block Assessment', done: assessmentDone, desc: assessmentStatus === 'locked' ? `Opens ${blockInfo ? formatDateShort(blockInfo.submissionOpensDate) : 'later'}` : assessmentDone ? `Completed ${assessmentDate ? formatDate(assessmentDate) : ''}` : 'Ready to complete' },
+          ].map((item, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < 4 ? `1px solid ${COLORS.border}` : 'none' }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 12, flexShrink: 0,
+                background: item.done ? COLORS.greenBg : 'rgba(0,0,0,0.04)',
+                color: item.done ? '#16a34a' : COLORS.grayLight,
+                fontWeight: 700,
+              }}>
+                {item.done ? '\u2713' : (i + 1)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: item.done ? COLORS.navy : COLORS.gray }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: COLORS.grayLight }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ================================================================ */}
       {/* 4. WEEKLY TRENDS                                                 */}
       {/* ================================================================ */}
       <div
@@ -1027,8 +1148,12 @@ export default function ResidentDashboard() {
         </h2>
 
         {trends.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px 0', color: COLORS.gray, fontSize: 13 }}>
-            Complete weekly check-ins to see your trends
+          <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+            <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.3 }}>&#128200;</div>
+            <div style={{ color: COLORS.gray, fontSize: 13, marginBottom: 8 }}>No trends yet</div>
+            <Link to="/resident/checkin" style={{ fontSize: 12, fontWeight: 600, color: COLORS.teal, textDecoration: 'none' }}>
+              Complete your first weekly check-in to start tracking trends &#8594;
+            </Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -1099,8 +1224,12 @@ export default function ResidentDashboard() {
         </h2>
 
         {events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px 0', color: COLORS.gray, fontSize: 13 }}>
-            No events logged yet
+          <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+            <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.3 }}>&#128197;</div>
+            <div style={{ color: COLORS.gray, fontSize: 13, marginBottom: 8 }}>No events logged yet</div>
+            <Link to="/resident/events" style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', textDecoration: 'none' }}>
+              Log a clinical, academic, or personal event &#8594;
+            </Link>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
