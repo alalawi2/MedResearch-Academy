@@ -506,106 +506,76 @@ export default function ResidentDashboard() {
     const mondayISO = getMondayOfCurrentWeek();
     const monthStart = getMonthStart();
 
+    // Each query runs independently — one failure won't break others
     try {
-      // 1) WHOOP — latest pull (all fields)
-      const whoopP = supabase
+      const { data: wData } = await supabase
         .from('whoop_pulls')
         .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_respiratory_rate_bpm, any_calibrating, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_restorative_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_time_in_bed_min, avg_awake_time_min, avg_no_data_time_min, avg_sleep_cycle_count, avg_sleep_need_baseline_min, avg_sleep_need_from_strain_min, avg_sleep_need_from_nap_min, avg_sleep_onset_min, avg_wake_time_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone0_min, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, avg_workout_distance_m, top_sport_name, days_with_data, pct_recorded, pulled_at')
         .eq('resident_id', rid)
         .order('pulled_at', { ascending: false })
         .limit(1);
+      if (wData && wData.length > 0) setWhoop(wData[0] as WhoopPull);
+    } catch (e) { console.error('WHOOP fetch error:', e); }
 
-      // 2) Block assessment
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let assessP: PromiseLike<any> | null = null;
+    try {
       if (blockInfo) {
         const startISO = blockInfo.startDate.toISOString().slice(0, 10);
         const endISO = blockInfo.endDate.toISOString().slice(0, 10);
-        assessP = supabase
+        const { data: aData } = await supabase
           .from('block_assessments')
           .select('id, assessment_date')
           .eq('resident_id', rid)
           .gte('assessment_date', startISO)
           .lte('assessment_date', endISO)
           .limit(1);
+        if (aData && aData.length > 0) {
+          setAssessmentDone(true);
+          setAssessmentDate(aData[0].assessment_date);
+        }
       }
+    } catch (e) { console.error('Assessment fetch error:', e); }
 
-      // 3) Weekly check-in this week
-      const checkinP = supabase
+    try {
+      const { data: cData } = await supabase
         .from('weekly_checkins')
         .select('id')
         .eq('resident_id', rid)
         .eq('week_start', mondayISO)
         .limit(1);
+      setCheckinDone((cData?.length ?? 0) > 0);
+    } catch (e) { console.error('Checkin fetch error:', e); }
 
-      // 4) Event logs — last 5
-      const eventsP = supabase
+    try {
+      const { data: eData } = await supabase
         .from('event_logs')
         .select('id, event_type, category, event_date, description')
         .eq('resident_id', rid)
         .order('event_date', { ascending: false })
         .limit(5);
+      setEvents((eData as EventLogEntry[]) ?? []);
+    } catch (e) { console.error('Events fetch error:', e); }
 
-      // 5) Event count this month
-      const eventCountP = supabase
+    try {
+      const { count } = await supabase
         .from('event_logs')
         .select('id', { count: 'exact', head: true })
         .eq('resident_id', rid)
         .gte('event_date', monthStart)
         .limit(1000);
+      setEventCount(count ?? 0);
+    } catch (e) { console.error('Event count error:', e); }
 
-      // 6) Weekly check-in trends — last 4 weeks
-      const trendsP = supabase
+    try {
+      const { data: tData } = await supabase
         .from('weekly_checkins')
         .select('week_start, stress_level, sleep_rating, hours_worked')
         .eq('resident_id', rid)
         .order('week_start', { ascending: false })
         .limit(4);
+      setTrends(((tData as WeeklyCheckinTrend[]) ?? []).reverse());
+    } catch (e) { console.error('Trends fetch error:', e); }
 
-      const results = await Promise.allSettled([
-        whoopP, assessP, checkinP, eventsP, eventCountP, trendsP,
-      ]);
-
-      const val = (i: number) => results[i].status === 'fulfilled' ? (results[i] as any).value : null;
-
-      // WHOOP
-      const whoopRes = val(0);
-      if (whoopRes?.data && whoopRes.data.length > 0) {
-        setWhoop(whoopRes.data[0] as WhoopPull);
-      }
-
-      // Assessment
-      const assessRes = val(1);
-      if (assessRes?.data && assessRes.data.length > 0) {
-        setAssessmentDone(true);
-        setAssessmentDate(assessRes.data[0].assessment_date);
-      }
-
-      // Check-in
-      const checkinRes = val(2);
-      setCheckinDone((checkinRes?.data?.length ?? 0) > 0);
-
-      // Events
-      const eventsRes = val(3);
-      setEvents((eventsRes?.data as EventLogEntry[]) ?? []);
-      const eventCountRes = val(4);
-      setEventCount(eventCountRes?.count ?? 0);
-
-      // Trends
-      const trendsRes = val(5);
-      setTrends(((trendsRes?.data as WeeklyCheckinTrend[]) ?? []).reverse());
-
-      // Log any errors for debugging
-      results.forEach((r, i) => {
-        if (r.status === 'rejected') console.error(`Dashboard query ${i} failed:`, r.reason);
-        const v = r.status === 'fulfilled' ? (r as any).value : null;
-        if (v?.error) console.error(`Dashboard query ${i} Supabase error:`, v.error);
-      });
-    } catch (err) {
-      console.error('Dashboard fetch error:', err);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   }
 
   const firstName = residentProfile?.full_name?.split(' ')[0] || 'Resident';
@@ -715,6 +685,24 @@ export default function ResidentDashboard() {
           >
             {participantId}
           </span>
+
+          {/* Set password link */}
+          <Link
+            to="/resident/set-password"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              fontSize: 12,
+              fontWeight: 600,
+              padding: '4px 12px',
+              borderRadius: 999,
+              background: 'rgba(37,99,235,0.1)',
+              color: '#2563eb',
+              textDecoration: 'none',
+            }}
+          >
+            Set Password
+          </Link>
 
           {/* Block info badge */}
           {blockInfo && (

@@ -38,6 +38,7 @@ import WeeklyCheckin from './pages/resident/WeeklyCheckin';
 import EventLog from './pages/resident/EventLog';
 import DemographicsForm from './pages/resident/DemographicsForm';
 import BaselineAssessment from './pages/resident/BaselineAssessment';
+import ResidentSetPassword from './pages/resident/SetPassword';
 
 export default function App() {
   return (
@@ -89,6 +90,7 @@ export default function App() {
             <Route path="questionnaire" element={<QuestionnaireForm />} />
             <Route path="checkin" element={<WeeklyCheckin />} />
             <Route path="events" element={<EventLog />} />
+            <Route path="set-password" element={<ResidentSetPassword />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
