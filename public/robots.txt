@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Disallow: /dashboard
+Disallow: /dashboard/*
+Disallow: /resident
+Disallow: /resident/*
+Disallow: /login
+Disallow: /api/
+
+Sitemap: https://www.medresearch-academy.om/sitemap.xml
