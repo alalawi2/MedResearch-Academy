@@ -1,1392 +1,365 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
-import CollapsibleInfo from '../../components/CollapsibleInfo';
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
+/*  Simple types                                                       */
 /* ------------------------------------------------------------------ */
 
-interface WhoopPull {
-  // Recovery
+interface WhoopData {
   avg_recovery_score: number | null;
   avg_hrv_rmssd_ms: number | null;
   avg_resting_hr_bpm: number | null;
-  avg_spo2_pct: number | null;
-  avg_skin_temp_c: number | null;
-  avg_respiratory_rate_bpm: number | null;
-  any_calibrating: boolean | null;
-  // Sleep
   avg_total_sleep_min: number | null;
-  avg_light_sleep_min: number | null;
-  avg_deep_sleep_min: number | null;
-  avg_rem_sleep_min: number | null;
-  avg_restorative_sleep_min: number | null;
-  avg_sleep_efficiency_pct: number | null;
-  avg_sleep_consistency_pct: number | null;
-  avg_sleep_performance_pct: number | null;
-  avg_sleep_debt_min: number | null;
-  avg_time_in_bed_min: number | null;
-  avg_awake_time_min: number | null;
-  avg_no_data_time_min: number | null;
-  avg_sleep_cycle_count: number | null;
-  avg_sleep_need_baseline_min: number | null;
-  avg_sleep_need_from_strain_min: number | null;
-  avg_sleep_need_from_nap_min: number | null;
-  avg_sleep_onset_min: number | null;
-  avg_wake_time_min: number | null;
-  avg_disturbance_count: number | null;
-  nap_count: number | null;
-  // Strain & Activity
   avg_daily_strain: number | null;
-  avg_hr_bpm: number | null;
-  max_hr_bpm: number | null;
-  avg_kilojoules: number | null;
-  hr_zone0_min: number | null;
-  hr_zone1_min: number | null;
-  hr_zone2_min: number | null;
-  hr_zone3_min: number | null;
-  hr_zone4_min: number | null;
-  hr_zone5_min: number | null;
-  workout_count: number | null;
-  avg_workout_distance_m: number | null;
-  top_sport_name: string | null;
-  // Data quality
+  avg_sleep_efficiency_pct: number | null;
+  avg_spo2_pct: number | null;
+  avg_respiratory_rate_bpm: number | null;
+  avg_skin_temp_c: number | null;
   days_with_data: number | null;
   pct_recorded: number | null;
   pulled_at: string;
 }
 
-interface EventLogEntry {
-  id: string;
-  event_type: string;
-  category: string | null;
-  event_date: string;
-  description: string | null;
-}
-
-interface WeeklyCheckinTrend {
-  week_start: string;
-  stress_level: number | null;
-  sleep_rating: number | null;
-  hours_worked: number | null;
-}
-
 /* ------------------------------------------------------------------ */
-/*  Block schedule                                                     */
-/* ------------------------------------------------------------------ */
-
-interface BlockDef {
-  block: number;
-  start: string;
-  end: string;
-  label: string;
-}
-
-const BLOCK_SCHEDULE: BlockDef[] = [
-  { block: 1,  start: '09-01', end: '09-27', label: 'Block 1: Sep 1 - Sep 27' },
-  { block: 2,  start: '09-28', end: '10-25', label: 'Block 2: Sep 28 - Oct 25' },
-  { block: 3,  start: '10-27', end: '11-22', label: 'Block 3: Oct 27 - Nov 22' },
-  { block: 4,  start: '11-23', end: '12-20', label: 'Block 4: Nov 23 - Dec 20' },
-  { block: 5,  start: '12-21', end: '01-17', label: 'Block 5: Dec 21 - Jan 17' },
-  { block: 6,  start: '01-18', end: '02-14', label: 'Block 6: Jan 18 - Feb 14' },
-  { block: 7,  start: '02-15', end: '03-14', label: 'Block 7: Feb 15 - Mar 14' },
-  { block: 8,  start: '03-15', end: '04-11', label: 'Block 8: Mar 15 - Apr 11' },
-  { block: 9,  start: '04-12', end: '05-09', label: 'Block 9: Apr 12 - May 9' },
-  { block: 10, start: '05-10', end: '06-06', label: 'Block 10: May 10 - Jun 6' },
-  { block: 11, start: '06-07', end: '07-06', label: 'Block 11: Jun 7 - Jul 6' },
-  { block: 12, start: '07-07', end: '08-01', label: 'Block 12: Jul 7 - Aug 1' },
-  { block: 13, start: '08-02', end: '08-31', label: 'Block 13: Aug 2 - Aug 31' },
-];
-
-function getBlockDates(b: BlockDef, refYear: number): { start: Date; end: Date } {
-  const [sm, sd] = b.start.split('-').map(Number);
-  const [em, ed] = b.end.split('-').map(Number);
-  const startYear = refYear;
-  let endYear = refYear;
-  if (em < sm) endYear = refYear + 1;
-  return {
-    start: new Date(startYear, sm - 1, sd),
-    end: new Date(endYear, em - 1, ed),
-  };
-}
-
-interface CurrentBlockInfo {
-  block: number;
-  label: string;
-  startDate: Date;
-  endDate: Date;
-  canSubmit: boolean;
-  submissionOpensDate: Date;
-  daysUntilOpen: number;
-}
-
-function getCurrentBlock(): CurrentBlockInfo | null {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  const currentYear = now.getFullYear();
-  const yearsToTry = [currentYear, currentYear - 1];
-
-  for (const year of yearsToTry) {
-    for (const b of BLOCK_SCHEDULE) {
-      const { start, end } = getBlockDates(b, year);
-      if (now >= start && now <= end) {
-        const submissionOpens = new Date(start);
-        submissionOpens.setDate(submissionOpens.getDate() + 14);
-        const canSubmit = now >= submissionOpens;
-        const daysUntilOpen = canSubmit ? 0 : Math.ceil((submissionOpens.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return { block: b.block, label: b.label, startDate: start, endDate: end, canSubmit, submissionOpensDate: submissionOpens, daysUntilOpen };
-      }
-    }
-  }
-  return null;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
-/* ------------------------------------------------------------------ */
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-function getMondayOfCurrentWeek(): string {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diff);
-  monday.setHours(0, 0, 0, 0);
-  return monday.toISOString().slice(0, 10);
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-}
-
-function formatDateShort(d: Date): string {
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-
-function formatMinutesToHM(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = Math.round(min % 60);
-  return `${h}:${m.toString().padStart(2, '0')}`;
-}
-
-function getMonthStart(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Color helpers                                                      */
-/* ------------------------------------------------------------------ */
-
-const COLORS = {
-  navy: '#0f172a',
-  navyLight: '#1e293b',
-  teal: '#0d9488',
-  tealLight: '#14b8a6',
-  green: '#22c55e',
-  greenBg: 'rgba(34,197,94,0.12)',
-  orange: '#f97316',
-  orangeBg: 'rgba(249,115,22,0.12)',
-  red: '#ef4444',
-  redBg: 'rgba(239,68,68,0.12)',
-  gray: '#64748b',
-  grayLight: '#94a3b8',
-  border: 'rgba(15,23,42,0.08)',
-  cardBg: 'rgba(255,255,255,0.75)',
-  cardBgSolid: '#ffffff',
-  pageBg: '#f1f5f9',
-  glassBorder: 'rgba(255,255,255,0.6)',
-};
-
-function recoveryColor(v: number): string {
-  if (v >= 67) return COLORS.green;
-  if (v >= 34) return COLORS.orange;
-  return COLORS.red;
-}
-
-function sleepColor(min: number): string {
-  return min >= 420 ? COLORS.green : COLORS.red; // 7 hours = 420 min
-}
-
-function stressBarColor(v: number): string {
-  if (v <= 2) return COLORS.green;
-  if (v <= 3) return COLORS.orange;
-  return COLORS.red;
-}
-
-function sleepRatingBarColor(v: number): string {
-  if (v >= 4) return COLORS.green;
-  if (v >= 3) return COLORS.orange;
-  return COLORS.red;
-}
-
-/* Category colors for event timeline */
-const CATEGORY_COLORS: Record<string, string> = {
-  clinical: '#6366f1',
-  academic: '#0ea5e9',
-  personal: '#a855f7',
-  program: '#f59e0b',
-  wellness: COLORS.teal,
-};
-
-/* ------------------------------------------------------------------ */
-/*  CSS (injected once)                                                */
-/* ------------------------------------------------------------------ */
-
-const DASHBOARD_CSS = `
-@keyframes dashPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-@keyframes dashFadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes dashCircleIn {
-  from { stroke-dashoffset: var(--dash-circumference); }
-  to { stroke-dashoffset: var(--dash-offset); }
-}
-.dash-card {
-  background: ${COLORS.cardBg};
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid ${COLORS.glassBorder};
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-.dash-card:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-}
-.dash-action-card {
-  background: ${COLORS.cardBg};
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid ${COLORS.glassBorder};
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
-  cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-.dash-action-card:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
-}
-.dash-skeleton {
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-  background-size: 200% 100%;
-  animation: dashPulse 1.5s ease-in-out infinite;
-  border-radius: 16px;
-}
-`;
-
-/* ------------------------------------------------------------------ */
-/*  Sub-components                                                     */
-/* ------------------------------------------------------------------ */
-
-function SkeletonCard({ height = 120 }: { height?: number }) {
-  return <div className="dash-skeleton" style={{ height, marginBottom: 16 }} />;
-}
-
-/* WHOOP detail section with title */
-function WhoopSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.navy, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8, borderBottom: `2px solid ${COLORS.border}`, paddingBottom: 4 }}>
-        {title}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/* Single WHOOP metric cell */
-function WhoopMetric({ label, value, unit, decimals = 1, format, warn, textValue }: {
-  label: string;
-  value: number | null;
-  unit?: string;
-  decimals?: number;
-  format?: 'time' | 'clock' | 'text';
-  warn?: boolean;
-  textValue?: string;
-}) {
-  let display = '--';
-  if (format === 'text' && textValue) {
-    display = textValue;
-  } else if (value != null) {
-    if (format === 'time') {
-      const h = Math.floor(value / 60);
-      const m = Math.round(value % 60);
-      display = `${h}h ${m}m`;
-    } else if (format === 'clock') {
-      const h = Math.floor(value / 60) % 24;
-      const m = Math.round(value % 60);
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      display = `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
-    } else {
-      display = decimals === 0 ? `${Math.round(value)}` : value.toFixed(decimals);
-    }
-  }
-
-  return (
-    <div style={{ background: 'rgba(0,0,0,0.02)', borderRadius: 8, padding: '8px 10px' }}>
-      <div style={{ fontSize: 10, fontWeight: 600, color: COLORS.gray, textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: warn ? '#dc2626' : COLORS.navy }}>
-        {display}
-        {unit && value != null && format !== 'text' && <span style={{ fontSize: 10, fontWeight: 400, color: COLORS.gray, marginLeft: 2 }}>{unit}</span>}
-      </div>
-    </div>
-  );
-}
-
-/* Circular progress ring */
-function MetricRing({
-  value,
-  max,
-  color,
-  label,
-  display,
-  unit,
-  size = 100,
-}: {
-  value: number | null;
-  max: number;
-  color: string;
-  label: string;
-  display: string;
-  unit?: string;
-  size?: number;
-}) {
-  const strokeWidth = 6;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const pct = value != null ? Math.min(value / max, 1) : 0;
-  const offset = circumference * (1 - pct);
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-      <div style={{ position: 'relative', width: size, height: size }}>
-        <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius}
-            fill="none"
-            stroke="rgba(0,0,0,0.06)"
-            strokeWidth={strokeWidth}
-          />
-          {value != null && (
-            <circle
-              cx={size / 2}
-              cy={size / 2}
-              r={radius}
-              fill="none"
-              stroke={color}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              style={{
-                ['--dash-circumference' as string]: circumference,
-                ['--dash-offset' as string]: offset,
-                animation: 'dashCircleIn 1s ease-out forwards',
-              }}
-            />
-          )}
-        </svg>
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontSize: 18, fontWeight: 700, color: value != null ? color : COLORS.grayLight, lineHeight: 1.1 }}>
-            {display}
-          </div>
-          {unit && (
-            <div style={{ fontSize: 9, color: COLORS.gray, marginTop: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              {unit}
-            </div>
-          )}
-        </div>
-      </div>
-      <div style={{ fontSize: 11, fontWeight: 600, color: COLORS.gray, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {label}
-      </div>
-    </div>
-  );
-}
-
-/* Horizontal bar for trends */
-function TrendBar({
-  values,
-  colorFn,
-  maxVal,
-  labels,
-}: {
-  values: (number | null)[];
-  colorFn: (v: number) => string;
-  maxVal: number;
-  labels: string[];
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      {values.map((v, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontSize: 10, color: COLORS.gray, width: 36, textAlign: 'right', flexShrink: 0 }}>
-            {labels[i]}
-          </div>
-          <div style={{ flex: 1, height: 14, background: 'rgba(0,0,0,0.04)', borderRadius: 7, overflow: 'hidden' }}>
-            {v != null && (
-              <div
-                style={{
-                  width: `${Math.max((v / maxVal) * 100, 8)}%`,
-                  height: '100%',
-                  background: colorFn(v),
-                  borderRadius: 7,
-                  transition: 'width 0.6s ease',
-                }}
-              />
-            )}
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 600, color: v != null ? COLORS.navy : COLORS.grayLight, width: 24, textAlign: 'right', flexShrink: 0 }}>
-            {v != null ? v : '--'}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Main Component                                                     */
+/*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function ResidentDashboard() {
   const { residentProfile } = useAuth();
-
-  const [loading, setLoading] = useState(true);
-  const [whoop, setWhoop] = useState<WhoopPull | null>(null);
-  const [assessmentDone, setAssessmentDone] = useState(false);
-  const [assessmentDate, setAssessmentDate] = useState<string | null>(null);
-  const [checkinDone, setCheckinDone] = useState(false);
+  const [status, setStatus] = useState('Initializing...');
+  const [whoop, setWhoop] = useState<WhoopData | null>(null);
+  const [whoopError, setWhoopError] = useState<string | null>(null);
+  const [assessmentCount, setAssessmentCount] = useState(0);
+  const [checkinCount, setCheckinCount] = useState(0);
   const [eventCount, setEventCount] = useState(0);
-  const [events, setEvents] = useState<EventLogEntry[]>([]);
-  const [trends, setTrends] = useState<WeeklyCheckinTrend[]>([]);
-  const [fetchErrors, setFetchErrors] = useState<string[]>([]);
-
-  const blockInfo = useMemo(() => getCurrentBlock(), []);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    if (!residentProfile) return;
-    fetchAll();
+    if (!residentProfile) {
+      setStatus('Waiting for profile...');
+      return;
+    }
+    setStatus(`Profile loaded: ${residentProfile.study_participant_id}`);
+    loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [residentProfile]);
 
-  async function fetchAll() {
+  async function loadData() {
     if (!residentProfile) return;
+    const rid = residentProfile.id;
+    const log: string[] = [];
 
-    // Ensure we have a valid session before querying
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData?.session) {
-      setFetchErrors(['No active session — please log out and log back in']);
-      setLoading(false);
+    // Check session
+    const { data: sess } = await supabase.auth.getSession();
+    if (!sess?.session) {
+      setStatus('ERROR: No active auth session');
+      setLoaded(true);
       return;
     }
+    log.push('Session OK');
 
-    const rid = residentProfile.id;
-    const mondayISO = getMondayOfCurrentWeek();
-    const monthStart = getMonthStart();
-    const errors: string[] = [];
-    errors.push(`Session OK | rid: ${rid.slice(0, 8)}...`);
-
-    // 1) WHOOP — latest pull
-    const w = await supabase
+    // WHOOP
+    const { data: wData, error: wErr } = await supabase
       .from('whoop_pulls')
-      .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_spo2_pct, avg_skin_temp_c, avg_respiratory_rate_bpm, any_calibrating, avg_total_sleep_min, avg_light_sleep_min, avg_deep_sleep_min, avg_rem_sleep_min, avg_restorative_sleep_min, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_time_in_bed_min, avg_awake_time_min, avg_no_data_time_min, avg_sleep_cycle_count, avg_sleep_need_baseline_min, avg_sleep_need_from_strain_min, avg_sleep_need_from_nap_min, avg_sleep_onset_min, avg_wake_time_min, avg_disturbance_count, nap_count, avg_daily_strain, avg_hr_bpm, max_hr_bpm, avg_kilojoules, hr_zone0_min, hr_zone1_min, hr_zone2_min, hr_zone3_min, hr_zone4_min, hr_zone5_min, workout_count, avg_workout_distance_m, top_sport_name, days_with_data, pct_recorded, pulled_at')
+      .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_total_sleep_min, avg_daily_strain, avg_sleep_efficiency_pct, avg_spo2_pct, avg_respiratory_rate_bpm, avg_skin_temp_c, days_with_data, pct_recorded, pulled_at')
       .eq('resident_id', rid)
       .order('pulled_at', { ascending: false })
       .limit(1);
-    if (w.error) errors.push(`WHOOP: ${w.error.message}`);
-    else if (w.data && w.data.length > 0) setWhoop(w.data[0] as WhoopPull);
 
-    // 2) Block assessment for current block
-    if (blockInfo) {
-      const startISO = blockInfo.startDate.toISOString().slice(0, 10);
-      const endISO = blockInfo.endDate.toISOString().slice(0, 10);
-      const a = await supabase
-        .from('block_assessments')
-        .select('id, assessment_date')
-        .eq('resident_id', rid)
-        .gte('assessment_date', startISO)
-        .lte('assessment_date', endISO)
-        .limit(1);
-      if (a.error) errors.push(`Assessment: ${a.error.message}`);
-      else if (a.data && a.data.length > 0) {
-        setAssessmentDone(true);
-        setAssessmentDate(a.data[0].assessment_date);
-      }
+    if (wErr) {
+      setWhoopError(wErr.message);
+      log.push(`WHOOP error: ${wErr.message}`);
+    } else if (wData && wData.length > 0) {
+      setWhoop(wData[0] as WhoopData);
+      log.push(`WHOOP: ${wData.length} row(s)`);
+    } else {
+      log.push('WHOOP: 0 rows (empty)');
     }
 
-    // 3) Weekly check-in this week
-    const c = await supabase
+    // Block assessments count
+    const { count: baCount, error: baErr } = await supabase
+      .from('block_assessments')
+      .select('id', { count: 'exact', head: true })
+      .eq('resident_id', rid);
+    if (baErr) log.push(`Assessments error: ${baErr.message}`);
+    else { setAssessmentCount(baCount ?? 0); log.push(`Assessments: ${baCount ?? 0}`); }
+
+    // Weekly checkins count
+    const { count: wcCount, error: wcErr } = await supabase
       .from('weekly_checkins')
-      .select('id')
-      .eq('resident_id', rid)
-      .eq('week_start', mondayISO)
-      .limit(1);
-    if (c.error) errors.push(`Checkin: ${c.error.message}`);
-    else setCheckinDone((c.data?.length ?? 0) > 0);
+      .select('id', { count: 'exact', head: true })
+      .eq('resident_id', rid);
+    if (wcErr) log.push(`Checkins error: ${wcErr.message}`);
+    else { setCheckinCount(wcCount ?? 0); log.push(`Checkins: ${wcCount ?? 0}`); }
 
-    // 4) Event logs — last 5
-    const e = await supabase
-      .from('event_logs')
-      .select('id, event_type, category, event_date, description')
-      .eq('resident_id', rid)
-      .order('event_date', { ascending: false })
-      .limit(5);
-    if (e.error) errors.push(`Events: ${e.error.message}`);
-    else setEvents((e.data as EventLogEntry[]) ?? []);
-
-    // 5) Event count this month
-    const ec = await supabase
+    // Event count
+    const { count: evCount, error: evErr } = await supabase
       .from('event_logs')
       .select('id', { count: 'exact', head: true })
-      .eq('resident_id', rid)
-      .gte('event_date', monthStart)
-      .limit(1000);
-    if (ec.error) errors.push(`EventCount: ${ec.error.message}`);
-    else setEventCount(ec.count ?? 0);
+      .eq('resident_id', rid);
+    if (evErr) log.push(`Events error: ${evErr.message}`);
+    else { setEventCount(evCount ?? 0); log.push(`Events: ${evCount ?? 0}`); }
 
-    // 6) Weekly check-in trends — last 4 weeks
-    const t = await supabase
-      .from('weekly_checkins')
-      .select('week_start, stress_level, sleep_rating, hours_worked')
-      .eq('resident_id', rid)
-      .order('week_start', { ascending: false })
-      .limit(4);
-    if (t.error) errors.push(`Trends: ${t.error.message}`);
-    else setTrends(((t.data as WeeklyCheckinTrend[]) ?? []).reverse());
-
-    // Always show debug info for now
-    errors.push(`WHOOP: ${w.data?.length ?? 0} rows, err=${w.error?.message ?? 'none'}`);
-    errors.push(`Checkin: ${c.data?.length ?? 0} rows, err=${c.error?.message ?? 'none'}`);
-    errors.push(`Events: ${e.data?.length ?? 0} rows, err=${e.error?.message ?? 'none'}`);
-    setFetchErrors(errors);
-    setLoading(false);
+    setStatus(log.join(' | '));
+    setLoaded(true);
   }
 
-  const firstName = residentProfile?.full_name?.split(' ')[0] || 'Resident';
-  const participantId = residentProfile?.study_participant_id || '---';
-
-  function getAssessmentStatus(): 'done' | 'pending' | 'locked' {
-    if (assessmentDone) return 'done';
-    if (!blockInfo) return 'locked';
-    if (!blockInfo.canSubmit) return 'locked';
-    return 'pending';
-  }
+  const name = residentProfile?.full_name?.split(' ')[0] || 'Resident';
+  const pid = residentProfile?.study_participant_id || '---';
 
   /* ---------------------------------------------------------------- */
-  /*  Loading skeleton                                                 */
+  /*  Helpers                                                          */
   /* ---------------------------------------------------------------- */
 
-  if (loading) {
-    return (
-      <div style={{ padding: '16px 12px', maxWidth: 720, margin: '0 auto' }}>
-        <style>{DASHBOARD_CSS}</style>
-        <SkeletonCard height={72} />
-        <SkeletonCard height={220} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-          <SkeletonCard height={120} />
-          <SkeletonCard height={120} />
-          <SkeletonCard height={120} />
-        </div>
-        <SkeletonCard height={160} />
-        <SkeletonCard height={140} />
-      </div>
-    );
+  function fmtMin(min: number | null): string {
+    if (min == null) return '--';
+    const h = Math.floor(min / 60);
+    const m = Math.round(min % 60);
+    return `${h}h ${m}m`;
   }
 
-  const assessmentStatus = getAssessmentStatus();
+  function fmtNum(v: number | null, d = 1, suffix = ''): string {
+    if (v == null) return '--';
+    return v.toFixed(d) + suffix;
+  }
+
+  function recoveryColor(v: number): string {
+    if (v >= 67) return '#16a34a';
+    if (v >= 34) return '#f59e0b';
+    return '#ef4444';
+  }
 
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
 
   return (
-    <div style={{ padding: '16px 12px', maxWidth: 720, margin: '0 auto' }}>
-      <style>{DASHBOARD_CSS}</style>
+    <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 4px' }}>
 
-      {/* -------- Debug Banner -------- */}
-      {fetchErrors.length > 0 && (
-        <div style={{
-          padding: '12px 16px', borderRadius: 12, marginBottom: 16,
-          background: '#eff6ff', border: '1px solid #bfdbfe', fontSize: 11, color: '#1e40af',
-        }}>
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>Debug Info (temporary):</div>
-          {fetchErrors.map((err, i) => <div key={i}>{err}</div>)}
-          <div style={{ marginTop: 6, fontSize: 10, color: '#3b82f6' }}>
-            Profile: {residentProfile?.study_participant_id} | ID: {residentProfile?.id?.slice(0, 8)}... | Auth: {residentProfile?.auth_user_id?.slice(0, 8)}...
-          </div>
-        </div>
-      )}
+      {/* ── Debug Banner (always visible) ── */}
+      <div style={{
+        padding: '10px 14px', borderRadius: 10, marginBottom: 16,
+        background: '#f0f9ff', border: '1px solid #bae6fd', fontSize: 11, color: '#0369a1',
+        wordBreak: 'break-all',
+      }}>
+        {status}
+      </div>
 
-      {/* -------- Demographics Banner -------- */}
-      {!residentProfile?.demographics_completed && (
-        <Link to="/resident/demographics" style={{ textDecoration: 'none' }}>
-          <div
-            style={{
-              padding: '16px 20px',
-              borderRadius: 16,
-              marginBottom: 20,
-              fontSize: 14,
-              lineHeight: 1.6,
-              background: `linear-gradient(135deg, ${COLORS.orangeBg}, rgba(249,115,22,0.06))`,
-              border: `2px solid ${COLORS.orange}`,
-              color: '#9a3412',
-              cursor: 'pointer',
-              animation: 'dashFadeIn 0.4s ease',
-            }}
-          >
-            <strong>Action Required:</strong> Please complete your enrollment form first.
-            <span style={{ display: 'block', marginTop: 4, fontSize: 13, fontWeight: 600, color: '#ea580c' }}>
-              Tap here to complete &rarr;
-            </span>
-          </div>
-        </Link>
-      )}
-
-      {/* ================================================================ */}
-      {/* 1. WELCOME HEADER                                                */}
-      {/* ================================================================ */}
-      <div
-        style={{
-          marginBottom: 24,
-          animation: 'dashFadeIn 0.4s ease',
-        }}
-      >
-        <h1
-          style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: COLORS.navy,
-            marginBottom: 8,
-            marginTop: 0,
-            letterSpacing: -0.3,
-          }}
-        >
-          {getGreeting()}, {firstName}
+      {/* ── Welcome ── */}
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
+          Welcome, {name}
         </h1>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          {/* Participant badge */}
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 700,
-              padding: '4px 14px',
-              borderRadius: 999,
-              background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`,
-              color: '#fff',
-              letterSpacing: 0.6,
-              textTransform: 'uppercase',
-            }}
-          >
-            {participantId}
-          </span>
-
-          {/* Set password link */}
-          <Link
-            to="/resident/set-password"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              fontSize: 12,
-              fontWeight: 600,
-              padding: '4px 12px',
-              borderRadius: 999,
-              background: 'rgba(37,99,235,0.1)',
-              color: '#2563eb',
-              textDecoration: 'none',
-            }}
-          >
-            Set Password
-          </Link>
-
-          {/* Block info badge */}
-          {blockInfo && (
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                fontSize: 12,
-                fontWeight: 500,
-                padding: '4px 12px',
-                borderRadius: 999,
-                background: 'rgba(13,148,136,0.1)',
-                color: COLORS.teal,
-                letterSpacing: 0.3,
-              }}
-            >
-              {blockInfo.label.split(':')[0]}: {formatDateShort(blockInfo.startDate)} - {formatDateShort(blockInfo.endDate)}
-            </span>
-          )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{
+            fontSize: 12, fontWeight: 700, padding: '3px 12px', borderRadius: 99,
+            background: '#0f172a', color: '#fff',
+          }}>{pid}</span>
+          <Link to="/resident/set-password" style={{
+            fontSize: 12, fontWeight: 600, padding: '3px 12px', borderRadius: 99,
+            background: '#dbeafe', color: '#1d4ed8', textDecoration: 'none',
+          }}>Set Password</Link>
         </div>
       </div>
 
-      {/* ================================================================ */}
-      {/* 2. WHOOP BIOMETRICS CARD                                         */}
-      {/* ================================================================ */}
-      <div
-        className="dash-card"
-        style={{
-          padding: '20px 16px',
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.5s ease',
-          background: `linear-gradient(135deg, ${COLORS.cardBg}, rgba(13,148,136,0.03))`,
-        }}
-      >
+      {/* ── Guide ── */}
+      <div style={{
+        padding: '14px 16px', borderRadius: 12, marginBottom: 20,
+        background: '#eff6ff', border: '1px solid #bfdbfe',
+      }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af', marginBottom: 6 }}>What to do each week</div>
+        <div style={{ fontSize: 12, color: '#1e3a5a', lineHeight: 1.8 }}>
+          1. <strong>Wear WHOOP 24/7</strong> — data pulls automatically at 3 AM<br />
+          2. <strong>Weekly check-in</strong> — 2 min, hours/calls/sleep/stress<br />
+          3. <strong>Log events</strong> — clinical, academic, personal events<br />
+          4. <strong>Block assessment</strong> — opens week 3 of each rotation
+        </div>
+      </div>
+
+      {/* ── Action Cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+        <Link to="/resident/questionnaire" style={{
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 12px',
+          textDecoration: 'none', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 24, marginBottom: 6 }}>&#128203;</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Block Assessment</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#2563eb' }}>{assessmentCount}</div>
+          <div style={{ fontSize: 10, color: '#64748b' }}>completed</div>
+        </Link>
+        <Link to="/resident/checkin" style={{
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 12px',
+          textDecoration: 'none', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 24, marginBottom: 6 }}>&#9989;</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Weekly Check-in</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#16a34a' }}>{checkinCount}</div>
+          <div style={{ fontSize: 10, color: '#64748b' }}>submitted</div>
+        </Link>
+        <Link to="/resident/events" style={{
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 12px',
+          textDecoration: 'none', textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 24, marginBottom: 6 }}>&#128197;</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Event Log</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: '#7c3aed' }}>{eventCount}</div>
+          <div style={{ fontSize: 10, color: '#64748b' }}>logged</div>
+        </Link>
+      </div>
+
+      {/* ── WHOOP Biometrics ── */}
+      <div style={{
+        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20, marginBottom: 20,
+      }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.navy, margin: 0, letterSpacing: -0.2 }}>
-            WHOOP Biometrics
-          </h2>
-          {whoop && (
-            <span style={{ fontSize: 11, color: COLORS.gray }}>
-              Last updated: {formatDate(whoop.pulled_at)}
-            </span>
-          )}
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: 0 }}>WHOOP Biometrics</h2>
+          {whoop && <span style={{ fontSize: 11, color: '#94a3b8' }}>Updated: {new Date(whoop.pulled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>}
         </div>
 
-        {whoop ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Top ring metrics */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 16,
-                justifyItems: 'center',
-              }}
-            >
-              <MetricRing
-                value={whoop.avg_recovery_score}
-                max={100}
-                color={whoop.avg_recovery_score != null ? recoveryColor(whoop.avg_recovery_score) : COLORS.grayLight}
-                label="Recovery"
-                display={whoop.avg_recovery_score != null ? `${Math.round(whoop.avg_recovery_score)}%` : '--'}
-              />
-              <MetricRing
-                value={whoop.avg_hrv_rmssd_ms}
-                max={200}
-                color={COLORS.teal}
-                label="HRV"
-                display={whoop.avg_hrv_rmssd_ms != null ? `${Math.round(whoop.avg_hrv_rmssd_ms)}` : '--'}
-                unit="ms"
-              />
-              <MetricRing
-                value={whoop.avg_daily_strain}
-                max={21}
-                color="#6366f1"
-                label="Strain"
-                display={whoop.avg_daily_strain != null ? `${whoop.avg_daily_strain.toFixed(1)}` : '--'}
-                unit="/21"
-              />
+        {whoopError ? (
+          <div style={{ padding: '16px', background: '#fef2f2', borderRadius: 8, color: '#991b1b', fontSize: 13 }}>
+            WHOOP Error: {whoopError}
+          </div>
+        ) : whoop ? (
+          <>
+            {/* Top 3 rings */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 20, textAlign: 'center' }}>
+              <div>
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%', margin: '0 auto 6px',
+                  border: `4px solid ${whoop.avg_recovery_score != null ? recoveryColor(whoop.avg_recovery_score) : '#e2e8f0'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: whoop.avg_recovery_score != null ? recoveryColor(whoop.avg_recovery_score) : '#94a3b8' }}>
+                    {whoop.avg_recovery_score != null ? `${Math.round(whoop.avg_recovery_score)}%` : '--'}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Recovery</div>
+              </div>
+              <div>
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%', margin: '0 auto 6px',
+                  border: '4px solid #0d9488',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: '#0d9488' }}>
+                    {whoop.avg_hrv_rmssd_ms != null ? Math.round(whoop.avg_hrv_rmssd_ms) : '--'}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>HRV (ms)</div>
+              </div>
+              <div>
+                <div style={{
+                  width: 72, height: 72, borderRadius: '50%', margin: '0 auto 6px',
+                  border: '4px solid #6366f1',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: '#6366f1' }}>
+                    {whoop.avg_daily_strain != null ? whoop.avg_daily_strain.toFixed(1) : '--'}
+                  </span>
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Strain</div>
+              </div>
             </div>
 
-            {/* Quick insights */}
-            <div style={{
-              background: 'rgba(0,0,0,0.02)',
-              borderRadius: 10,
-              padding: '12px 14px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 6,
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: COLORS.navy, marginBottom: 2 }}>Your Snapshot</div>
+            {/* Insight text */}
+            <div style={{ background: '#f8fafc', borderRadius: 10, padding: '12px 14px', marginBottom: 16, fontSize: 13, color: '#334155', lineHeight: 1.6 }}>
               {whoop.avg_recovery_score != null && (
-                <div style={{ fontSize: 12, color: '#374151' }}>
-                  {whoop.avg_recovery_score >= 67
-                    ? 'Your recovery is in the green zone — your body is well recovered and ready for strain.'
-                    : whoop.avg_recovery_score >= 34
-                    ? 'Your recovery is moderate — consider balancing your workload and prioritizing sleep.'
-                    : 'Your recovery is low — your body may need rest. Consider lighter activity and earlier bedtime.'}
-                </div>
+                whoop.avg_recovery_score >= 67
+                  ? 'Your recovery is in the green — your body is well rested and ready for strain.'
+                  : whoop.avg_recovery_score >= 34
+                  ? 'Recovery is moderate — balance workload and prioritize sleep.'
+                  : 'Recovery is low — your body needs rest. Consider lighter activity.'
               )}
               {whoop.avg_total_sleep_min != null && (
-                <div style={{ fontSize: 12, color: '#374151' }}>
-                  {whoop.avg_total_sleep_min >= 420
-                    ? `You are averaging ${Math.floor(whoop.avg_total_sleep_min / 60)}h ${Math.round(whoop.avg_total_sleep_min % 60)}m of sleep — meeting the recommended 7+ hours.`
-                    : `You are averaging ${Math.floor(whoop.avg_total_sleep_min / 60)}h ${Math.round(whoop.avg_total_sleep_min % 60)}m of sleep — below the recommended 7 hours. Try to protect your sleep on non-call nights.`}
-                </div>
-              )}
-              {whoop.avg_daily_strain != null && (
-                <div style={{ fontSize: 12, color: '#374151' }}>
-                  {whoop.avg_daily_strain >= 14
-                    ? 'Your strain is high — ensure adequate recovery to prevent overtraining.'
-                    : whoop.avg_daily_strain >= 8
-                    ? 'Your strain level is moderate — a good balance of activity and recovery.'
-                    : 'Your strain is low — this may reflect reduced physical activity or a lighter workload.'}
-                </div>
+                whoop.avg_total_sleep_min >= 420
+                  ? ` Averaging ${fmtMin(whoop.avg_total_sleep_min)} sleep — meeting 7h target.`
+                  : ` Averaging ${fmtMin(whoop.avg_total_sleep_min)} sleep — below 7h recommended.`
               )}
             </div>
 
-            {/* Recovery details */}
-            <WhoopSection title="Recovery">
-              <WhoopMetric label="Resting HR" value={whoop.avg_resting_hr_bpm} unit="bpm" decimals={0} />
-              <WhoopMetric label="SpO2" value={whoop.avg_spo2_pct} unit="%" decimals={1} />
-              <WhoopMetric label="Skin Temp" value={whoop.avg_skin_temp_c} unit="°C" decimals={1} />
-              <WhoopMetric label="Respiratory Rate" value={whoop.avg_respiratory_rate_bpm} unit="br/min" decimals={1} />
-            </WhoopSection>
-
-            {/* Sleep details */}
-            <WhoopSection title="Sleep">
-              <WhoopMetric label="Total Sleep" value={whoop.avg_total_sleep_min} format="time" warn={whoop.avg_total_sleep_min != null && whoop.avg_total_sleep_min < 420} />
-              <WhoopMetric label="Time in Bed" value={whoop.avg_time_in_bed_min} format="time" />
-              <WhoopMetric label="Awake in Bed" value={whoop.avg_awake_time_min} format="time" />
-              <WhoopMetric label="Light Sleep" value={whoop.avg_light_sleep_min} format="time" />
-              <WhoopMetric label="Deep (SWS)" value={whoop.avg_deep_sleep_min} format="time" />
-              <WhoopMetric label="REM Sleep" value={whoop.avg_rem_sleep_min} format="time" />
-              <WhoopMetric label="Restorative" value={whoop.avg_restorative_sleep_min} format="time" />
-              <WhoopMetric label="Sleep Cycles" value={whoop.avg_sleep_cycle_count} decimals={1} />
-              <WhoopMetric label="Efficiency" value={whoop.avg_sleep_efficiency_pct} unit="%" decimals={0} />
-              <WhoopMetric label="Consistency" value={whoop.avg_sleep_consistency_pct} unit="%" decimals={0} />
-              <WhoopMetric label="Performance" value={whoop.avg_sleep_performance_pct} unit="%" decimals={0} />
-              <WhoopMetric label="Sleep Debt" value={whoop.avg_sleep_debt_min} unit="min" decimals={0} warn={whoop.avg_sleep_debt_min != null && whoop.avg_sleep_debt_min > 60} />
-              <WhoopMetric label="Disturbances" value={whoop.avg_disturbance_count} decimals={1} />
-              <WhoopMetric label="Naps" value={whoop.nap_count} decimals={0} />
-              <WhoopMetric label="No-Data Time" value={whoop.avg_no_data_time_min} unit="min" decimals={0} />
-            </WhoopSection>
-
-            {/* Sleep Timing & Need */}
-            <WhoopSection title="Sleep Timing & Need">
-              <WhoopMetric label="Avg Bedtime" value={whoop.avg_sleep_onset_min} format="clock" />
-              <WhoopMetric label="Avg Wake Time" value={whoop.avg_wake_time_min} format="clock" />
-              <WhoopMetric label="Baseline Need" value={whoop.avg_sleep_need_baseline_min} format="time" />
-              <WhoopMetric label="Need from Strain" value={whoop.avg_sleep_need_from_strain_min} unit="min" decimals={0} />
-              <WhoopMetric label="Need from Nap" value={whoop.avg_sleep_need_from_nap_min} unit="min" decimals={0} />
-            </WhoopSection>
-
-            {/* Strain & Activity details */}
-            <WhoopSection title="Strain & Activity">
-              <WhoopMetric label="Avg Heart Rate" value={whoop.avg_hr_bpm} unit="bpm" decimals={0} />
-              <WhoopMetric label="Max Heart Rate" value={whoop.max_hr_bpm} unit="bpm" decimals={0} />
-              <WhoopMetric label="Energy Burned" value={whoop.avg_kilojoules} unit="kJ" decimals={0} />
-              <WhoopMetric label="Workouts" value={whoop.workout_count} decimals={0} />
-              {whoop.avg_workout_distance_m != null && <WhoopMetric label="Avg Distance" value={whoop.avg_workout_distance_m} unit="m" decimals={0} />}
-              {whoop.top_sport_name && <WhoopMetric label="Top Activity" value={null} format="text" textValue={whoop.top_sport_name} />}
-            </WhoopSection>
-
-            {/* HR Zones */}
-            <WhoopSection title="Heart Rate Zones">
-              <WhoopMetric label="Zone 0 (Rest)" value={whoop.hr_zone0_min} unit="min" decimals={0} />
-              <WhoopMetric label="Zone 1" value={whoop.hr_zone1_min} unit="min" decimals={0} />
-              <WhoopMetric label="Zone 2" value={whoop.hr_zone2_min} unit="min" decimals={0} />
-              <WhoopMetric label="Zone 3" value={whoop.hr_zone3_min} unit="min" decimals={0} />
-              <WhoopMetric label="Zone 4" value={whoop.hr_zone4_min} unit="min" decimals={0} />
-              <WhoopMetric label="Zone 5" value={whoop.hr_zone5_min} unit="min" decimals={0} />
-            </WhoopSection>
-
-            {/* Data quality */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, flexWrap: 'wrap', fontSize: 11, color: COLORS.gray }}>
-              <span>{whoop.days_with_data ?? 0} days with data</span>
-              <span>{whoop.pct_recorded != null ? `${whoop.pct_recorded}% recorded` : ''}</span>
-              {whoop.any_calibrating && <span style={{ color: '#f59e0b' }}>Device calibrating</span>}
-            </div>
-          </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-            <div style={{ fontSize: 32, marginBottom: 8, opacity: 0.4 }}>&#9201;</div>
-            <div style={{ color: COLORS.navy, fontSize: 14, fontWeight: 600, marginBottom: 6 }}>Awaiting WHOOP Data</div>
-            <div style={{ color: COLORS.gray, fontSize: 13, lineHeight: 1.6, marginBottom: 12 }}>
-              Your WHOOP data is pulled automatically every night at 3 AM. Make sure you are wearing your WHOOP band and it is charged.
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, textAlign: 'left', maxWidth: 300, margin: '0 auto' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
-                <span style={{ color: COLORS.teal }}>1.</span> Wear your WHOOP 24/7
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
-                <span style={{ color: COLORS.teal }}>2.</span> Keep it charged (charge during a shower)
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#374151' }}>
-                <span style={{ color: COLORS.teal }}>3.</span> Data appears here the next morning
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ================================================================ */}
-      {/* 3. QUICK GUIDE BANNER                                            */}
-      {/* ================================================================ */}
-      <div
-        className="dash-card"
-        style={{
-          padding: '16px 20px',
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.55s ease',
-          background: 'linear-gradient(135deg, #eff6ff, #f0f9ff)',
-          border: '1px solid #bfdbfe',
-        }}
-      >
-        <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af', marginBottom: 8 }}>
-          What you need to do each week
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
-            <span style={{ fontSize: 14 }}>&#9201;</span>
-            <span><strong>Wear your WHOOP</strong> — data is pulled automatically every night at 3 AM</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
-            <span style={{ fontSize: 14 }}>&#128203;</span>
-            <span><strong>Weekly check-in</strong> — takes 2 minutes, due every week (hours, calls, sleep, stress)</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
-            <span style={{ fontSize: 14 }}>&#128221;</span>
-            <span><strong>Log events</strong> — record significant clinical, academic, or personal events as they happen</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#1e3a5a' }}>
-            <span style={{ fontSize: 14 }}>&#128196;</span>
-            <span><strong>Block assessment</strong> — opens in week 3 of each rotation block (WHO-5, CBI, PHQ-9, GAD-7, ISI)</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ================================================================ */}
-      {/* 4. ACTION CARDS ROW                                              */}
-      {/* ================================================================ */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 12,
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.6s ease',
-        }}
-      >
-        {/* Block Assessment */}
-        <Link to="/resident/questionnaire" className="dash-action-card" style={{ padding: '16px 12px' }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 10,
-              fontSize: 18,
-              background: assessmentStatus === 'done' ? COLORS.greenBg
-                : assessmentStatus === 'pending' ? COLORS.orangeBg
-                : 'rgba(0,0,0,0.04)',
-            }}
-          >
-            {assessmentStatus === 'done' ? '\u2713' : assessmentStatus === 'pending' ? '\u270E' : '\uD83D\uDD12'}
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.navy, marginBottom: 4 }}>
-            Block Assessment
-          </div>
-          <div style={{ fontSize: 11, color: COLORS.gray, lineHeight: 1.4 }}>
-            {assessmentStatus === 'done' && assessmentDate
-              ? `Completed ${formatDate(assessmentDate)}`
-              : assessmentStatus === 'pending'
-              ? 'Ready to complete \u2192'
-              : blockInfo
-              ? `Opens ${formatDateShort(blockInfo.submissionOpensDate)}`
-              : 'No active block'}
-          </div>
-          <div
-            style={{
-              display: 'inline-block',
-              marginTop: 8,
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: 999,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              background: assessmentStatus === 'done' ? COLORS.greenBg
-                : assessmentStatus === 'pending' ? COLORS.orangeBg
-                : 'rgba(0,0,0,0.04)',
-              color: assessmentStatus === 'done' ? '#166534'
-                : assessmentStatus === 'pending' ? '#9a3412'
-                : COLORS.gray,
-            }}
-          >
-            {assessmentStatus === 'done' ? 'Done' : assessmentStatus === 'pending' ? 'Open' : 'Locked'}
-          </div>
-        </Link>
-
-        {/* Weekly Check-in */}
-        <Link to="/resident/checkin" className="dash-action-card" style={{ padding: '16px 12px' }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 10,
-              fontSize: 18,
-              background: checkinDone ? COLORS.greenBg : COLORS.orangeBg,
-            }}
-          >
-            {checkinDone ? '\u2713' : '\u23F0'}
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.navy, marginBottom: 4 }}>
-            Weekly Check-in
-          </div>
-          <div style={{ fontSize: 11, color: COLORS.gray, lineHeight: 1.4 }}>
-            {checkinDone ? 'Done this week' : 'Due this week \u2192'}
-          </div>
-          <div
-            style={{
-              display: 'inline-block',
-              marginTop: 8,
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: 999,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              background: checkinDone ? COLORS.greenBg : COLORS.orangeBg,
-              color: checkinDone ? '#166534' : '#9a3412',
-            }}
-          >
-            {checkinDone ? 'Done' : 'Pending'}
-          </div>
-        </Link>
-
-        {/* Event Log */}
-        <Link to="/resident/events" className="dash-action-card" style={{ padding: '16px 12px' }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 10,
-              fontSize: 18,
-              background: 'rgba(99,102,241,0.1)',
-            }}
-          >
-            &#128203;
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.navy, marginBottom: 4 }}>
-            Event Log
-          </div>
-          <div style={{ fontSize: 11, color: COLORS.gray, lineHeight: 1.4 }}>
-            {eventCount} event{eventCount !== 1 ? 's' : ''} this month
-          </div>
-          <div
-            style={{
-              display: 'inline-block',
-              marginTop: 8,
-              fontSize: 10,
-              fontWeight: 700,
-              padding: '2px 8px',
-              borderRadius: 999,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              background: 'rgba(99,102,241,0.1)',
-              color: '#4338ca',
-            }}
-          >
-            Log Event
-          </div>
-        </Link>
-      </div>
-
-      {/* ================================================================ */}
-      {/* 4b. YOUR STUDY PROGRESS                                          */}
-      {/* ================================================================ */}
-      <div
-        className="dash-card"
-        style={{
-          padding: '20px 16px',
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.65s ease',
-        }}
-      >
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.navy, margin: '0 0 14px', letterSpacing: -0.2 }}>
-          Your Study Progress
-        </h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {[
-            { label: 'Demographics', done: residentProfile?.demographics_completed, desc: 'Enrollment form' },
-            { label: 'Baseline Assessment', done: residentProfile?.baseline_completed, desc: 'Initial WHO-5, CBI, PHQ-9, GAD-7, ISI' },
-            { label: 'WHOOP Connected', done: !!whoop, desc: whoop ? `${whoop.days_with_data ?? 0} days of data collected` : 'Waiting for first data pull' },
-            { label: 'Weekly Check-in', done: checkinDone, desc: checkinDone ? 'Completed this week' : 'Due this week' },
-            { label: 'Block Assessment', done: assessmentDone, desc: assessmentStatus === 'locked' ? `Opens ${blockInfo ? formatDateShort(blockInfo.submissionOpensDate) : 'later'}` : assessmentDone ? `Completed ${assessmentDate ? formatDate(assessmentDate) : ''}` : 'Ready to complete' },
-          ].map((item, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < 4 ? `1px solid ${COLORS.border}` : 'none' }}>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, flexShrink: 0,
-                background: item.done ? COLORS.greenBg : 'rgba(0,0,0,0.04)',
-                color: item.done ? '#16a34a' : COLORS.grayLight,
-                fontWeight: 700,
-              }}>
-                {item.done ? '\u2713' : (i + 1)}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: item.done ? COLORS.navy : COLORS.gray }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: COLORS.grayLight }}>{item.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ================================================================ */}
-      {/* 4. WEEKLY TRENDS                                                 */}
-      {/* ================================================================ */}
-      <div
-        className="dash-card"
-        style={{
-          padding: '20px 16px',
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.7s ease',
-        }}
-      >
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.navy, margin: '0 0 16px', letterSpacing: -0.2 }}>
-          Weekly Trends
-        </h2>
-
-        {trends.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-            <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.3 }}>&#128200;</div>
-            <div style={{ color: COLORS.gray, fontSize: 13, marginBottom: 8 }}>No trends yet</div>
-            <Link to="/resident/checkin" style={{ fontSize: 12, fontWeight: 600, color: COLORS.teal, textDecoration: 'none' }}>
-              Complete your first weekly check-in to start tracking trends &#8594;
-            </Link>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Stress */}
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.navy, marginBottom: 6 }}>
-                Stress Level <span style={{ fontWeight: 400, color: COLORS.gray }}>(1-5)</span>
-              </div>
-              <TrendBar
-                values={trends.map(t => t.stress_level)}
-                colorFn={stressBarColor}
-                maxVal={5}
-                labels={trends.map(t => {
-                  const d = new Date(t.week_start);
-                  return `${d.getDate()}/${d.getMonth() + 1}`;
-                })}
-              />
-            </div>
-
-            {/* Sleep rating */}
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.navy, marginBottom: 6 }}>
-                Sleep Rating <span style={{ fontWeight: 400, color: COLORS.gray }}>(1-5)</span>
-              </div>
-              <TrendBar
-                values={trends.map(t => t.sleep_rating)}
-                colorFn={sleepRatingBarColor}
-                maxVal={5}
-                labels={trends.map(t => {
-                  const d = new Date(t.week_start);
-                  return `${d.getDate()}/${d.getMonth() + 1}`;
-                })}
-              />
-            </div>
-
-            {/* Hours worked */}
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: COLORS.navy, marginBottom: 6 }}>
-                Hours Worked
-              </div>
-              <TrendBar
-                values={trends.map(t => t.hours_worked)}
-                colorFn={() => COLORS.teal}
-                maxVal={100}
-                labels={trends.map(t => {
-                  const d = new Date(t.week_start);
-                  return `${d.getDate()}/${d.getMonth() + 1}`;
-                })}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ================================================================ */}
-      {/* 5. RECENT EVENTS TIMELINE                                        */}
-      {/* ================================================================ */}
-      <div
-        className="dash-card"
-        style={{
-          padding: '20px 16px',
-          marginBottom: 20,
-          animation: 'dashFadeIn 0.8s ease',
-        }}
-      >
-        <h2 style={{ fontSize: 15, fontWeight: 700, color: COLORS.navy, margin: '0 0 16px', letterSpacing: -0.2 }}>
-          Recent Events
-        </h2>
-
-        {events.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '24px 16px' }}>
-            <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.3 }}>&#128197;</div>
-            <div style={{ color: COLORS.gray, fontSize: 13, marginBottom: 8 }}>No events logged yet</div>
-            <Link to="/resident/events" style={{ fontSize: 12, fontWeight: 600, color: '#6366f1', textDecoration: 'none' }}>
-              Log a clinical, academic, or personal event &#8594;
-            </Link>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {events.map((evt, i) => {
-              const catColor = CATEGORY_COLORS[evt.category ?? ''] ?? COLORS.gray;
-              return (
-                <div
-                  key={evt.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 12,
-                    padding: '10px 0',
-                    borderBottom: i < events.length - 1 ? `1px solid ${COLORS.border}` : 'none',
-                  }}
-                >
-                  {/* Timeline dot */}
-                  <div style={{ paddingTop: 4, flexShrink: 0 }}>
-                    <div
-                      style={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        background: catColor,
-                        boxShadow: `0 0 0 3px ${catColor}22`,
-                      }}
-                    />
-                  </div>
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy, textTransform: 'capitalize' }}>
-                      {evt.event_type.replace(/_/g, ' ')}
-                    </div>
-                    {evt.description && (
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: COLORS.gray,
-                          marginTop: 2,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {evt.description}
-                      </div>
-                    )}
-                  </div>
-                  {/* Date */}
-                  <div style={{ fontSize: 11, color: COLORS.grayLight, whiteSpace: 'nowrap', flexShrink: 0, paddingTop: 1 }}>
-                    {formatDate(evt.event_date)}
-                  </div>
+            {/* Metrics grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {[
+                ['Resting HR', fmtNum(whoop.avg_resting_hr_bpm, 0, ' bpm')],
+                ['Sleep', fmtMin(whoop.avg_total_sleep_min)],
+                ['Sleep Efficiency', fmtNum(whoop.avg_sleep_efficiency_pct, 0, '%')],
+                ['SpO2', fmtNum(whoop.avg_spo2_pct, 1, '%')],
+                ['Respiratory Rate', fmtNum(whoop.avg_respiratory_rate_bpm, 1, ' br/min')],
+                ['Skin Temp', fmtNum(whoop.avg_skin_temp_c, 1, ' °C')],
+                ['Days with Data', `${whoop.days_with_data ?? 0} / 28`],
+                ['Recorded', `${whoop.pct_recorded ?? 0}%`],
+              ].map(([label, val]) => (
+                <div key={label as string} style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{val}</div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '24px 16px' }}>
+            <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.3 }}>&#9201;</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 6 }}>Awaiting WHOOP Data</div>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
+              Data is pulled automatically every night at 3 AM.<br />
+              Make sure your WHOOP is worn and charged.
+            </div>
           </div>
         )}
       </div>
 
-      {/* ================================================================ */}
-      {/* 6. ABOUT THIS STUDY                                              */}
-      {/* ================================================================ */}
-      <div style={{ marginBottom: 20, animation: 'dashFadeIn 0.9s ease' }}>
-        <CollapsibleInfo title="About This Study" icon="&#128300;">
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 4, fontSize: 14 }}>
-              Resident Burnout &amp; Biophysical Parameters
+      {/* ── Study Progress ── */}
+      <div style={{
+        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20, marginBottom: 20,
+      }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 14px' }}>Your Progress</h2>
+        {[
+          { label: 'Demographics', done: !!residentProfile?.demographics_completed },
+          { label: 'Baseline Assessment', done: !!residentProfile?.baseline_completed },
+          { label: 'WHOOP Connected', done: !!whoop },
+          { label: 'Check-ins Completed', done: checkinCount > 0, detail: `${checkinCount} submitted` },
+          { label: 'Events Logged', done: eventCount > 0, detail: `${eventCount} logged` },
+          { label: 'Block Assessments', done: assessmentCount > 1, detail: `${assessmentCount} completed` },
+        ].map((item, i) => (
+          <div key={i} style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
+            borderBottom: i < 5 ? '1px solid #f1f5f9' : 'none',
+          }}>
+            <div style={{
+              width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+              background: item.done ? '#dcfce7' : '#f1f5f9',
+              color: item.done ? '#16a34a' : '#94a3b8',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 12, fontWeight: 700,
+            }}>
+              {item.done ? '\u2713' : (i + 1)}
             </div>
-            <p style={{ margin: '0 0 8px', fontSize: 13, color: '#374151' }}>
-              This study investigates the association between healthcare workers&apos; burnout and
-              biophysical parameters using WHOOP wearable devices. It is a pilot multi-center cohort
-              study conducted at SQUH, Royal Hospital, and Armed Forces Hospital.
-            </p>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a' }}>{item.label}</div>
+              {item.detail && <div style={{ fontSize: 11, color: '#94a3b8' }}>{item.detail}</div>}
+            </div>
           </div>
+        ))}
+      </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 4, fontSize: 13 }}>
-              What data is collected?
-            </div>
-            <ul style={{ margin: '0', paddingLeft: 18, fontSize: 13, color: '#374151' }}>
-              <li style={{ marginBottom: 4 }}>
-                <strong>WHOOP wearable:</strong> heart rate, HRV, sleep, recovery, and strain (pulled daily at 3 AM)
-              </li>
-              <li style={{ marginBottom: 4 }}>
-                <strong>Block assessments:</strong> WHO-5, CBI (burnout), PHQ-9 (depression), GAD-7 (anxiety) &mdash; end of each block
-              </li>
-              <li style={{ marginBottom: 4 }}>
-                <strong>Weekly check-ins:</strong> 6 brief questions on hours, on-call shifts, sleep, and stress
-              </li>
-              <li>
-                <strong>Event logs:</strong> significant clinical, academic, personal, or program events
-              </li>
-            </ul>
-          </div>
-
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 4, fontSize: 13 }}>
-              Privacy &amp; Confidentiality
-            </div>
-            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
-              Your data is pseudonymized &mdash; you are identified by a study ID (e.g. RES-002),
-              not your name. Only authorized researchers can access identifiable information. You can
-              revoke WHOOP access at any time.
-            </p>
-          </div>
-
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 4, fontSize: 13 }}>
-              Ethics Approval
-            </div>
-            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
-              This study is approved by the SQU Medical Research Ethics Committee (MREC #3190) and
-              Royal Hospital ethics committee.
-            </p>
-          </div>
-
-          <div>
-            <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 4, fontSize: 13 }}>
-              Contact the Research Team
-            </div>
-            <p style={{ margin: 0, fontSize: 13, color: '#374151' }}>
-              Dr. Mohamed Al Rawahi &mdash; <a href="mailto:mrawahi@squ.edu.om" style={{ color: COLORS.teal }}>mrawahi@squ.edu.om</a>
-              <br />
-              Dr. Abdullah Al Alawi &mdash; <a href="mailto:dr.abdullahalalawi@gmail.com" style={{ color: COLORS.teal }}>dr.abdullahalalawi@gmail.com</a>
-            </p>
-          </div>
-        </CollapsibleInfo>
+      {/* ── About Study ── */}
+      <div style={{
+        background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 20, marginBottom: 20,
+      }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 10px' }}>About This Study</h2>
+        <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7, margin: '0 0 12px' }}>
+          This study investigates the association between healthcare workers' burnout and
+          biophysical parameters using WHOOP wearable devices. Multi-center cohort study
+          at SQUH, Royal Hospital, and Armed Forces Hospital.
+        </p>
+        <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
+          <strong>Ethics:</strong> MREC #3190 (SQU) + Royal Hospital<br />
+          <strong>Privacy:</strong> You are identified by study ID only ({pid})<br />
+          <strong>Contact:</strong> <a href="mailto:mrawahi@squ.edu.om" style={{ color: '#0d9488' }}>mrawahi@squ.edu.om</a>
+        </div>
       </div>
     </div>
   );

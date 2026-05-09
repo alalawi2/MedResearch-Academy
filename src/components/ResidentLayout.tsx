@@ -9,7 +9,7 @@ const NAV_ITEMS = [
 ];
 
 export default function ResidentLayout() {
-  const { residentProfile, loading, signOut } = useAuth();
+  const { residentProfile, loading, signOut, user, staff } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,7 +23,30 @@ export default function ResidentLayout() {
     );
   }
 
-  if (!residentProfile) return <Navigate to="/resident/login" replace />;
+  if (!residentProfile) {
+    return (
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg-muted)',padding:24}}>
+        <div style={{maxWidth:500,background:'white',borderRadius:16,padding:32,border:'1px solid #e2e8f0'}}>
+          <h2 style={{color:'#dc2626',margin:'0 0 12px'}}>Profile Not Found</h2>
+          <div style={{fontSize:13,color:'#334155',lineHeight:1.8,marginBottom:16}}>
+            <strong>User:</strong> {user?.email ?? 'no user'}<br/>
+            <strong>User ID:</strong> {user?.id ?? 'none'}<br/>
+            <strong>Staff:</strong> {staff ? `${staff.full_name} (${staff.email})` : 'not staff'}<br/>
+            <strong>Resident Profile:</strong> null<br/>
+            <strong>Path:</strong> {location.pathname}
+          </div>
+          <p style={{fontSize:13,color:'#64748b',marginBottom:16}}>
+            The auth user exists but no resident profile was found in burnout_participants.
+            This could be an RLS issue or the auth_user_id is not linked.
+          </p>
+          <div style={{display:'flex',gap:8}}>
+            <button onClick={signOut} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #e2e8f0',background:'white',cursor:'pointer',fontSize:13,fontWeight:600}}>Sign Out</button>
+            <Link to="/resident/login" style={{padding:'8px 16px',borderRadius:8,background:'#2563eb',color:'white',textDecoration:'none',fontSize:13,fontWeight:600}}>Back to Login</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Redirect to demographics form if not completed
   if (!residentProfile.demographics_completed && location.pathname !== '/resident/demographics') {
