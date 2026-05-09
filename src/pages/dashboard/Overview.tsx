@@ -111,6 +111,8 @@ export default function Overview() {
   const [whoop, setWhoop] = useState<WhoopSummary | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pulling, setPulling] = useState(false);
+  const [pullResult, setPullResult] = useState<string | null>(null);
 
   const studyId = studyRoles[0]?.study_id;
   const studySlug = studyRoles[0]?.study_slug ?? '';
@@ -235,6 +237,36 @@ export default function Overview() {
     return () => { cancelled = true; };
   }, [studyId]);
 
+  /* ---- WHOOP pull handler ---- */
+
+  async function triggerWhoopPull() {
+    setPulling(true);
+    setPullResult(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setPullResult('Error: Not authenticated');
+        setPulling(false);
+        return;
+      }
+      const res = await fetch('/api/whoop/admin-pull', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPullResult(`Pulled ${data.pulled} participant(s) — ${data.period.start} to ${data.period.end}`);
+        // Reload dashboard data after a short delay
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        setPullResult(`Error: ${data.error || 'Unknown error'}`);
+      }
+    } catch (err: any) {
+      setPullResult(`Network error: ${err.message}`);
+    } finally {
+      setPulling(false);
+    }
+  }
+
   /* ---- render helpers ---- */
 
   const enrollmentCards = useMemo(() => {
@@ -336,7 +368,42 @@ export default function Overview() {
               <MetricRow label="Avg Strain" value={fmt(whoop.avgStrain)} />
             </div>
           ) : (
-            <p style={styles.emptyText}>No WHOOP data yet</p>
+            <p style={styles.emptyText}>No WHOOP data yet — try pulling data below</p>
+          )}
+          {isAdmin && (
+            <div style={{ marginTop: 16 }}>
+              <button
+                onClick={triggerWhoopPull}
+                disabled={pulling}
+                style={{
+                  width: '100%',
+                  padding: '10px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #7c3aed',
+                  background: pulling ? '#f5f3ff' : '#7c3aed',
+                  color: pulling ? '#7c3aed' : '#fff',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: pulling ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {pulling ? 'Pulling WHOOP data...' : 'Pull WHOOP Data Now'}
+              </button>
+              {pullResult && (
+                <div style={{
+                  marginTop: 8,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: pullResult.startsWith('Error') || pullResult.startsWith('Network') ? '#fee2e2' : '#dcfce7',
+                  color: pullResult.startsWith('Error') || pullResult.startsWith('Network') ? '#991b1b' : '#166534',
+                }}>
+                  {pullResult}
+                </div>
+              )}
+            </div>
           )}
         </Section>
       </div>
@@ -434,7 +501,7 @@ function MetricRow({ label, value, warn }: { label: string; value: string; warn?
   return (
     <div style={styles.metricRow}>
       <span style={styles.metricLabel}>{label}</span>
-      <span style={{ ...styles.metricValue, color: warn ? '#dc2626' : 'var(--text)' }}>{value}</span>
+      <span style={{ ...styles.metricValue, color: warn ? '#dc2626' : '#0f172a' }}>{value}</span>
     </div>
   );
 }
@@ -508,7 +575,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.3,
   },
   subtitle: {
-    color: 'var(--text-muted, #6b7280)',
+    color: '#475569',
     fontSize: 14,
     margin: '6px 0 0',
     display: 'flex',
@@ -546,10 +613,10 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: '1rem',
+    fontSize: '1.05rem',
     fontWeight: 700,
     fontFamily: 'var(--font-serif, Georgia, serif)',
-    color: 'var(--primary, #1e3a5f)',
+    color: '#0f172a',
     margin: '0 0 16px',
   },
 
@@ -573,9 +640,9 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 14,
   },
   kpiLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    color: 'var(--text-muted, #6b7280)',
+    color: '#374151',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
   },
@@ -616,12 +683,14 @@ const styles: Record<string, React.CSSProperties> = {
   },
   metricLabel: {
     fontSize: 13,
-    color: 'var(--text-muted, #6b7280)',
+    fontWeight: 500,
+    color: '#374151',
   },
   metricValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 700,
     fontFamily: 'var(--font-serif, Georgia, serif)',
+    color: '#0f172a',
   },
 
   /* Table */
@@ -631,17 +700,17 @@ const styles: Record<string, React.CSSProperties> = {
   table: {
     width: '100%',
     borderCollapse: 'collapse' as const,
-    fontSize: 13,
+    fontSize: 14,
   },
   th: {
     textAlign: 'left' as const,
     padding: '10px 14px',
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: 700,
-    color: 'var(--text-muted, #6b7280)',
+    color: '#1e293b',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.04em',
-    borderBottom: '2px solid var(--border, #e5e7eb)',
+    borderBottom: '2px solid #cbd5e1',
     whiteSpace: 'nowrap' as const,
   },
   td: {
@@ -654,15 +723,16 @@ const styles: Record<string, React.CSSProperties> = {
   },
   monoText: {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-    fontSize: 12,
-    color: 'var(--text, #1f2937)',
+    fontSize: 13,
+    fontWeight: 600,
+    color: '#0f172a',
   },
   statusPill: {
     display: 'inline-block',
-    padding: '3px 10px',
+    padding: '4px 12px',
     borderRadius: 20,
-    fontSize: 11,
-    fontWeight: 600,
+    fontSize: 12,
+    fontWeight: 700,
     textTransform: 'capitalize' as const,
   },
 
@@ -723,7 +793,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '24px 0',
   },
   emptyText: {
-    color: 'var(--text-muted, #6b7280)',
+    color: '#475569',
     fontSize: 14,
     fontStyle: 'italic' as const,
     margin: 0,
