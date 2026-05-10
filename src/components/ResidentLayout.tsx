@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase';
 /* ── Inline Dashboard ── */
 function InlineDashboard({ profile }: { profile: ResidentProfile }) {
   const [whoop, setWhoop] = useState<any>(null);
+  const [whoopHistory, setWhoopHistory] = useState<any[]>([]);
+  const [assessments, setAssessments] = useState<any[]>([]);
   const [counts, setCounts] = useState({ assessments: 0, checkins: 0, events: 0 });
   const [loading, setLoading] = useState(true);
 
@@ -14,11 +16,28 @@ function InlineDashboard({ profile }: { profile: ResidentProfile }) {
 
   async function loadData() {
     const rid = profile.id;
+    // Latest WHOOP
     const { data: wData } = await supabase
       .from('whoop_pulls')
       .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_resting_hr_bpm, avg_total_sleep_min, avg_daily_strain, avg_sleep_efficiency_pct, avg_sleep_consistency_pct, avg_sleep_performance_pct, avg_sleep_debt_min, avg_spo2_pct, avg_respiratory_rate_bpm, avg_skin_temp_c, avg_deep_sleep_min, avg_rem_sleep_min, avg_light_sleep_min, avg_time_in_bed_min, avg_disturbance_count, nap_count, avg_hr_bpm, max_hr_bpm, avg_kilojoules, workout_count, days_with_data, pct_recorded, pulled_at')
       .eq('resident_id', rid).order('pulled_at', { ascending: false }).limit(1);
     if (wData?.length) setWhoop(wData[0]);
+
+    // WHOOP history (last 4 pulls for trend)
+    const { data: wHist } = await supabase
+      .from('whoop_pulls')
+      .select('avg_recovery_score, avg_hrv_rmssd_ms, avg_total_sleep_min, avg_daily_strain, pulled_at')
+      .eq('resident_id', rid).order('pulled_at', { ascending: true }).limit(4);
+    if (wHist) setWhoopHistory(wHist);
+
+    // Assessment scores (all blocks)
+    const { data: aData } = await supabase
+      .from('block_assessments')
+      .select('rotation_name, assessment_date, who5_percent, cbi_work_score, phq9_total, phq9_severity, gad7_total, gad7_severity, isi_total, isi_severity')
+      .eq('resident_id', rid).order('assessment_date').limit(13);
+    if (aData) setAssessments(aData);
+
+    // Counts
     const { count: ba } = await supabase.from('block_assessments').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
     const { count: wc } = await supabase.from('weekly_checkins').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
     const { count: ev } = await supabase.from('event_logs').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
@@ -151,6 +170,85 @@ function InlineDashboard({ profile }: { profile: ResidentProfile }) {
           </div>
         )}
       </div>
+
+      {/* WHOOP Trend (if history available) */}
+      {whoopHistory.length > 1 && (
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 18, marginBottom: 14 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>WHOOP Trend</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${whoopHistory.length}, 1fr)`, gap: 6, textAlign: 'center' }}>
+            {whoopHistory.map((h: any, i: number) => (
+              <div key={i} style={{ fontSize: 11 }}>
+                <div style={{ fontSize: 9, color: '#94a3b8', marginBottom: 4 }}>{new Date(h.pulled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</div>
+                <div style={{ height: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'center', marginBottom: 4 }}>
+                  <div style={{ width: 24, background: recoveryColor(h.avg_recovery_score ?? 0), borderRadius: 4, height: `${Math.max((h.avg_recovery_score ?? 0) * 0.4, 4)}px`, transition: 'height 0.3s' }} />
+                </div>
+                <div style={{ fontWeight: 700, color: recoveryColor(h.avg_recovery_score ?? 0) }}>{h.avg_recovery_score != null ? Math.round(h.avg_recovery_score) + '%' : '--'}</div>
+                <div style={{ fontSize: 9, color: '#64748b' }}>Recovery</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${whoopHistory.length}, 1fr)`, gap: 6, textAlign: 'center', marginTop: 8, borderTop: '1px solid #f1f5f9', paddingTop: 8 }}>
+            {whoopHistory.map((h: any, i: number) => (
+              <div key={i}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#0d9488' }}>{h.avg_hrv_rmssd_ms != null ? Math.round(h.avg_hrv_rmssd_ms) : '--'}</div>
+                <div style={{ fontSize: 9, color: '#64748b' }}>HRV</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: '#334155', marginTop: 2 }}>{h.avg_total_sleep_min != null ? Math.floor(h.avg_total_sleep_min / 60) + 'h' : '--'}</div>
+                <div style={{ fontSize: 9, color: '#64748b' }}>Sleep</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Assessment Scores */}
+      {assessments.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: 18, marginBottom: 14 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', margin: '0 0 12px' }}>Your Assessment Scores</h2>
+          {assessments.map((a: any, i: number) => (
+            <div key={i} style={{ marginBottom: i < assessments.length - 1 ? 14 : 0, paddingBottom: i < assessments.length - 1 ? 14 : 0, borderBottom: i < assessments.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{a.rotation_name === 'BASELINE' ? 'Baseline' : `Block: ${a.rotation_name}`}</span>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>{new Date(a.assessment_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+                <div style={{ background: '#f8fafc', borderRadius: 6, padding: '7px 10px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>WHO-5 Wellbeing</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: (a.who5_percent ?? 0) <= 28 ? '#ef4444' : (a.who5_percent ?? 0) <= 50 ? '#f59e0b' : '#16a34a' }}>{a.who5_percent != null ? a.who5_percent + '%' : '--'}</div>
+                </div>
+                <div style={{ background: '#f8fafc', borderRadius: 6, padding: '7px 10px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>CBI Work Burnout</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: parseFloat(a.cbi_work_score) >= 50 ? '#ef4444' : '#16a34a' }}>{a.cbi_work_score != null ? Math.round(parseFloat(a.cbi_work_score)) + '/100' : '--'}</div>
+                </div>
+                <div style={{ background: '#f8fafc', borderRadius: 6, padding: '7px 10px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>PHQ-9 Depression</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: (a.phq9_total ?? 0) >= 15 ? '#ef4444' : (a.phq9_total ?? 0) >= 10 ? '#f59e0b' : '#16a34a' }}>{a.phq9_total ?? '--'}<span style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8' }}>/27</span></div>
+                  {a.phq9_severity && <div style={{ fontSize: 10, color: '#64748b', textTransform: 'capitalize' }}>{a.phq9_severity.replace(/_/g, ' ')}</div>}
+                </div>
+                <div style={{ background: '#f8fafc', borderRadius: 6, padding: '7px 10px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>GAD-7 Anxiety</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: (a.gad7_total ?? 0) >= 15 ? '#ef4444' : (a.gad7_total ?? 0) >= 10 ? '#f59e0b' : '#16a34a' }}>{a.gad7_total ?? '--'}<span style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8' }}>/21</span></div>
+                  {a.gad7_severity && <div style={{ fontSize: 10, color: '#64748b', textTransform: 'capitalize' }}>{a.gad7_severity.replace(/_/g, ' ')}</div>}
+                </div>
+                {a.isi_total != null && (
+                  <div style={{ background: '#f8fafc', borderRadius: 6, padding: '7px 10px' }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>ISI Insomnia</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: (a.isi_total ?? 0) >= 15 ? '#ef4444' : (a.isi_total ?? 0) >= 8 ? '#f59e0b' : '#16a34a' }}>{a.isi_total}<span style={{ fontSize: 10, fontWeight: 400, color: '#94a3b8' }}>/28</span></div>
+                    {a.isi_severity && <div style={{ fontSize: 10, color: '#64748b', textTransform: 'capitalize' }}>{a.isi_severity.replace(/_/g, ' ')}</div>}
+                  </div>
+                )}
+              </div>
+              {/* Interpretation */}
+              <div style={{ marginTop: 8, fontSize: 11, color: '#475569', lineHeight: 1.5, background: '#f8fafc', borderRadius: 6, padding: '8px 10px' }}>
+                {(a.phq9_total ?? 0) >= 15 || (a.gad7_total ?? 0) >= 15
+                  ? 'Some of your scores indicate significant distress. Please consider reaching out to the OMSB Counselling & Guidance Section for confidential support.'
+                  : (a.phq9_total ?? 0) >= 10 || (a.gad7_total ?? 0) >= 10 || parseFloat(a.cbi_work_score) >= 50
+                  ? 'Some scores are in the moderate range. Prioritize self-care, sleep, and social support. The research team is available if you need to talk.'
+                  : 'Your scores are within normal ranges. Continue maintaining a healthy balance.'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Privacy note */}
       <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px', marginBottom: 14, fontSize: 12, color: '#854d0e', lineHeight: 1.6 }}>
