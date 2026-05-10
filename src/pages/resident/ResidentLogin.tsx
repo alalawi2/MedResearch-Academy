@@ -11,7 +11,7 @@ export default function ResidentLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [mode, setMode] = useState<Mode>('magic');
+  const [mode, setMode] = useState<Mode>('password');
   const [settleCount, setSettleCount] = useState(0);
 
   // Wait for auth to fully settle (link-resident API call may still be in progress)
