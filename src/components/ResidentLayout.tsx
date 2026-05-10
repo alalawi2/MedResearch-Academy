@@ -307,7 +307,9 @@ export default function ResidentLayout() {
 
       {/* ── Main Content ── */}
       <main style={{flex:1,padding:'20px 16px',paddingBottom:hideNav ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
-        {/* Inline dashboard — no Outlet, no routing, no code splitting */}
+        <div style={{background:'#dc2626',color:'white',padding:20,borderRadius:12,marginBottom:16,fontSize:16,fontWeight:700}}>
+          TEST: If you see this red box, the layout is working. Profile: {residentProfile.study_participant_id} | Path: {location.pathname}
+        </div>
         <InlineDashboard profile={residentProfile} />
       </main>
 
