@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { supabase } from '../lib/supabase';
 
 export default function EnrollWhoop() {
   const [params] = useSearchParams();
@@ -7,6 +9,40 @@ export default function EnrollWhoop() {
   const error = params.get('error');
   const detail = params.get('detail');
   const participantId = params.get('id');
+  const enrollEmail = params.get('email');
+
+  const [pwStep, setPwStep] = useState(false);
+  const [email, setEmail] = useState(enrollEmail || '');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwDone, setPwDone] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
+
+  async function handleCreateAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) { setPwError('Email is required'); return; }
+    if (password.length < 8) { setPwError('Password must be at least 8 characters'); return; }
+    if (password !== confirm) { setPwError('Passwords do not match'); return; }
+    setPwLoading(true);
+    setPwError(null);
+    try {
+      const res = await fetch('/api/create-resident-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setPwError(data.error || 'Failed to create account'); setPwLoading(false); return; }
+      // Sign in immediately
+      const { error: signErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (signErr) { setPwError('Account created but sign-in failed: ' + signErr.message); setPwLoading(false); return; }
+      setPwDone(true);
+    } catch (err: any) {
+      setPwError(err.message || 'Network error');
+    }
+    setPwLoading(false);
+  }
 
   return (
     <Layout>
@@ -23,20 +59,60 @@ export default function EnrollWhoop() {
 
           {success === 'enrolled' ? (
             <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:20,padding:'48px 36px'}}>
-              <div style={{fontSize:56,marginBottom:16}}>✅</div>
-              <h2 style={{fontFamily:'var(--font-serif)',color:'#166534',fontSize:'1.6rem',marginBottom:12}}>You're Enrolled!</h2>
-              <p style={{fontSize:15,color:'#166534',lineHeight:1.7,marginBottom:16}}>
-                Your WHOOP band is now connected to the study. Your study ID is:
-              </p>
-              <div style={{background:'white',borderRadius:12,padding:'16px 24px',display:'inline-block',fontSize:'1.8rem',fontFamily:'monospace',fontWeight:700,color:'var(--primary)',border:'1px solid #bbf7d0',marginBottom:20}}>
-                {participantId}
-              </div>
-              <p style={{fontSize:13,color:'#15803d',lineHeight:1.6,marginBottom:24}}>
-                Your biophysical data will be collected automatically. Next step: set up your study portal account to complete questionnaires and check-ins.
-              </p>
-              <a href="/resident/login" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px 28px',borderRadius:10,background:'#166534',color:'white',fontWeight:600,fontSize:15,textDecoration:'none',width:'100%',maxWidth:320,margin:'0 auto'}}>
-                Set Up Portal Account →
-              </a>
+              <div style={{fontSize:56,marginBottom:16}}>{pwDone ? '🎉' : '✅'}</div>
+              <h2 style={{fontFamily:'var(--font-serif)',color:'#166534',fontSize:'1.6rem',marginBottom:12}}>
+                {pwDone ? 'All Set!' : "You're Enrolled!"}
+              </h2>
+
+              {pwDone ? (
+                <>
+                  <p style={{fontSize:15,color:'#166534',lineHeight:1.7,marginBottom:24}}>
+                    Your account is ready. You can now access the resident portal anytime.
+                  </p>
+                  <a href="/resident/dashboard" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px 28px',borderRadius:10,background:'#166534',color:'white',fontWeight:600,fontSize:15,textDecoration:'none',width:'100%',maxWidth:320,margin:'0 auto'}}>
+                    Go to Dashboard →
+                  </a>
+                </>
+              ) : pwStep ? (
+                <>
+                  <p style={{fontSize:14,color:'#166534',lineHeight:1.6,marginBottom:16}}>
+                    Create a password to access your study portal. You'll use this email and password to log in.
+                  </p>
+                  <form onSubmit={handleCreateAccount} style={{textAlign:'left',maxWidth:360,margin:'0 auto'}}>
+                    <label style={{display:'block',fontSize:12,fontWeight:600,color:'#15803d',marginBottom:4}}>Email</label>
+                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="your.email@hospital.om"
+                      style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'1px solid #bbf7d0',fontSize:14,marginBottom:12,outline:'none',background:'white'}} />
+                    <label style={{display:'block',fontSize:12,fontWeight:600,color:'#15803d',marginBottom:4}}>Password</label>
+                    <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 characters"
+                      style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'1px solid #bbf7d0',fontSize:14,marginBottom:12,outline:'none',background:'white'}} />
+                    <label style={{display:'block',fontSize:12,fontWeight:600,color:'#15803d',marginBottom:4}}>Confirm Password</label>
+                    <input type="password" required value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Repeat password"
+                      style={{width:'100%',padding:'12px 14px',borderRadius:10,border:'1px solid #bbf7d0',fontSize:14,marginBottom:12,outline:'none',background:'white'}} />
+                    {pwError && <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',fontSize:13,color:'#991b1b',marginBottom:12}}>{pwError}</div>}
+                    <button type="submit" disabled={pwLoading} style={{width:'100%',padding:'14px',borderRadius:10,border:'none',background:'#166534',color:'white',fontWeight:600,fontSize:15,cursor:pwLoading?'not-allowed':'pointer',opacity:pwLoading?0.6:1}}>
+                      {pwLoading ? 'Creating...' : 'Create Account'}
+                    </button>
+                  </form>
+                </>
+              ) : (
+                <>
+                  <p style={{fontSize:15,color:'#166534',lineHeight:1.7,marginBottom:12}}>
+                    Your WHOOP band is now connected to the study. Your study ID is:
+                  </p>
+                  <div style={{background:'white',borderRadius:12,padding:'16px 24px',display:'inline-block',fontSize:'1.8rem',fontFamily:'monospace',fontWeight:700,color:'var(--primary)',border:'1px solid #bbf7d0',marginBottom:16}}>
+                    {participantId}
+                  </div>
+                  <p style={{fontSize:13,color:'#15803d',lineHeight:1.6,marginBottom:24}}>
+                    Next step: create your portal account to complete questionnaires and weekly check-ins.
+                  </p>
+                  <button onClick={() => setPwStep(true)} style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'14px 28px',borderRadius:10,background:'#166534',color:'white',fontWeight:600,fontSize:15,border:'none',cursor:'pointer',width:'100%',maxWidth:320,margin:'0 auto'}}>
+                    Create Portal Account →
+                  </button>
+                  <div style={{marginTop:12}}>
+                    <a href="/resident/login" style={{fontSize:13,color:'#15803d',textDecoration:'underline'}}>Already have an account? Sign in</a>
+                  </div>
+                </>
+              )}
             </div>
 
           ) : success === 'reconnected' ? (

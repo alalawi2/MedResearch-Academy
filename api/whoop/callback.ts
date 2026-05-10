@@ -135,7 +135,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           details: { whoop_user_id: whoopUserId, participant_id: existing.study_participant_id },
         });
 
-      return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${existing.study_participant_id}`);
+      return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${existing.study_participant_id}&email=${encodeURIComponent(whoopEmail || '')}`);
     }
 
     // New participant — generate next study participant ID
@@ -200,7 +200,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: { whoop_user_id: whoopUserId, participant_id: participantId },
       });
 
-    return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${participantId}`);
+    return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${participantId}&email=${encodeURIComponent(whoopEmail || '')}`);
   } catch (err: any) {
     console.error('WHOOP callback error:', err);
     return res.redirect(`${SITE_URL}/enroll/whoop?error=server_error`);
