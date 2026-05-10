@@ -53,6 +53,23 @@ interface Participant {
   status: string;
   whoop_user_id: string | null;
   demographics_completed: boolean | null;
+  baseline_completed: boolean | null;
+}
+
+interface ParticipantWhoop {
+  resident_id: string;
+  avg_recovery_score: number | null;
+  avg_hrv_rmssd_ms: number | null;
+  avg_total_sleep_min: number | null;
+  avg_daily_strain: number | null;
+  days_with_data: number | null;
+}
+
+interface ParticipantScores {
+  resident_id: string;
+  cbi_work: number | null;
+  phq9: number | null;
+  gad7: number | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -122,6 +139,8 @@ export default function Overview() {
   const [loading, setLoading] = useState(true);
   const [pulling, setPulling] = useState(false);
   const [pullResult, setPullResult] = useState<string | null>(null);
+  const [perParticipantWhoop, setPerParticipantWhoop] = useState<ParticipantWhoop[]>([]);
+  const [perParticipantScores, setPerParticipantScores] = useState<ParticipantScores[]>([]);
 
   const studyId = studyRoles[0]?.study_id;
   const studySlug = studyRoles[0]?.study_slug ?? '';
@@ -140,7 +159,7 @@ export default function Overview() {
       /* Enrollment KPIs */
       const { data: pRows } = await supabase
         .from('burnout_participants')
-        .select('id, study_participant_id, full_name, status, whoop_user_id, demographics_completed')
+        .select('id, study_participant_id, full_name, status, whoop_user_id, demographics_completed, baseline_completed')
         .eq('study_id', studyId)
         .limit(500);
 
@@ -213,7 +232,7 @@ export default function Overview() {
       /* WHOOP Biometrics — latest pull per participant */
       const { data: whoopData } = await supabase
         .from('whoop_pulls')
-        .select('resident_id, avg_hrv_rmssd_ms, avg_recovery_score, avg_resting_hr_bpm, avg_total_sleep_min, avg_sleep_efficiency_pct, avg_sleep_debt_min, avg_daily_strain, avg_spo2_pct, avg_respiratory_rate_bpm, avg_skin_temp_c, pulled_at')
+        .select('resident_id, avg_hrv_rmssd_ms, avg_recovery_score, avg_resting_hr_bpm, avg_total_sleep_min, avg_sleep_efficiency_pct, avg_sleep_debt_min, avg_daily_strain, avg_spo2_pct, avg_respiratory_rate_bpm, avg_skin_temp_c, days_with_data, pulled_at')
         .eq('study_id', studyId)
         .order('pulled_at', { ascending: false })
         .limit(1000);
@@ -247,6 +266,40 @@ export default function Overview() {
             avgSkinTemp: avg(nums(latest.map(r => r.avg_skin_temp_c))),
             participantCount: latest.length,
           });
+        }
+      }
+
+      /* Per-participant WHOOP (latest per person) */
+      if (!cancelled && whoopData) {
+        const seen2 = new Set<string>();
+        const ppWhoop: ParticipantWhoop[] = [];
+        for (const r of (whoopData ?? [])) {
+          if (!seen2.has(r.resident_id)) {
+            seen2.add(r.resident_id);
+            ppWhoop.push({ resident_id: r.resident_id, avg_recovery_score: r.avg_recovery_score, avg_hrv_rmssd_ms: r.avg_hrv_rmssd_ms, avg_total_sleep_min: r.avg_total_sleep_min, avg_daily_strain: r.avg_daily_strain, days_with_data: (r as any).days_with_data ?? null });
+          }
+        }
+        setPerParticipantWhoop(ppWhoop);
+      }
+
+      /* Per-participant latest scores */
+      if (!cancelled) {
+        const { data: baScores } = await supabase
+          .from('block_assessments')
+          .select('resident_id, cbi_work_score, phq9_total, gad7_total, assessment_date')
+          .eq('study_id', studyId)
+          .order('assessment_date', { ascending: false })
+          .limit(500);
+        if (baScores) {
+          const seen3 = new Set<string>();
+          const ppScores: ParticipantScores[] = [];
+          for (const r of baScores) {
+            if (!seen3.has(r.resident_id)) {
+              seen3.add(r.resident_id);
+              ppScores.push({ resident_id: r.resident_id, cbi_work: r.cbi_work_score ? parseFloat(r.cbi_work_score) : null, phq9: r.phq9_total, gad7: r.gad7_total });
+            }
+          }
+          setPerParticipantScores(ppScores);
         }
       }
 
@@ -481,6 +534,122 @@ export default function Overview() {
               )}
             </tbody>
           </table>
+        </div>
+      </Section>
+
+      {/* ---------- PER-PARTICIPANT WHOOP COMPARISON ---------- */}
+      {perParticipantWhoop.length > 0 && (
+        <Section title="Participant WHOOP Comparison">
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Participant</th>
+                  <th style={styles.th}>Recovery</th>
+                  <th style={styles.th}>HRV</th>
+                  <th style={styles.th}>Sleep</th>
+                  <th style={styles.th}>Strain</th>
+                  <th style={styles.th}>Days</th>
+                </tr>
+              </thead>
+              <tbody>
+                {perParticipantWhoop.map((pw) => {
+                  const p = participants.find(x => x.id === pw.resident_id);
+                  return (
+                    <tr key={pw.resident_id} style={styles.tableRow}>
+                      <td style={styles.td}><span style={styles.monoText}>{p?.study_participant_id ?? '?'}</span></td>
+                      <td style={{ ...styles.td, color: pw.avg_recovery_score != null ? (pw.avg_recovery_score >= 67 ? '#16a34a' : pw.avg_recovery_score >= 34 ? '#d97706' : '#dc2626') : '#94a3b8', fontWeight: 700 }}>
+                        {pw.avg_recovery_score != null ? Math.round(pw.avg_recovery_score) + '%' : '\u2014'}
+                      </td>
+                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.avg_hrv_rmssd_ms != null ? Math.round(pw.avg_hrv_rmssd_ms) + ' ms' : '\u2014'}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: pw.avg_total_sleep_min != null && pw.avg_total_sleep_min < 420 ? '#dc2626' : '#0f172a' }}>
+                        {pw.avg_total_sleep_min != null ? Math.floor(pw.avg_total_sleep_min / 60) + 'h ' + Math.round(pw.avg_total_sleep_min % 60) + 'm' : '\u2014'}
+                      </td>
+                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.avg_daily_strain != null ? pw.avg_daily_strain.toFixed(1) : '\u2014'}</td>
+                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.days_with_data ?? 0}/28</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
+
+      {/* ---------- PER-PARTICIPANT ASSESSMENT SCORES ---------- */}
+      {perParticipantScores.length > 0 && (
+        <Section title="Latest Assessment Scores by Participant">
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Participant</th>
+                  <th style={styles.th}>CBI Work</th>
+                  <th style={styles.th}>PHQ-9</th>
+                  <th style={styles.th}>GAD-7</th>
+                  <th style={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {perParticipantScores.map((ps) => {
+                  const p = participants.find(x => x.id === ps.resident_id);
+                  const flagged = (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15 || (ps.cbi_work ?? 0) >= 50;
+                  return (
+                    <tr key={ps.resident_id} style={{ ...styles.tableRow, background: flagged ? '#fef2f2' : undefined }}>
+                      <td style={styles.td}><span style={styles.monoText}>{p?.study_participant_id ?? '?'}</span></td>
+                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.cbi_work ?? 0) >= 50 ? '#dc2626' : '#16a34a' }}>
+                        {ps.cbi_work != null ? Math.round(ps.cbi_work) + '/100' : '\u2014'}
+                      </td>
+                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.phq9 ?? 0) >= 15 ? '#dc2626' : (ps.phq9 ?? 0) >= 10 ? '#d97706' : '#16a34a' }}>
+                        {ps.phq9 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#94a3b8' }}>/27</span>
+                      </td>
+                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.gad7 ?? 0) >= 15 ? '#dc2626' : (ps.gad7 ?? 0) >= 10 ? '#d97706' : '#16a34a' }}>
+                        {ps.gad7 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#94a3b8' }}>/21</span>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{ ...styles.statusPill, background: flagged ? '#fee2e2' : '#dcfce7', color: flagged ? '#991b1b' : '#166534' }}>
+                          {flagged ? 'Flagged' : 'Normal'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+      )}
+
+      {/* ---------- STUDY COMPLIANCE ---------- */}
+      <Section title="Study Compliance">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+          <div style={styles.kpiCard}>
+            <div style={styles.kpiTop}><span style={styles.kpiLabel}>Baseline Completion</span></div>
+            <div style={{ ...styles.kpiValue, color: '#2563eb' }}>
+              {participants.filter(p => p.baseline_completed).length}/{participants.length}
+            </div>
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+              {participants.length > 0 ? Math.round(participants.filter(p => p.baseline_completed).length / participants.length * 100) : 0}% complete
+            </div>
+          </div>
+          <div style={styles.kpiCard}>
+            <div style={styles.kpiTop}><span style={styles.kpiLabel}>WHOOP Adherence</span></div>
+            <div style={{ ...styles.kpiValue, color: '#7c3aed' }}>
+              {perParticipantWhoop.filter(w => (w.days_with_data ?? 0) >= 20).length}/{perParticipantWhoop.length}
+            </div>
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+              {'\u226520'} days data ({perParticipantWhoop.length > 0 ? Math.round(perParticipantWhoop.filter(w => (w.days_with_data ?? 0) >= 20).length / perParticipantWhoop.length * 100) : 0}%)
+            </div>
+          </div>
+          <div style={styles.kpiCard}>
+            <div style={styles.kpiTop}><span style={styles.kpiLabel}>Flagged Participants</span></div>
+            <div style={{ ...styles.kpiValue, color: perParticipantScores.some(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15) ? '#dc2626' : '#16a34a' }}>
+              {perParticipantScores.filter(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15 || (ps.cbi_work ?? 0) >= 50).length}
+            </div>
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+              PHQ-9{'\u226515'} or GAD-7{'\u226515'} or CBI{'\u226550'}
+            </div>
+          </div>
         </div>
       </Section>
 
