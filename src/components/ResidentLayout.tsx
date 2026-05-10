@@ -307,15 +307,13 @@ export default function ResidentLayout() {
 
       {/* ── Main Content ── */}
       <main style={{flex:1,padding:'20px 16px',paddingBottom:hideNav ? 24 : 80,maxWidth:600,width:'100%',margin:'0 auto'}}>
-        <div style={{background:'#dc2626',color:'white',padding:20,borderRadius:12,marginBottom:16,fontSize:16,fontWeight:700}}>
-          TEST: If you see this red box, the layout is working. Profile: {residentProfile.study_participant_id} | Path: {location.pathname}
-        </div>
         <InlineDashboard profile={residentProfile} />
       </main>
 
       {/* ── Bottom Navigation (hidden during demographics) ── */}
       {!hideNav && <nav style={{
         position:'fixed',
+        top:'auto',
         bottom:0,
         left:0,
         right:0,
@@ -323,8 +321,11 @@ export default function ResidentLayout() {
         borderTop:'1px solid var(--border)',
         display:'flex',
         justifyContent:'space-around',
+        alignItems:'center',
         padding:'8px 0 calc(8px + env(safe-area-inset-bottom, 0px))',
         zIndex:50,
+        boxShadow:'0 -2px 10px rgba(0,0,0,0.05)',
+        backdropFilter:'none',
       }}>
         {NAV_ITEMS.map(item => {
           const active = location.pathname.startsWith(item.path);
