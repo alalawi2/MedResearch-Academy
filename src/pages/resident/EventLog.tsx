@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -60,6 +61,7 @@ function isWithin24Hours(createdAt: string): boolean {
 }
 
 export default function EventLog() {
+  const navigate = useNavigate();
   const { residentProfile } = useAuth();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -162,6 +164,24 @@ export default function EventLog() {
 
   return (
     <div>
+      <button
+        onClick={() => navigate('/resident/dashboard')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'none',
+          border: 'none',
+          color: 'var(--primary)',
+          fontSize: 13,
+          fontWeight: 500,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: 12,
+        }}
+      >
+        &larr; Dashboard
+      </button>
       <h1 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-serif)', color: 'var(--primary)', marginBottom: 8 }}>
         Event Log
       </h1>

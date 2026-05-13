@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
@@ -96,6 +97,7 @@ const ratingCircle = (active: boolean, color: string): React.CSSProperties => ({
 });
 
 export default function WeeklyCheckin() {
+  const navigate = useNavigate();
   const { residentProfile } = useAuth();
 
   const today = new Date();
@@ -227,6 +229,24 @@ export default function WeeklyCheckin() {
 
   return (
     <div>
+      <button
+        onClick={() => navigate('/resident/dashboard')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'none',
+          border: 'none',
+          color: 'var(--primary)',
+          fontSize: 13,
+          fontWeight: 500,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: 12,
+        }}
+      >
+        &larr; Dashboard
+      </button>
       <h1 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-serif)', color: 'var(--primary)', marginBottom: 8 }}>
         Weekly Check-in
       </h1>
@@ -249,6 +269,24 @@ export default function WeeklyCheckin() {
           fontWeight: 500,
         }}>
           Check-in saved successfully.
+          <button
+            onClick={() => navigate('/resident/dashboard')}
+            style={{
+              display: 'block',
+              width: '100%',
+              marginTop: 12,
+              padding: '10px 20px',
+              borderRadius: 8,
+              border: '1.5px solid #276749',
+              background: '#276749',
+              color: 'white',
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Back to Dashboard
+          </button>
         </div>
       )}
 
