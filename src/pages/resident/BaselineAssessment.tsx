@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import SupportAdvice from '../../components/SupportAdvice';
@@ -204,6 +205,7 @@ const styles = {
 // ---------------------------------------------------------------------------
 
 export default function BaselineAssessment() {
+  const navigate = useNavigate();
   const { residentProfile } = useAuth();
 
   const [currentPart, setCurrentPart] = useState(1);
@@ -665,6 +667,24 @@ export default function BaselineAssessment() {
 
   return (
     <div style={styles.page}>
+      <button
+        onClick={() => navigate('/resident/dashboard')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'none',
+          border: 'none',
+          color: 'var(--primary)',
+          fontSize: 13,
+          fontWeight: 500,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: 12,
+        }}
+      >
+        &larr; Dashboard
+      </button>
       {/* Header */}
       <h1 style={styles.heading}>Baseline Assessment</h1>
       <p style={styles.description}>

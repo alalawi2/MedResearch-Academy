@@ -38,6 +38,24 @@ export default function ResidentSetPassword() {
 
   return (
     <div style={{ maxWidth: 420, margin: '0 auto', padding: '24px 0' }}>
+      <button
+        onClick={() => navigate('/resident/dashboard')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'none',
+          border: 'none',
+          color: 'var(--primary)',
+          fontSize: 13,
+          fontWeight: 500,
+          cursor: 'pointer',
+          padding: 0,
+          marginBottom: 12,
+        }}
+      >
+        &larr; Dashboard
+      </button>
       <h1 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-serif)', color: '#0f172a', marginBottom: 8 }}>
         Set Your Password
       </h1>
