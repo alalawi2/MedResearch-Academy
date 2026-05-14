@@ -100,6 +100,110 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 /* ------------------------------------------------------------------ */
+/*  Clinical color coding helpers                                      */
+/* ------------------------------------------------------------------ */
+
+function recoveryColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v >= 67) return '#10b981';
+  if (v >= 34) return '#f59e0b';
+  return '#ef4444';
+}
+
+function hrvColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v >= 50) return '#10b981';
+  if (v >= 30) return '#f59e0b';
+  return '#ef4444';
+}
+
+function rhrColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v <= 65) return '#10b981';
+  if (v <= 80) return '#f59e0b';
+  return '#ef4444';
+}
+
+function sleepColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v >= 7) return '#10b981';
+  if (v >= 6) return '#f59e0b';
+  return '#ef4444';
+}
+
+function strainColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v >= 8 && v <= 14) return '#10b981';
+  if (v < 4 || v > 18) return '#ef4444';
+  return '#f59e0b';
+}
+
+function spo2Color(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v >= 96) return '#10b981';
+  if (v >= 93) return '#f59e0b';
+  return '#ef4444';
+}
+
+function phq9Color(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v <= 4) return '#10b981';
+  if (v <= 9) return '#22c55e';
+  if (v <= 14) return '#f59e0b';
+  if (v <= 19) return '#f97316';
+  return '#ef4444';
+}
+
+function phq9Label(v: number | null): string {
+  if (v == null) return '';
+  if (v <= 4) return 'Minimal';
+  if (v <= 9) return 'Mild';
+  if (v <= 14) return 'Moderate';
+  if (v <= 19) return 'Mod-Severe';
+  return 'Severe';
+}
+
+function gad7Color(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v <= 4) return '#10b981';
+  if (v <= 9) return '#22c55e';
+  if (v <= 14) return '#f59e0b';
+  return '#ef4444';
+}
+
+function gad7Label(v: number | null): string {
+  if (v == null) return '';
+  if (v <= 4) return 'Minimal';
+  if (v <= 9) return 'Mild';
+  if (v <= 14) return 'Moderate';
+  return 'Severe';
+}
+
+function cbiColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v < 25) return '#10b981';
+  if (v < 50) return '#f59e0b';
+  if (v < 75) return '#f97316';
+  return '#ef4444';
+}
+
+function cbiLabel(v: number | null): string {
+  if (v == null) return '';
+  if (v < 25) return 'Low';
+  if (v < 50) return 'Moderate';
+  if (v < 75) return 'High';
+  return 'Severe';
+}
+
+function isiColor(v: number | null): string {
+  if (v == null) return '#64748b';
+  if (v <= 7) return '#10b981';
+  if (v <= 14) return '#f59e0b';
+  if (v <= 21) return '#f97316';
+  return '#ef4444';
+}
+
+/* ------------------------------------------------------------------ */
 /*  Skeleton loaders                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -375,20 +479,25 @@ export default function Overview() {
     <div style={styles.container}>
       {/* ---------- WELCOME HEADER ---------- */}
       <header style={styles.header}>
-        <div>
-          <h1 style={styles.h1}>Welcome, {staff?.full_name ?? 'Researcher'}</h1>
-          <p style={styles.subtitle}>
-            {studySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-            <span style={styles.statusBadge}>Active</span>
-          </p>
+        <div style={styles.headerInner}>
+          <div style={styles.headerLeft}>
+            <h1 style={styles.h1}>Welcome, {staff?.full_name ?? 'Researcher'}</h1>
+            <p style={styles.subtitle}>
+              {studySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+              <span style={styles.statusBadge}>
+                <span style={styles.statusDot} />
+                Active
+              </span>
+            </p>
+          </div>
+          <span style={{ ...styles.roleBadge, background: roleColor(userRole) }}>
+            {ROLE_LABELS[userRole] ?? userRole.replace(/_/g, ' ')}
+          </span>
         </div>
-        <span style={{ ...styles.roleBadge, background: roleColor(userRole) }}>
-          {ROLE_LABELS[userRole] ?? userRole.replace(/_/g, ' ')}
-        </span>
       </header>
 
       {/* ---------- ENROLLMENT KPIs ---------- */}
-      <Section title="Enrollment">
+      <Section title="Enrollment" icon={enrolledIcon}>
         <div style={styles.kpiGrid}>
           {loading
             ? [1, 2, 3, 4].map(i => <SkeletonCard key={i} />)
@@ -399,7 +508,7 @@ export default function Overview() {
       </Section>
 
       {/* ---------- DATA COLLECTION ---------- */}
-      <Section title="Data Collection Progress">
+      <Section title="Data Collection Progress" icon={clipboardIcon}>
         <div style={styles.kpiGrid}>
           {loading
             ? [1, 2, 3, 4].map(i => <SkeletonCard key={i} />)
@@ -412,74 +521,178 @@ export default function Overview() {
       {/* ---------- BURNOUT + WHOOP ROW ---------- */}
       <div style={styles.twoCol}>
         {/* Burnout overview */}
-        <Section title="Burnout Overview" style={{ flex: 1, minWidth: 0 }}>
+        <Section title="Burnout Overview" icon={flagIcon} style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
             <div style={styles.loadingBox}><div style={{ ...styles.skeletonLine, width: '50%', height: 16 }} /></div>
           ) : burnout && burnout.assessmentCount === 0 ? (
             <p style={styles.emptyText}>No assessments yet</p>
           ) : burnout ? (
-            <div style={styles.metricsGrid}>
-              <MetricRow label="CBI Work" value={fmt(burnout.avgWork)} />
-              <MetricRow label="Avg PHQ-9" value={fmt(burnout.avgPHQ9)} />
-              <MetricRow label="PHQ-9 Moderate+" value={pct(burnout.phqModerateRate)} warn={burnout.phqModerateRate != null && burnout.phqModerateRate > 25} />
-              <MetricRow label="Avg GAD-7" value={fmt(burnout.avgGAD7)} />
-              <MetricRow label="GAD-7 Moderate+" value={pct(burnout.gadModerateRate)} warn={burnout.gadModerateRate != null && burnout.gadModerateRate > 25} />
-              <MetricRow label="Avg ISI" value={fmt(burnout.avgISI)} />
-              <MetricRow label="ISI Moderate+" value={pct(burnout.isiModerateRate)} warn={burnout.isiModerateRate != null && burnout.isiModerateRate > 25} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <GaugeBar
+                label="CBI Work Burnout"
+                value={burnout.avgWork}
+                max={100}
+                color={cbiColor(burnout.avgWork)}
+                displayValue={fmt(burnout.avgWork, 0)}
+                sublabel={cbiLabel(burnout.avgWork)}
+              />
+              <GaugeBar
+                label="PHQ-9 (Depression)"
+                value={burnout.avgPHQ9}
+                max={27}
+                color={phq9Color(burnout.avgPHQ9)}
+                displayValue={fmt(burnout.avgPHQ9, 1)}
+                sublabel={phq9Label(burnout.avgPHQ9)}
+              />
+              <div style={styles.gaugeSubInfo}>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>Moderate+ rate:</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: burnout.phqModerateRate != null && burnout.phqModerateRate > 25 ? '#ef4444' : '#10b981' }}>{pct(burnout.phqModerateRate)}</span>
+              </div>
+              <GaugeBar
+                label="GAD-7 (Anxiety)"
+                value={burnout.avgGAD7}
+                max={21}
+                color={gad7Color(burnout.avgGAD7)}
+                displayValue={fmt(burnout.avgGAD7, 1)}
+                sublabel={gad7Label(burnout.avgGAD7)}
+              />
+              <div style={styles.gaugeSubInfo}>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>Moderate+ rate:</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: burnout.gadModerateRate != null && burnout.gadModerateRate > 25 ? '#ef4444' : '#10b981' }}>{pct(burnout.gadModerateRate)}</span>
+              </div>
+              <GaugeBar
+                label="ISI (Insomnia)"
+                value={burnout.avgISI}
+                max={28}
+                color={isiColor(burnout.avgISI)}
+                displayValue={fmt(burnout.avgISI, 1)}
+                sublabel={burnout.avgISI != null ? (burnout.avgISI <= 7 ? 'No insomnia' : burnout.avgISI <= 14 ? 'Subthreshold' : burnout.avgISI <= 21 ? 'Moderate' : 'Severe') : ''}
+              />
+              <div style={styles.gaugeSubInfo}>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>Moderate+ rate:</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: burnout.isiModerateRate != null && burnout.isiModerateRate > 25 ? '#ef4444' : '#10b981' }}>{pct(burnout.isiModerateRate)}</span>
+              </div>
+              <div style={{ marginTop: 4, padding: '8px 12px', borderRadius: 10, background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.12)' }}>
+                <span style={{ fontSize: 11, color: '#64748b' }}>Total assessments collected: </span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#2563eb' }}>{burnout.assessmentCount}</span>
+              </div>
             </div>
           ) : null}
         </Section>
 
         {/* WHOOP biometrics */}
-        <Section title="WHOOP Biometrics Summary" style={{ flex: 1, minWidth: 0 }}>
+        <Section title="WHOOP Biometrics Summary" icon={whoopIcon} style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
             <div style={styles.loadingBox}><div style={{ ...styles.skeletonLine, width: '50%', height: 16 }} /></div>
           ) : whoop ? (
-            <div style={styles.metricsGrid}>
-              <MetricRow label="Participants" value={String(whoop.participantCount)} />
-              <MetricRow label="Avg Recovery" value={fmt(whoop.avgRecovery, 0, '%')} />
-              <MetricRow label="Avg HRV" value={fmt(whoop.avgHRV, 1, ' ms')} />
-              <MetricRow label="Avg Resting HR" value={fmt(whoop.avgRHR, 0, ' bpm')} />
-              <MetricRow label="Avg Sleep" value={fmt(whoop.avgSleepHours, 1, ' hrs')} warn={whoop.avgSleepHours != null && whoop.avgSleepHours < 7} />
-              <MetricRow label="Sleep Efficiency" value={fmt(whoop.avgSleepEfficiency, 0, '%')} />
-              <MetricRow label="Sleep Debt" value={fmt(whoop.avgSleepDebt, 0, ' min')} warn={whoop.avgSleepDebt != null && whoop.avgSleepDebt > 60} />
-              <MetricRow label="Avg Strain" value={fmt(whoop.avgStrain, 1, ' /21')} />
-              <MetricRow label="Avg SpO2" value={fmt(whoop.avgSpO2, 1, '%')} />
-              <MetricRow label="Respiratory Rate" value={fmt(whoop.avgRespRate, 1, ' br/min')} />
-              <MetricRow label="Skin Temp" value={fmt(whoop.avgSkinTemp, 1, ' °C')} />
+            <div>
+              <div style={{ marginBottom: 14, padding: '8px 14px', borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.12)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 11, color: '#64748b' }}>Participants with data:</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: '#7c3aed' }}>{whoop.participantCount}</span>
+              </div>
+              <div style={styles.whoopGrid}>
+                <WhoopMetricCard
+                  label="Recovery"
+                  value={fmt(whoop.avgRecovery, 0, '%')}
+                  color={recoveryColor(whoop.avgRecovery)}
+                  info="Readiness for strain. Green >= 67%"
+                />
+                <WhoopMetricCard
+                  label="HRV"
+                  value={fmt(whoop.avgHRV, 1, ' ms')}
+                  color={hrvColor(whoop.avgHRV)}
+                  info="Heart rate variability. Green >= 50ms"
+                />
+                <WhoopMetricCard
+                  label="Resting HR"
+                  value={fmt(whoop.avgRHR, 0, ' bpm')}
+                  color={rhrColor(whoop.avgRHR)}
+                  info="Lower is better. Green <= 65 bpm"
+                />
+                <WhoopMetricCard
+                  label="Sleep"
+                  value={fmt(whoop.avgSleepHours, 1, ' hrs')}
+                  color={sleepColor(whoop.avgSleepHours)}
+                  info="Total sleep time. Green >= 7 hrs"
+                />
+                <WhoopMetricCard
+                  label="Strain"
+                  value={fmt(whoop.avgStrain, 1, ' /21')}
+                  color={strainColor(whoop.avgStrain)}
+                  info="Cardiovascular load. Optimal 8-14"
+                />
+                <WhoopMetricCard
+                  label="SpO2"
+                  value={fmt(whoop.avgSpO2, 1, '%')}
+                  color={spo2Color(whoop.avgSpO2)}
+                  info="Blood oxygen. Green >= 96%"
+                />
+                <WhoopMetricCard
+                  label="Sleep Efficiency"
+                  value={fmt(whoop.avgSleepEfficiency, 0, '%')}
+                  color={whoop.avgSleepEfficiency != null && whoop.avgSleepEfficiency >= 85 ? '#10b981' : '#f59e0b'}
+                  info="Time asleep / time in bed"
+                />
+                <WhoopMetricCard
+                  label="Sleep Debt"
+                  value={fmt(whoop.avgSleepDebt, 0, ' min')}
+                  color={whoop.avgSleepDebt != null && whoop.avgSleepDebt > 60 ? '#ef4444' : '#10b981'}
+                  info="Accumulated deficit. Red > 60 min"
+                />
+                <WhoopMetricCard
+                  label="Resp Rate"
+                  value={fmt(whoop.avgRespRate, 1, ' br/min')}
+                  color="#0d9488"
+                  info="Breaths per minute during sleep"
+                />
+                <WhoopMetricCard
+                  label="Skin Temp"
+                  value={fmt(whoop.avgSkinTemp, 1, ' \u00b0C')}
+                  color="#0d9488"
+                  info="Overnight skin temperature"
+                />
+              </div>
             </div>
           ) : (
-            <p style={styles.emptyText}>No WHOOP data yet — try pulling data below</p>
+            <p style={styles.emptyText}>No WHOOP data yet -- try pulling data below</p>
           )}
           {isAdmin && (
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 20 }}>
               <button
                 onClick={triggerWhoopPull}
                 disabled={pulling}
                 style={{
                   width: '100%',
-                  padding: '10px 16px',
-                  borderRadius: 8,
-                  border: '1px solid #7c3aed',
-                  background: pulling ? '#f5f3ff' : '#7c3aed',
-                  color: pulling ? '#7c3aed' : '#fff',
-                  fontSize: 13,
+                  padding: '14px 20px',
+                  borderRadius: 12,
+                  border: '1px solid rgba(124,58,237,0.3)',
+                  background: pulling
+                    ? 'linear-gradient(135deg, #1e1b4b, #312e81)'
+                    : 'linear-gradient(135deg, #7c3aed, #6d28d9)',
+                  color: '#fff',
+                  fontSize: 14,
                   fontWeight: 700,
                   cursor: pulling ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.15s',
+                  transition: 'all 0.3s ease',
+                  letterSpacing: '0.02em',
+                  boxShadow: pulling ? 'none' : '0 4px 20px rgba(124,58,237,0.3)',
+                  textTransform: 'uppercase' as const,
                 }}
               >
-                {pulling ? 'Pulling WHOOP data...' : 'Pull WHOOP Data Now'}
+                {pulling ? 'Syncing WHOOP data...' : 'Pull WHOOP Data Now'}
               </button>
               {pullResult && (
                 <div style={{
-                  marginTop: 8,
-                  padding: '8px 12px',
-                  borderRadius: 8,
+                  marginTop: 10,
+                  padding: '10px 14px',
+                  borderRadius: 10,
                   fontSize: 12,
                   fontWeight: 600,
-                  background: pullResult.startsWith('Error') || pullResult.startsWith('Network') ? '#fee2e2' : '#dcfce7',
-                  color: pullResult.startsWith('Error') || pullResult.startsWith('Network') ? '#991b1b' : '#166534',
+                  background: pullResult.startsWith('Error') || pullResult.startsWith('Network')
+                    ? 'rgba(239,68,68,0.08)'
+                    : 'rgba(16,185,129,0.08)',
+                  color: pullResult.startsWith('Error') || pullResult.startsWith('Network') ? '#ef4444' : '#10b981',
+                  border: `1px solid ${pullResult.startsWith('Error') || pullResult.startsWith('Network') ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)'}`,
                 }}>
                   {pullResult}
                 </div>
@@ -490,7 +703,7 @@ export default function Overview() {
       </div>
 
       {/* ---------- PARTICIPANT TABLE ---------- */}
-      <Section title="Participants">
+      <Section title="Participants" icon={enrolledIcon}>
         <div style={styles.tableWrap}>
           <table style={styles.table}>
             <thead>
@@ -499,35 +712,60 @@ export default function Overview() {
                 <th style={styles.th}>Status</th>
                 <th style={styles.th}>WHOOP</th>
                 <th style={styles.th}>Demographics</th>
+                <th style={{ ...styles.th, width: 40 }}></th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 [1, 2, 3, 4, 5].map(i => <SkeletonRow key={i} />)
               ) : participants.length === 0 ? (
-                <tr><td colSpan={4} style={{ ...styles.td, textAlign: 'center', color: 'var(--text-muted)' }}>No participants enrolled</td></tr>
+                <tr><td colSpan={5} style={{ ...styles.td, textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>No participants enrolled</td></tr>
               ) : (
                 participants.map((p, idx) => (
                   <tr
                     key={p.id}
-                    style={{ ...styles.tableRow, background: idx % 2 === 0 ? '#fff' : '#f9fafb', cursor: 'pointer' }}
+                    style={{
+                      ...styles.tableRow,
+                      background: idx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                      cursor: 'pointer',
+                    }}
                     onClick={() => { window.location.href = `/dashboard/residents/${p.id}`; }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(13,148,136,0.04)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = idx % 2 === 0 ? '#ffffff' : '#f8fafc'; }}
                   >
                     <td style={styles.td}><span style={styles.monoText}>{p.study_participant_id}</span></td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.statusPill, background: statusColor(p.status).bg, color: statusColor(p.status).text }}>
+                      <span style={{
+                        ...styles.statusPill,
+                        background: statusColor(p.status).bg,
+                        color: statusColor(p.status).text,
+                        boxShadow: `0 0 8px ${statusColor(p.status).bg}`,
+                      }}>
                         {p.status}
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.statusPill, background: p.whoop_user_id ? '#dcfce7' : '#fef3c7', color: p.whoop_user_id ? '#166534' : '#92400e' }}>
+                      <span style={{
+                        ...styles.statusPill,
+                        background: p.whoop_user_id ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)',
+                        color: p.whoop_user_id ? '#10b981' : '#f59e0b',
+                        boxShadow: p.whoop_user_id ? '0 0 8px rgba(16,185,129,0.15)' : '0 0 8px rgba(245,158,11,0.15)',
+                      }}>
                         {p.whoop_user_id ? 'Connected' : 'Not connected'}
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.statusPill, background: p.demographics_completed ? '#dcfce7' : '#fee2e2', color: p.demographics_completed ? '#166534' : '#991b1b' }}>
+                      <span style={{
+                        ...styles.statusPill,
+                        background: p.demographics_completed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                        color: p.demographics_completed ? '#10b981' : '#ef4444',
+                        boxShadow: p.demographics_completed ? '0 0 8px rgba(16,185,129,0.15)' : '0 0 8px rgba(239,68,68,0.15)',
+                      }}>
                         {p.demographics_completed ? 'Done' : 'Pending'}
                       </span>
+                    </td>
+                    <td style={{ ...styles.td, color: '#94a3b8', fontSize: 16 }}>
+                      {'\u203A'}
                     </td>
                   </tr>
                 ))
@@ -539,7 +777,7 @@ export default function Overview() {
 
       {/* ---------- PER-PARTICIPANT WHOOP COMPARISON ---------- */}
       {perParticipantWhoop.length > 0 && (
-        <Section title="Participant WHOOP Comparison">
+        <Section title="Participant WHOOP Comparison" icon={whoopIcon}>
           <div style={styles.tableWrap}>
             <table style={styles.table}>
               <thead>
@@ -553,20 +791,41 @@ export default function Overview() {
                 </tr>
               </thead>
               <tbody>
-                {perParticipantWhoop.map((pw) => {
+                {perParticipantWhoop.map((pw, idx) => {
                   const p = participants.find(x => x.id === pw.resident_id);
                   return (
-                    <tr key={pw.resident_id} style={styles.tableRow}>
+                    <tr
+                      key={pw.resident_id}
+                      style={{ ...styles.tableRow, background: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(13,148,136,0.04)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = idx % 2 === 0 ? '#ffffff' : '#f8fafc'; }}
+                    >
                       <td style={styles.td}><span style={styles.monoText}>{p?.study_participant_id ?? '?'}</span></td>
-                      <td style={{ ...styles.td, color: pw.avg_recovery_score != null ? (pw.avg_recovery_score >= 67 ? '#16a34a' : pw.avg_recovery_score >= 34 ? '#d97706' : '#dc2626') : '#94a3b8', fontWeight: 700 }}>
-                        {pw.avg_recovery_score != null ? Math.round(pw.avg_recovery_score) + '%' : '\u2014'}
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 700, color: recoveryColor(pw.avg_recovery_score) }}>
+                          {pw.avg_recovery_score != null ? Math.round(pw.avg_recovery_score) + '%' : '\u2014'}
+                        </span>
                       </td>
-                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.avg_hrv_rmssd_ms != null ? Math.round(pw.avg_hrv_rmssd_ms) + ' ms' : '\u2014'}</td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: pw.avg_total_sleep_min != null && pw.avg_total_sleep_min < 420 ? '#dc2626' : '#0f172a' }}>
-                        {pw.avg_total_sleep_min != null ? Math.floor(pw.avg_total_sleep_min / 60) + 'h ' + Math.round(pw.avg_total_sleep_min % 60) + 'm' : '\u2014'}
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 600, color: hrvColor(pw.avg_hrv_rmssd_ms) }}>
+                          {pw.avg_hrv_rmssd_ms != null ? Math.round(pw.avg_hrv_rmssd_ms) + ' ms' : '\u2014'}
+                        </span>
                       </td>
-                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.avg_daily_strain != null ? pw.avg_daily_strain.toFixed(1) : '\u2014'}</td>
-                      <td style={{ ...styles.td, fontWeight: 600 }}>{pw.days_with_data ?? 0}/28</td>
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 600, color: pw.avg_total_sleep_min != null ? sleepColor(pw.avg_total_sleep_min / 60) : '#64748b' }}>
+                          {pw.avg_total_sleep_min != null ? Math.floor(pw.avg_total_sleep_min / 60) + 'h ' + Math.round(pw.avg_total_sleep_min % 60) + 'm' : '\u2014'}
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 600, color: strainColor(pw.avg_daily_strain) }}>
+                          {pw.avg_daily_strain != null ? pw.avg_daily_strain.toFixed(1) : '\u2014'}
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 600, color: (pw.days_with_data ?? 0) >= 20 ? '#10b981' : '#f59e0b' }}>
+                          {pw.days_with_data ?? 0}/28
+                        </span>
+                      </td>
                     </tr>
                   );
                 })}
@@ -578,7 +837,7 @@ export default function Overview() {
 
       {/* ---------- PER-PARTICIPANT ASSESSMENT SCORES ---------- */}
       {perParticipantScores.length > 0 && (
-        <Section title="Latest Assessment Scores by Participant">
+        <Section title="Latest Assessment Scores by Participant" icon={clipboardIcon}>
           <div style={styles.tableWrap}>
             <table style={styles.table}>
               <thead>
@@ -591,23 +850,42 @@ export default function Overview() {
                 </tr>
               </thead>
               <tbody>
-                {perParticipantScores.map((ps) => {
+                {perParticipantScores.map((ps, idx) => {
                   const p = participants.find(x => x.id === ps.resident_id);
                   const flagged = (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15 || (ps.cbi_work ?? 0) >= 50;
                   return (
-                    <tr key={ps.resident_id} style={{ ...styles.tableRow, background: flagged ? '#fef2f2' : undefined }}>
+                    <tr
+                      key={ps.resident_id}
+                      style={{
+                        ...styles.tableRow,
+                        background: flagged ? 'rgba(239,68,68,0.04)' : idx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = flagged ? 'rgba(239,68,68,0.08)' : 'rgba(13,148,136,0.04)'; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = flagged ? 'rgba(239,68,68,0.04)' : idx % 2 === 0 ? '#ffffff' : '#f8fafc'; }}
+                    >
                       <td style={styles.td}><span style={styles.monoText}>{p?.study_participant_id ?? '?'}</span></td>
-                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.cbi_work ?? 0) >= 50 ? '#dc2626' : '#16a34a' }}>
-                        {ps.cbi_work != null ? Math.round(ps.cbi_work) + '/100' : '\u2014'}
-                      </td>
-                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.phq9 ?? 0) >= 15 ? '#dc2626' : (ps.phq9 ?? 0) >= 10 ? '#d97706' : '#16a34a' }}>
-                        {ps.phq9 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#94a3b8' }}>/27</span>
-                      </td>
-                      <td style={{ ...styles.td, fontWeight: 700, color: (ps.gad7 ?? 0) >= 15 ? '#dc2626' : (ps.gad7 ?? 0) >= 10 ? '#d97706' : '#16a34a' }}>
-                        {ps.gad7 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#94a3b8' }}>/21</span>
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 700, color: cbiColor(ps.cbi_work) }}>
+                          {ps.cbi_work != null ? Math.round(ps.cbi_work) + '/100' : '\u2014'}
+                        </span>
                       </td>
                       <td style={styles.td}>
-                        <span style={{ ...styles.statusPill, background: flagged ? '#fee2e2' : '#dcfce7', color: flagged ? '#991b1b' : '#166534' }}>
+                        <span style={{ fontWeight: 700, color: phq9Color(ps.phq9) }}>
+                          {ps.phq9 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#64748b' }}>/27</span>
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{ fontWeight: 700, color: gad7Color(ps.gad7) }}>
+                          {ps.gad7 ?? '\u2014'}<span style={{ fontWeight: 400, color: '#64748b' }}>/21</span>
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{
+                          ...styles.statusPill,
+                          background: flagged ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
+                          color: flagged ? '#ef4444' : '#10b981',
+                          boxShadow: flagged ? '0 0 10px rgba(239,68,68,0.15)' : '0 0 10px rgba(16,185,129,0.15)',
+                        }}>
                           {flagged ? 'Flagged' : 'Normal'}
                         </span>
                       </td>
@@ -621,32 +899,35 @@ export default function Overview() {
       )}
 
       {/* ---------- STUDY COMPLIANCE ---------- */}
-      <Section title="Study Compliance">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
+      <Section title="Study Compliance" icon={activeIcon}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
           <div style={styles.kpiCard}>
+            <div style={{ ...styles.kpiGlow, background: 'linear-gradient(180deg, #2563eb, transparent)' }} />
             <div style={styles.kpiTop}><span style={styles.kpiLabel}>Baseline Completion</span></div>
-            <div style={{ ...styles.kpiValue, color: '#2563eb' }}>
+            <div style={{ ...styles.kpiValue, color: '#2563eb', fontSize: '2.2rem' }}>
               {participants.filter(p => p.baseline_completed).length}/{participants.length}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+            <div style={styles.kpiSub}>
               {participants.length > 0 ? Math.round(participants.filter(p => p.baseline_completed).length / participants.length * 100) : 0}% complete
             </div>
           </div>
           <div style={styles.kpiCard}>
+            <div style={{ ...styles.kpiGlow, background: 'linear-gradient(180deg, #7c3aed, transparent)' }} />
             <div style={styles.kpiTop}><span style={styles.kpiLabel}>WHOOP Adherence</span></div>
-            <div style={{ ...styles.kpiValue, color: '#7c3aed' }}>
+            <div style={{ ...styles.kpiValue, color: '#7c3aed', fontSize: '2.2rem' }}>
               {perParticipantWhoop.filter(w => (w.days_with_data ?? 0) >= 20).length}/{perParticipantWhoop.length}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+            <div style={styles.kpiSub}>
               {'\u226520'} days data ({perParticipantWhoop.length > 0 ? Math.round(perParticipantWhoop.filter(w => (w.days_with_data ?? 0) >= 20).length / perParticipantWhoop.length * 100) : 0}%)
             </div>
           </div>
           <div style={styles.kpiCard}>
+            <div style={{ ...styles.kpiGlow, background: `linear-gradient(180deg, ${perParticipantScores.some(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15) ? '#ef4444' : '#10b981'}, transparent)` }} />
             <div style={styles.kpiTop}><span style={styles.kpiLabel}>Flagged Participants</span></div>
-            <div style={{ ...styles.kpiValue, color: perParticipantScores.some(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15) ? '#dc2626' : '#16a34a' }}>
+            <div style={{ ...styles.kpiValue, fontSize: '2.2rem', color: perParticipantScores.some(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15) ? '#ef4444' : '#10b981' }}>
               {perParticipantScores.filter(ps => (ps.phq9 ?? 0) >= 15 || (ps.gad7 ?? 0) >= 15 || (ps.cbi_work ?? 0) >= 50).length}
             </div>
-            <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
+            <div style={styles.kpiSub}>
               PHQ-9{'\u226515'} or GAD-7{'\u226515'} or CBI{'\u226550'}
             </div>
           </div>
@@ -654,13 +935,30 @@ export default function Overview() {
       </Section>
 
       {/* ---------- QUICK ACTIONS ---------- */}
-      <Section title="Quick Actions">
+      <Section title="Quick Actions" icon={exportIcon}>
         <div style={styles.actionsGrid}>
           {quickActions.map(a => (
-            <a key={a.label} href={a.href} style={styles.actionCard}>
-              <div style={styles.actionIcon} dangerouslySetInnerHTML={{ __html: a.icon }} />
+            <a
+              key={a.label}
+              href={a.href}
+              style={styles.actionCard}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = '#0d9488';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(13,148,136,0.15)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(148,163,184,0.2)';
+                (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 12px rgba(0,0,0,0.04)';
+                (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+              }}
+            >
+              <div style={styles.actionIconWrap}>
+                <div style={styles.actionIcon} dangerouslySetInnerHTML={{ __html: a.icon }} />
+              </div>
               <span style={styles.actionLabel}>{a.label}</span>
               {a.badge > 0 && <span style={styles.badge}>{a.badge}</span>}
+              <span style={styles.actionArrow}>{'\u203A'}</span>
             </a>
           ))}
         </div>
@@ -673,10 +971,13 @@ export default function Overview() {
 /*  Sub-components                                                     */
 /* ------------------------------------------------------------------ */
 
-function Section({ title, children, style: extra }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
+function Section({ title, children, style: extra, icon }: { title: string; children: React.ReactNode; style?: React.CSSProperties; icon?: string }) {
   return (
     <section style={{ ...styles.section, ...extra }}>
-      <h2 style={styles.sectionTitle}>{title}</h2>
+      <div style={styles.sectionHeader}>
+        {icon && <div style={styles.sectionIconWrap} dangerouslySetInnerHTML={{ __html: icon.replace('currentColor', '#0d9488') }} />}
+        <h2 style={styles.sectionTitle}>{title}</h2>
+      </div>
       {children}
     </section>
   );
@@ -685,6 +986,7 @@ function Section({ title, children, style: extra }: { title: string; children: R
 function KPICard({ label, value, color, bg, icon }: { label: string; value: number | string; color: string; bg: string; icon: string }) {
   return (
     <div style={styles.kpiCard}>
+      <div style={{ ...styles.kpiGlow, background: `linear-gradient(180deg, ${color}, transparent)` }} />
       <div style={styles.kpiTop}>
         <span style={styles.kpiLabel}>{label}</span>
         <div style={{ ...styles.kpiIconWrap, background: bg }} dangerouslySetInnerHTML={{ __html: icon.replace('currentColor', color) }} />
@@ -694,11 +996,47 @@ function KPICard({ label, value, color, bg, icon }: { label: string; value: numb
   );
 }
 
-function MetricRow({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function GaugeBar({ label, value, max, color, displayValue, sublabel }: {
+  label: string;
+  value: number | null;
+  max: number;
+  color: string;
+  displayValue: string;
+  sublabel: string;
+}) {
+  const pctVal = value != null ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <div style={styles.metricRow}>
-      <span style={styles.metricLabel}>{label}</span>
-      <span style={{ ...styles.metricValue, color: warn ? '#dc2626' : '#0f172a' }}>{value}</span>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#1e293b' }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color, textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>{sublabel}</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color, fontFamily: 'var(--font-serif, Georgia, serif)' }}>{displayValue}</span>
+        </div>
+      </div>
+      <div style={styles.gaugeTrack}>
+        <div
+          style={{
+            height: '100%',
+            width: `${pctVal}%`,
+            borderRadius: 6,
+            background: `linear-gradient(90deg, ${color}88, ${color})`,
+            transition: 'width 0.6s ease',
+            boxShadow: `0 0 10px ${color}40`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function WhoopMetricCard({ label, value, color, info }: { label: string; value: string; color: string; info: string }) {
+  return (
+    <div style={styles.whoopCard}>
+      <div style={{ ...styles.whoopCardGlow, borderColor: color }} />
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 20, fontWeight: 800, color, fontFamily: 'var(--font-serif, Georgia, serif)', lineHeight: 1.2 }}>{value}</div>
+      <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 6, lineHeight: 1.3 }}>{info}</div>
     </div>
   );
 }
@@ -709,22 +1047,22 @@ function MetricRow({ label, value, warn }: { label: string; value: string; warn?
 
 function roleColor(role: string): string {
   switch (role) {
-    case 'super_admin': return '#7c3aed';
-    case 'research_admin': return '#2563eb';
-    case 'site_coordinator': return '#0891b2';
-    case 'research_assistant': return '#16a34a';
-    case 'statistician': return '#d97706';
-    default: return '#6b7280';
+    case 'super_admin': return 'linear-gradient(135deg, #7c3aed, #6d28d9)';
+    case 'research_admin': return 'linear-gradient(135deg, #2563eb, #1d4ed8)';
+    case 'site_coordinator': return 'linear-gradient(135deg, #0891b2, #0e7490)';
+    case 'research_assistant': return 'linear-gradient(135deg, #16a34a, #15803d)';
+    case 'statistician': return 'linear-gradient(135deg, #d97706, #b45309)';
+    default: return 'linear-gradient(135deg, #6b7280, #4b5563)';
   }
 }
 
 function statusColor(s: string): { bg: string; text: string } {
   switch (s) {
-    case 'active': return { bg: '#dcfce7', text: '#166534' };
-    case 'withdrawn': return { bg: '#fee2e2', text: '#991b1b' };
-    case 'completed': return { bg: '#dbeafe', text: '#1e40af' };
-    case 'paused': return { bg: '#fef3c7', text: '#92400e' };
-    default: return { bg: '#f3f4f6', text: '#374151' };
+    case 'active': return { bg: 'rgba(16,185,129,0.12)', text: '#10b981' };
+    case 'withdrawn': return { bg: 'rgba(239,68,68,0.12)', text: '#ef4444' };
+    case 'completed': return { bg: 'rgba(37,99,235,0.12)', text: '#2563eb' };
+    case 'paused': return { bg: 'rgba(245,158,11,0.12)', text: '#f59e0b' };
+    default: return { bg: 'rgba(100,116,139,0.12)', text: '#64748b' };
   }
 }
 
@@ -757,116 +1095,219 @@ const styles: Record<string, React.CSSProperties> = {
 
   /* Header */
   header: {
+    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f4c5c 100%)',
+    borderRadius: 20,
+    padding: '32px 36px',
+    marginBottom: 28,
+    boxShadow: '0 8px 32px rgba(15,23,42,0.25)',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  },
+  headerInner: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    flexWrap: 'wrap',
+    flexWrap: 'wrap' as const,
     gap: 16,
-    marginBottom: 32,
+    position: 'relative' as const,
+    zIndex: 1,
   },
+  headerLeft: {},
   h1: {
-    fontSize: '1.75rem',
+    fontSize: '1.85rem',
     fontFamily: 'var(--font-serif, Georgia, serif)',
-    color: 'var(--primary, #1e3a5f)',
+    color: '#ffffff',
     margin: 0,
     lineHeight: 1.3,
+    letterSpacing: '-0.01em',
   },
   subtitle: {
-    color: '#475569',
+    color: 'rgba(255,255,255,0.65)',
     fontSize: 14,
-    margin: '6px 0 0',
+    margin: '8px 0 0',
     display: 'flex',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
+    fontWeight: 500,
   },
   statusBadge: {
-    display: 'inline-block',
-    padding: '2px 10px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '3px 12px',
     borderRadius: 20,
     fontSize: 11,
     fontWeight: 700,
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em',
-    background: '#dcfce7',
-    color: '#166534',
+    letterSpacing: '0.06em',
+    background: 'rgba(16,185,129,0.15)',
+    color: '#10b981',
+    border: '1px solid rgba(16,185,129,0.25)',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: '#10b981',
+    boxShadow: '0 0 8px #10b981',
+    display: 'inline-block',
   },
   roleBadge: {
     display: 'inline-block',
-    padding: '6px 16px',
-    borderRadius: 20,
+    padding: '8px 20px',
+    borderRadius: 24,
     fontSize: 12,
     fontWeight: 700,
     color: '#fff',
     textTransform: 'capitalize' as const,
     whiteSpace: 'nowrap' as const,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+    letterSpacing: '0.03em',
+    backdropFilter: 'blur(8px)',
   },
 
   /* Section */
   section: {
-    background: '#fff',
-    border: '1px solid var(--border, #e5e7eb)',
-    borderRadius: 14,
-    padding: 24,
+    background: '#ffffff',
+    border: '1px solid rgba(148,163,184,0.15)',
+    borderRadius: 16,
+    padding: 28,
+    marginBottom: 22,
+    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+  },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
     marginBottom: 20,
   },
+  sectionIconWrap: {
+    width: 22,
+    height: 22,
+    flexShrink: 0,
+    opacity: 0.8,
+  },
   sectionTitle: {
-    fontSize: '1.05rem',
+    fontSize: '1.1rem',
     fontWeight: 700,
     fontFamily: 'var(--font-serif, Georgia, serif)',
     color: '#0f172a',
-    margin: '0 0 16px',
+    margin: 0,
+    letterSpacing: '-0.005em',
   },
 
   /* KPI grid */
   kpiGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-    gap: 14,
+    gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+    gap: 16,
   },
   kpiCard: {
-    background: '#fff',
-    border: '1px solid var(--border, #e5e7eb)',
-    borderRadius: 12,
-    padding: '20px 18px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+    background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+    border: '1px solid rgba(148,163,184,0.15)',
+    borderRadius: 14,
+    padding: '22px 20px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  },
+  kpiGlow: {
+    position: 'absolute' as const,
+    left: 0,
+    top: 0,
+    width: 4,
+    height: '100%',
+    borderRadius: '4px 0 0 4px',
+    opacity: 0.8,
   },
   kpiTop: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 14,
+    paddingLeft: 8,
   },
   kpiLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 700,
-    color: '#374151',
+    color: '#64748b',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
+    letterSpacing: '0.06em',
   },
   kpiIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 8,
+    padding: 10,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
   },
   kpiValue: {
-    fontSize: '2rem',
-    fontWeight: 700,
+    fontSize: '2.4rem',
+    fontWeight: 800,
     fontFamily: 'var(--font-serif, Georgia, serif)',
     lineHeight: 1,
+    paddingLeft: 8,
+    letterSpacing: '-0.02em',
+  },
+  kpiSub: {
+    fontSize: 11,
+    color: '#64748b',
+    marginTop: 6,
+    paddingLeft: 8,
+    fontWeight: 500,
   },
 
   /* Two-column layout */
   twoCol: {
     display: 'flex',
-    gap: 20,
+    gap: 22,
     flexWrap: 'wrap' as const,
   },
 
-  /* Metrics grid inside cards */
+  /* Gauge bar */
+  gaugeTrack: {
+    width: '100%',
+    height: 10,
+    borderRadius: 6,
+    background: 'rgba(148,163,184,0.12)',
+    overflow: 'hidden' as const,
+  },
+  gaugeSubInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0 4px',
+    marginTop: -8,
+  },
+
+  /* WHOOP grid */
+  whoopGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
+    gap: 12,
+  },
+  whoopCard: {
+    background: 'linear-gradient(145deg, #f8fafc 0%, #ffffff 100%)',
+    border: '1px solid rgba(148,163,184,0.12)',
+    borderRadius: 12,
+    padding: '16px 14px',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  },
+  whoopCardGlow: {
+    position: 'absolute' as const,
+    left: 0,
+    top: 0,
+    width: 3,
+    height: '100%',
+    borderLeft: '3px solid',
+    borderRadius: '3px 0 0 3px',
+  },
+
+  /* Metrics grid inside cards (no longer used for burnout, kept for compatibility) */
   metricsGrid: {
     display: 'grid',
     gap: 0,
@@ -876,7 +1317,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '10px 0',
-    borderBottom: '1px solid var(--border, #e5e7eb)',
+    borderBottom: '1px solid rgba(148,163,184,0.12)',
   },
   metricLabel: {
     fontSize: 13,
@@ -893,6 +1334,8 @@ const styles: Record<string, React.CSSProperties> = {
   /* Table */
   tableWrap: {
     overflowX: 'auto' as const,
+    borderRadius: 12,
+    border: '1px solid rgba(148,163,184,0.12)',
   },
   table: {
     width: '100%',
@@ -901,88 +1344,114 @@ const styles: Record<string, React.CSSProperties> = {
   },
   th: {
     textAlign: 'left' as const,
-    padding: '10px 14px',
-    fontSize: 12,
+    padding: '14px 16px',
+    fontSize: 11,
     fontWeight: 700,
-    color: '#1e293b',
+    color: '#64748b',
     textTransform: 'uppercase' as const,
-    letterSpacing: '0.04em',
-    borderBottom: '2px solid #cbd5e1',
+    letterSpacing: '0.06em',
+    borderBottom: '2px solid rgba(148,163,184,0.15)',
+    background: '#f8fafc',
     whiteSpace: 'nowrap' as const,
   },
   td: {
-    padding: '10px 14px',
-    borderBottom: '1px solid var(--border, #e5e7eb)',
+    padding: '12px 16px',
+    borderBottom: '1px solid rgba(148,163,184,0.08)',
     verticalAlign: 'middle' as const,
   },
   tableRow: {
-    transition: 'background 0.15s',
+    transition: 'background 0.2s ease',
   },
   monoText: {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
     fontSize: 13,
     fontWeight: 600,
     color: '#0f172a',
+    background: 'rgba(148,163,184,0.08)',
+    padding: '2px 8px',
+    borderRadius: 6,
   },
   statusPill: {
     display: 'inline-block',
-    padding: '4px 12px',
+    padding: '5px 14px',
     borderRadius: 20,
     fontSize: 12,
     fontWeight: 700,
     textTransform: 'capitalize' as const,
+    letterSpacing: '0.02em',
   },
 
   /* Quick Actions */
   actionsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: 14,
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+    gap: 16,
   },
   actionCard: {
     display: 'flex',
     alignItems: 'center',
-    gap: 12,
-    padding: '16px 18px',
-    borderRadius: 12,
-    background: 'var(--bg-muted, #f9fafb)',
-    border: '1px solid var(--border, #e5e7eb)',
+    gap: 14,
+    padding: '18px 20px',
+    borderRadius: 14,
+    background: 'linear-gradient(145deg, #f8fafc 0%, #ffffff 100%)',
+    border: '1px solid rgba(148,163,184,0.2)',
     textDecoration: 'none',
-    color: 'var(--text, #1f2937)',
+    color: '#0f172a',
     fontWeight: 600,
     fontSize: 14,
-    transition: 'box-shadow 0.15s, border-color 0.15s',
+    transition: 'all 0.25s ease',
     position: 'relative' as const,
+    boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+  },
+  actionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    background: 'rgba(13,148,136,0.08)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    flexShrink: 0,
+    color: '#0d9488',
   },
   actionIcon: {
     width: 20,
     height: 20,
     flexShrink: 0,
-    color: 'var(--primary, #1e3a5f)',
+    color: '#0d9488',
   },
   actionLabel: {
     flex: 1,
+    letterSpacing: '0.01em',
+  },
+  actionArrow: {
+    fontSize: 20,
+    color: '#94a3b8',
+    fontWeight: 300,
+    transition: 'transform 0.2s ease',
   },
   badge: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    background: '#dc2626',
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    background: 'linear-gradient(135deg, #ef4444, #dc2626)',
     color: '#fff',
     fontSize: 11,
     fontWeight: 700,
-    padding: '0 6px',
+    padding: '0 7px',
+    boxShadow: '0 2px 8px rgba(239,68,68,0.3)',
   },
 
   /* Skeleton */
   skeletonLine: {
-    borderRadius: 6,
-    background: 'linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%)',
+    borderRadius: 8,
+    background: 'linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%)',
     backgroundSize: '200% 100%',
-    animation: 'none', // CSS animation not available inline; uses static gradient
+    animation: 'none',
   },
 
   /* Misc */
@@ -990,10 +1459,10 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '24px 0',
   },
   emptyText: {
-    color: '#475569',
+    color: '#64748b',
     fontSize: 14,
     fontStyle: 'italic' as const,
     margin: 0,
-    padding: '16px 0',
+    padding: '20px 0',
   },
 };
