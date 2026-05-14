@@ -22,6 +22,31 @@ interface WhoopData {
   pulled_at: string;
 }
 
+interface WeeklyCheckin {
+  week_start: string;
+  hours_worked: number | null;
+  on_call_count: number | null;
+  call_type: string | null;
+  sleep_rating: number | null;
+  stress_level: number | null;
+}
+
+interface BlockAssessment {
+  assessment_date: string;
+  who5_total: number | null;
+  cbi_personal_score: number | null;
+  cbi_work_score: number | null;
+  cbi_patient_score: number | null;
+  phq9_total: number | null;
+  gad7_total: number | null;
+  isi_total: number | null;
+}
+
+interface WhoopPullHistory {
+  pulled_at: string;
+  avg_recovery_score: number | null;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -37,6 +62,9 @@ export default function ResidentDashboard() {
   const [eventCount, setEventCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [checkins, setCheckins] = useState<WeeklyCheckin[]>([]);
+  const [assessments, setAssessments] = useState<BlockAssessment[]>([]);
+  const [whoopHistory, setWhoopHistory] = useState<WhoopPullHistory[]>([]);
 
   useEffect(() => {
     if (!residentProfile) {
@@ -104,6 +132,36 @@ export default function ResidentDashboard() {
       .eq('resident_id', rid);
     if (evErr) log.push(`Events error: ${evErr.message}`);
     else { setEventCount(evCount ?? 0); log.push(`Events: ${evCount ?? 0}`); }
+
+    // Weekly checkins — last 8 weeks for trend timeline
+    const { data: ciData, error: ciErr } = await supabase
+      .from('weekly_checkins')
+      .select('week_start, hours_worked, on_call_count, call_type, sleep_rating, stress_level')
+      .eq('resident_id', rid)
+      .order('week_start', { ascending: false })
+      .limit(8);
+    if (ciErr) log.push(`Checkins detail error: ${ciErr.message}`);
+    else if (ciData) { setCheckins(ciData as WeeklyCheckin[]); log.push(`Checkin details: ${ciData.length}`); }
+
+    // Block assessments — last 6 for score history
+    const { data: asData, error: asErr } = await supabase
+      .from('block_assessments')
+      .select('assessment_date, who5_total, cbi_personal_score, cbi_work_score, cbi_patient_score, phq9_total, gad7_total, isi_total')
+      .eq('resident_id', rid)
+      .order('assessment_date', { ascending: false })
+      .limit(6);
+    if (asErr) log.push(`Assessment detail error: ${asErr.message}`);
+    else if (asData) { setAssessments(asData as BlockAssessment[]); log.push(`Assessment details: ${asData.length}`); }
+
+    // WHOOP recovery history — last 6 pulls for trend chart
+    const { data: whData, error: whErr } = await supabase
+      .from('whoop_pulls')
+      .select('pulled_at, avg_recovery_score')
+      .eq('resident_id', rid)
+      .order('pulled_at', { ascending: false })
+      .limit(6);
+    if (whErr) log.push(`WHOOP history error: ${whErr.message}`);
+    else if (whData) { setWhoopHistory(whData as WhoopPullHistory[]); log.push(`WHOOP history: ${whData.length}`); }
 
     setStatus(log.join(' | '));
     setLoaded(true);
@@ -209,6 +267,92 @@ export default function ResidentDashboard() {
     if (diff <= 1.0) return { color: STATUS_AMBER, label: 'Caution' };
     return { color: STATUS_RED, label: 'Concern' };
   }
+
+  /* ── Assessment score severity helpers ── */
+
+  function who5Severity(v: number | null): { color: string; label: string } {
+    if (v == null) return { color: '#64748b', label: 'No data' };
+    if (v >= 52) return { color: STATUS_GREEN, label: 'Good' };
+    if (v >= 28) return { color: STATUS_AMBER, label: 'Low' };
+    return { color: STATUS_RED, label: 'Poor' };
+  }
+
+  function cbiWorkSeverity(v: number | null): { color: string; label: string } {
+    if (v == null) return { color: '#64748b', label: 'No data' };
+    if (v < 25) return { color: STATUS_GREEN, label: 'Low' };
+    if (v < 50) return { color: STATUS_AMBER, label: 'Moderate' };
+    if (v < 75) return { color: '#f97316', label: 'High' };
+    return { color: STATUS_RED, label: 'Severe' };
+  }
+
+  function phq9Severity(v: number | null): { color: string; label: string } {
+    if (v == null) return { color: '#64748b', label: 'No data' };
+    if (v <= 4) return { color: STATUS_GREEN, label: 'Minimal' };
+    if (v <= 9) return { color: STATUS_AMBER, label: 'Mild' };
+    if (v <= 14) return { color: '#f97316', label: 'Moderate' };
+    return { color: STATUS_RED, label: 'Severe' };
+  }
+
+  function gad7Severity(v: number | null): { color: string; label: string } {
+    if (v == null) return { color: '#64748b', label: 'No data' };
+    if (v <= 4) return { color: STATUS_GREEN, label: 'Minimal' };
+    if (v <= 9) return { color: STATUS_AMBER, label: 'Mild' };
+    if (v <= 14) return { color: '#f97316', label: 'Moderate' };
+    return { color: STATUS_RED, label: 'Severe' };
+  }
+
+  function isiSeverity(v: number | null): { color: string; label: string } {
+    if (v == null) return { color: '#64748b', label: 'No data' };
+    if (v <= 7) return { color: STATUS_GREEN, label: 'None' };
+    if (v <= 14) return { color: STATUS_AMBER, label: 'Subthreshold' };
+    if (v <= 21) return { color: '#f97316', label: 'Moderate' };
+    return { color: STATUS_RED, label: 'Severe' };
+  }
+
+  function ratingDotColor(rating: number | null): string {
+    if (rating == null) return '#64748b';
+    if (rating >= 4) return STATUS_GREEN;
+    if (rating >= 3) return STATUS_AMBER;
+    return STATUS_RED;
+  }
+
+  function stressDotColor(level: number | null): string {
+    if (level == null) return '#64748b';
+    if (level <= 2) return STATUS_GREEN;
+    if (level <= 3) return STATUS_AMBER;
+    return STATUS_RED;
+  }
+
+  /* Checkin averages helper */
+  function calcCheckinAverages(items: WeeklyCheckin[]): { avgHours: number; avgStress: number; avgSleep: number } {
+    if (items.length === 0) return { avgHours: 0, avgStress: 0, avgSleep: 0 };
+    let hSum = 0, hCount = 0, sSum = 0, sCount = 0, slSum = 0, slCount = 0;
+    for (const c of items) {
+      if (c.hours_worked != null) { hSum += c.hours_worked; hCount++; }
+      if (c.stress_level != null) { sSum += c.stress_level; sCount++; }
+      if (c.sleep_rating != null) { slSum += c.sleep_rating; slCount++; }
+    }
+    return {
+      avgHours: hCount > 0 ? hSum / hCount : 0,
+      avgStress: sCount > 0 ? sSum / sCount : 0,
+      avgSleep: slCount > 0 ? slSum / slCount : 0,
+    };
+  }
+
+  /* Check if any elevated scores in latest assessment */
+  const latestAssessment = assessments.length > 0 ? assessments[0] : null;
+  const hasElevatedScores = latestAssessment != null && (
+    (latestAssessment.phq9_total != null && latestAssessment.phq9_total >= 10) ||
+    (latestAssessment.gad7_total != null && latestAssessment.gad7_total >= 10) ||
+    (latestAssessment.cbi_work_score != null && latestAssessment.cbi_work_score >= 50)
+  );
+
+  /* Block comparison — latest 4 vs previous 4 */
+  const recentBlock = checkins.slice(0, 4);
+  const previousBlock = checkins.slice(4, 8);
+  const recentAvg = calcCheckinAverages(recentBlock);
+  const prevAvg = calcCheckinAverages(previousBlock);
+  const hasBlockComparison = recentBlock.length > 0 && previousBlock.length > 0;
 
   /* Generate personalized insight text */
   function getInsightText(): string {
@@ -842,6 +986,465 @@ export default function ResidentDashboard() {
           </div>
         )}
       </div>
+
+      {/* ============================================================ */}
+      {/*  WEEKLY CHECK-IN TRENDS                                        */}
+      {/* ============================================================ */}
+      {checkins.length > 0 && (
+        <div style={{
+          background: '#fff',
+          borderRadius: cardRadius,
+          padding: '24px 20px',
+          marginBottom: 24,
+          boxShadow: cardShadow,
+          border: '1px solid #e2e8f0',
+        }}>
+          <div style={{ marginBottom: 16 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, fontFamily: 'Georgia, "Times New Roman", serif' }}>
+              Weekly Check-in Trends
+            </h2>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>Last {checkins.length} weeks</div>
+          </div>
+
+          {/* Averages summary */}
+          {(() => {
+            const avgs = calcCheckinAverages(checkins);
+            return (
+              <div style={{
+                display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16,
+                background: 'linear-gradient(135deg, #f0fdfa 0%, #f0f9ff 100%)',
+                borderRadius: 10, padding: '10px 14px',
+                border: '1px solid #ccfbf1',
+              }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#134e4a' }}>
+                  Avg Hours: <strong>{avgs.avgHours > 0 ? `${Math.round(avgs.avgHours)}h` : '--'}</strong>
+                </span>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#134e4a' }}>
+                  Avg Stress: <strong>{avgs.avgStress > 0 ? `${avgs.avgStress.toFixed(1)}/5` : '--'}</strong>
+                </span>
+                <span style={{ color: '#cbd5e1' }}>|</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#134e4a' }}>
+                  Avg Sleep: <strong>{avgs.avgSleep > 0 ? `${avgs.avgSleep.toFixed(1)}/5` : '--'}</strong>
+                </span>
+              </div>
+            );
+          })()}
+
+          {/* Scrollable timeline */}
+          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: 4 }}>
+            <div style={{ display: 'flex', gap: 10, minWidth: 'max-content' }}>
+              {checkins.map((c, i) => {
+                const isCurrentWeek = i === 0;
+                const weekDate = new Date(c.week_start);
+                return (
+                  <div key={c.week_start} style={{
+                    minWidth: 130,
+                    background: isCurrentWeek
+                      ? 'linear-gradient(135deg, #0f172a 0%, #134e4a 100%)'
+                      : '#f8fafc',
+                    borderRadius: 12,
+                    padding: '14px 12px',
+                    border: isCurrentWeek ? '1px solid #0f766e' : '1px solid #e2e8f0',
+                  }}>
+                    <div style={{
+                      fontSize: 10, fontWeight: 700, color: isCurrentWeek ? '#5eead4' : '#0f766e',
+                      textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8,
+                    }}>
+                      {isCurrentWeek ? 'Current' : weekDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                    </div>
+                    <div style={{ fontSize: 11, color: isCurrentWeek ? '#e2e8f0' : '#475569', marginBottom: 4 }}>
+                      Hours: <strong>{c.hours_worked != null ? `${c.hours_worked}h` : '--'}</strong>
+                    </div>
+                    <div style={{ fontSize: 11, color: isCurrentWeek ? '#e2e8f0' : '#475569', marginBottom: 4 }}>
+                      On-call: <strong>{c.on_call_count ?? '--'}</strong>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <span style={{ fontSize: 11, color: isCurrentWeek ? '#e2e8f0' : '#475569' }}>Sleep</span>
+                      <span style={{
+                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                        background: ratingDotColor(c.sleep_rating),
+                      }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: isCurrentWeek ? '#fff' : '#0f172a' }}>
+                        {c.sleep_rating ?? '--'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ fontSize: 11, color: isCurrentWeek ? '#e2e8f0' : '#475569' }}>Stress</span>
+                      <span style={{
+                        display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                        background: stressDotColor(c.stress_level),
+                      }} />
+                      <span style={{ fontSize: 11, fontWeight: 700, color: isCurrentWeek ? '#fff' : '#0f172a' }}>
+                        {c.stress_level ?? '--'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/*  BLOCK COMPARISON                                              */}
+      {/* ============================================================ */}
+      {hasBlockComparison && (
+        <div style={{
+          background: '#fff',
+          borderRadius: cardRadius,
+          padding: '24px 20px',
+          marginBottom: 24,
+          boxShadow: cardShadow,
+          border: '1px solid #e2e8f0',
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: '0 0 4px', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            This Period vs Previous
+          </h2>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>
+            Latest 4 weeks compared to prior 4 weeks
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {/* Hours/week */}
+            {(() => {
+              const diff = recentAvg.avgHours - prevAvg.avgHours;
+              const improved = diff < 0; // fewer hours is better
+              const significant = Math.abs(diff) > 2;
+              return (
+                <div style={metricCardStyle(significant ? (improved ? STATUS_GREEN : STATUS_RED) : '#64748b')}>
+                  <div style={metricLabelStyle}>Hours / Week</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={metricValueStyle}>{recentAvg.avgHours > 0 ? `${Math.round(recentAvg.avgHours)}h` : '--'}</span>
+                    {significant && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: improved ? STATUS_GREEN : STATUS_RED }}>
+                        {improved ? '\u25BC' : '\u25B2'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    was {prevAvg.avgHours > 0 ? `${Math.round(prevAvg.avgHours)}h` : '--'}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* On-calls */}
+            {(() => {
+              let recentCalls = 0, rCount = 0, prevCalls = 0, pCount = 0;
+              for (const c of recentBlock) if (c.on_call_count != null) { recentCalls += c.on_call_count; rCount++; }
+              for (const c of previousBlock) if (c.on_call_count != null) { prevCalls += c.on_call_count; pCount++; }
+              const rAvg = rCount > 0 ? recentCalls / rCount : 0;
+              const pAvg = pCount > 0 ? prevCalls / pCount : 0;
+              const diff = rAvg - pAvg;
+              const improved = diff < 0;
+              const significant = Math.abs(diff) > 0.5;
+              return (
+                <div style={metricCardStyle(significant ? (improved ? STATUS_GREEN : STATUS_RED) : '#64748b')}>
+                  <div style={metricLabelStyle}>On-calls / Week</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={metricValueStyle}>{rAvg > 0 ? rAvg.toFixed(1) : '--'}</span>
+                    {significant && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: improved ? STATUS_GREEN : STATUS_RED }}>
+                        {improved ? '\u25BC' : '\u25B2'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    was {pAvg > 0 ? pAvg.toFixed(1) : '--'}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Sleep rating */}
+            {(() => {
+              const diff = recentAvg.avgSleep - prevAvg.avgSleep;
+              const improved = diff > 0; // higher sleep rating is better
+              const significant = Math.abs(diff) > 0.3;
+              return (
+                <div style={metricCardStyle(significant ? (improved ? STATUS_GREEN : STATUS_RED) : '#64748b')}>
+                  <div style={metricLabelStyle}>Sleep Rating</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={metricValueStyle}>{recentAvg.avgSleep > 0 ? `${recentAvg.avgSleep.toFixed(1)}/5` : '--'}</span>
+                    {significant && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: improved ? STATUS_GREEN : STATUS_RED }}>
+                        {improved ? '\u25B2' : '\u25BC'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    was {prevAvg.avgSleep > 0 ? `${prevAvg.avgSleep.toFixed(1)}/5` : '--'}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Stress level */}
+            {(() => {
+              const diff = recentAvg.avgStress - prevAvg.avgStress;
+              const improved = diff < 0; // lower stress is better
+              const significant = Math.abs(diff) > 0.3;
+              return (
+                <div style={metricCardStyle(significant ? (improved ? STATUS_GREEN : STATUS_RED) : '#64748b')}>
+                  <div style={metricLabelStyle}>Stress Level</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={metricValueStyle}>{recentAvg.avgStress > 0 ? `${recentAvg.avgStress.toFixed(1)}/5` : '--'}</span>
+                    {significant && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: improved ? STATUS_GREEN : STATUS_RED }}>
+                        {improved ? '\u25BC' : '\u25B2'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                    was {prevAvg.avgStress > 0 ? `${prevAvg.avgStress.toFixed(1)}/5` : '--'}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Deterioration alert */}
+          {(() => {
+            const sleepWorse = recentAvg.avgSleep > 0 && prevAvg.avgSleep > 0 && (recentAvg.avgSleep - prevAvg.avgSleep) < -0.3;
+            const stressWorse = recentAvg.avgStress > 0 && prevAvg.avgStress > 0 && (recentAvg.avgStress - prevAvg.avgStress) > 0.3;
+            if (!sleepWorse && !stressWorse) return null;
+            return (
+              <div style={{
+                marginTop: 14, padding: '12px 14px', borderRadius: 10,
+                background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                border: '1px solid #fde68a',
+                fontSize: 12, color: '#92400e', lineHeight: 1.6,
+              }}>
+                {sleepWorse && 'Your sleep quality has declined compared to the previous period. '}
+                {stressWorse && 'Your stress levels have increased. '}
+                Consider reviewing your schedule and recovery habits.
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/*  ASSESSMENT SCORE HISTORY                                      */}
+      {/* ============================================================ */}
+      {assessments.length > 0 && (
+        <div style={{
+          background: '#fff',
+          borderRadius: cardRadius,
+          padding: '24px 20px',
+          marginBottom: 24,
+          boxShadow: cardShadow,
+          border: '1px solid #e2e8f0',
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: '0 0 4px', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            Assessment Score History
+          </h2>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>
+            {assessments.length} assessment{assessments.length !== 1 ? 's' : ''} recorded
+          </div>
+
+          {/* PHQ-9 / GAD-7 supportive alert */}
+          {latestAssessment && (
+            (latestAssessment.phq9_total != null && latestAssessment.phq9_total >= 10) ||
+            (latestAssessment.gad7_total != null && latestAssessment.gad7_total >= 10)
+          ) && (
+            <div style={{
+              padding: '14px 16px', borderRadius: 10, marginBottom: 16,
+              background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)',
+              border: '1px solid #a7f3d0',
+              fontSize: 12, color: '#065f46', lineHeight: 1.7,
+            }}>
+              If you are feeling overwhelmed, OMSB Employee Assistance is available. You are not alone.
+            </div>
+          )}
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {assessments.map((a) => {
+              const dt = new Date(a.assessment_date);
+              return (
+                <div key={a.assessment_date} style={{
+                  background: '#f8fafc', borderRadius: 12, padding: '14px 16px',
+                  border: '1px solid #e2e8f0',
+                }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 700, color: '#0f766e', marginBottom: 10,
+                  }}>
+                    {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                    {/* WHO-5 */}
+                    {(() => {
+                      const s = who5Severity(a.who5_total);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          WHO-5: <strong style={{ color: s.color }}>{a.who5_total != null ? `${a.who5_total}%` : '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* CBI Work */}
+                    {(() => {
+                      const s = cbiWorkSeverity(a.cbi_work_score);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          CBI Work: <strong style={{ color: s.color }}>{a.cbi_work_score != null ? a.cbi_work_score.toFixed(0) : '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* CBI Personal */}
+                    {(() => {
+                      const s = cbiWorkSeverity(a.cbi_personal_score); // same thresholds
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          CBI Personal: <strong style={{ color: s.color }}>{a.cbi_personal_score != null ? a.cbi_personal_score.toFixed(0) : '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* CBI Patient */}
+                    {(() => {
+                      const s = cbiWorkSeverity(a.cbi_patient_score);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          CBI Patient: <strong style={{ color: s.color }}>{a.cbi_patient_score != null ? a.cbi_patient_score.toFixed(0) : '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* PHQ-9 */}
+                    {(() => {
+                      const s = phq9Severity(a.phq9_total);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          PHQ-9: <strong style={{ color: s.color }}>{a.phq9_total ?? '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* GAD-7 */}
+                    {(() => {
+                      const s = gad7Severity(a.gad7_total);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          GAD-7: <strong style={{ color: s.color }}>{a.gad7_total ?? '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* ISI */}
+                    {(() => {
+                      const s = isiSeverity(a.isi_total);
+                      return (
+                        <div style={{ fontSize: 11, color: '#475569' }}>
+                          ISI: <strong style={{ color: s.color }}>{a.isi_total ?? '--'}</strong>
+                          <span style={{ ...statusTextStyle, marginLeft: 4 }}>{s.label}</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/*  WHOOP RECOVERY TREND (Mini Chart)                             */}
+      {/* ============================================================ */}
+      {whoopHistory.length > 1 && (
+        <div style={{
+          background: '#fff',
+          borderRadius: cardRadius,
+          padding: '24px 20px',
+          marginBottom: 24,
+          boxShadow: cardShadow,
+          border: '1px solid #e2e8f0',
+        }}>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: '0 0 4px', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            Recovery Trend
+          </h2>
+          <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 16 }}>
+            Last {whoopHistory.length} WHOOP data pulls
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[...whoopHistory].reverse().map((pull) => {
+              const score = pull.avg_recovery_score ?? 0;
+              const barColor = score >= 67 ? STATUS_GREEN : score >= 34 ? STATUS_AMBER : STATUS_RED;
+              const dt = new Date(pull.pulled_at);
+              return (
+                <div key={pull.pulled_at} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#64748b', minWidth: 50, textAlign: 'right' }}>
+                    {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </div>
+                  <div style={{ flex: 1, background: '#f1f5f9', borderRadius: 4, height: 18, overflow: 'hidden', position: 'relative' }}>
+                    <div style={{
+                      width: `${Math.min(score, 100)}%`,
+                      height: '100%',
+                      background: barColor,
+                      borderRadius: 4,
+                      transition: 'width 0.4s ease',
+                    }} />
+                  </div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: barColor, minWidth: 36, textAlign: 'right' }}>
+                    {pull.avg_recovery_score != null ? `${Math.round(pull.avg_recovery_score)}%` : '--'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/*  WELLBEING RESOURCES (Conditional)                             */}
+      {/* ============================================================ */}
+      {hasElevatedScores && (
+        <div style={{
+          borderRadius: cardRadius,
+          padding: '20px 20px',
+          marginBottom: 24,
+          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+          border: '1px solid #fde68a',
+          boxShadow: cardShadow,
+        }}>
+          <div style={{
+            fontSize: 14, fontWeight: 700, color: '#92400e', marginBottom: 10,
+            fontFamily: 'Georgia, "Times New Roman", serif',
+          }}>
+            Wellbeing Resources
+          </div>
+          <p style={{ fontSize: 13, color: '#78350f', lineHeight: 1.7, margin: '0 0 12px' }}>
+            Your recent scores suggest you may be experiencing elevated stress.
+            This is common among residents and does not reflect on your ability or dedication.
+          </p>
+          <div style={{
+            background: 'rgba(255,255,255,0.6)', borderRadius: 10, padding: '12px 14px',
+            fontSize: 12, color: '#78350f', lineHeight: 1.8,
+          }}>
+            <strong>OMSB Counselling:</strong>{' '}
+            <a href="mailto:counselling@omsb.org" style={{ color: '#0d9488', fontWeight: 600 }}>counselling@omsb.org</a>
+            <br />
+            <strong>SQU Employee Assistance:</strong>{' '}
+            <a href="mailto:mrawahi@squ.edu.om" style={{ color: '#0d9488', fontWeight: 600 }}>mrawahi@squ.edu.om</a>
+            <br />
+            <span style={{ fontSize: 11, color: '#92400e', fontStyle: 'italic' }}>
+              You are not alone. Reaching out is a sign of strength.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/*  STUDY PROGRESS                                                */}
