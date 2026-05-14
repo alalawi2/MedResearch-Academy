@@ -102,10 +102,13 @@ export default function ResidentLogin() {
           <div>
             <div style={{background:'#fef3c7',border:'1px solid #fde68a',borderRadius:12,padding:'20px',textAlign:'center',marginBottom:16}}>
               <div style={{fontSize:28,marginBottom:8}}>🔒</div>
-              <div style={{fontWeight:700,color:'#92400e',marginBottom:6}}>Not Enrolled</div>
-              <div style={{fontSize:13,color:'#92400e',lineHeight:1.6}}>
-                Signed in as <strong>{user?.email}</strong> but no participant record found. Please contact the research team if you believe this is an error.
+              <div style={{fontWeight:700,color:'#92400e',marginBottom:6}}>WHOOP Not Connected</div>
+              <div style={{fontSize:13,color:'#92400e',lineHeight:1.6,marginBottom:12}}>
+                Signed in as <strong>{user?.email}</strong> but no participant record found. You need to connect your WHOOP band first before logging in.
               </div>
+              <Link to="/enroll/whoop" style={{display:'inline-flex',alignItems:'center',justifyContent:'center',gap:8,padding:'12px 24px',borderRadius:8,background:'#92400e',color:'white',fontWeight:600,fontSize:14,textDecoration:'none',width:'100%',maxWidth:280}}>
+                Connect WHOOP First →
+              </Link>
             </div>
             <button onClick={handleSignOut} className="btn btn-outline" style={{width:'100%',justifyContent:'center'}}>Sign Out</button>
           </div>
@@ -171,7 +174,16 @@ export default function ResidentLogin() {
           </form>
         )}
 
-        <div style={{textAlign:'center',marginTop:24,fontSize:13,color:'var(--text-muted)'}}>
+        <div style={{background:'#ecfdf5',border:'1px solid #a7f3d0',borderRadius:12,padding:'16px 18px',marginTop:20,textAlign:'center'}}>
+          <div style={{fontSize:13,color:'#065f46',lineHeight:1.6}}>
+            <strong>New participant?</strong> You must connect your WHOOP band before logging in.
+          </div>
+          <Link to="/enroll/whoop" style={{display:'inline-flex',alignItems:'center',gap:6,marginTop:8,fontSize:13,fontWeight:600,color:'#065f46',textDecoration:'underline'}}>
+            Connect WHOOP & Enroll →
+          </Link>
+        </div>
+
+        <div style={{textAlign:'center',marginTop:16,fontSize:13,color:'var(--text-muted)'}}>
           Research team member?{' '}
           <Link to="/login" style={{color:'var(--primary)',fontWeight:600}}>Staff login →</Link>
         </div>
