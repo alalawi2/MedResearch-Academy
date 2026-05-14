@@ -139,18 +139,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // New participant — generate next study participant ID
-    const { data: lastResident } = await supabase
+    // Query all IDs to find the highest numeric suffix (handles non-numeric IDs like RES-TEST)
+    const { data: allIds } = await supabase
       .from('burnout_participants')
       .select('study_participant_id')
       .eq('study_id', study.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      .limit(500);
 
     let nextNum = 1;
-    if (lastResident?.study_participant_id) {
-      const match = lastResident.study_participant_id.match(/(\d+)$/);
-      if (match) nextNum = parseInt(match[1], 10) + 1;
+    if (allIds) {
+      for (const row of allIds) {
+        const match = row.study_participant_id?.match(/RES-(\d+)$/);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num >= nextNum) nextNum = num + 1;
+        }
+      }
     }
     const participantId = `RES-${String(nextNum).padStart(3, '0')}`;
 
