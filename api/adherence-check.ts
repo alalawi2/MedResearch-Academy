@@ -59,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .eq('status', 'active')
     .not('whoop_user_id', 'is', null)
     .not('email', 'is', null)
-    .limit(200);
+    .limit(1000);
 
   if (!participants || participants.length === 0) {
     return res.json({ checked: 0, message: 'No active participants with WHOOP' });

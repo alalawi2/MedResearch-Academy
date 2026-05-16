@@ -138,44 +138,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${existing.study_participant_id}&email=${encodeURIComponent(whoopEmail || '')}`);
     }
 
-    // New participant — generate next study participant ID
-    // Query all IDs to find the highest numeric suffix (handles non-numeric IDs like RES-TEST)
-    const { data: allIds } = await supabase
-      .from('burnout_participants')
-      .select('study_participant_id')
-      .eq('study_id', study.id)
-      .limit(500);
+    // New participant — generate next study participant ID with retry for race conditions
+    // Retry loop handles concurrent enrollments that could generate duplicate IDs
+    let newResident: { id: string } | null = null;
+    let participantId = '';
+    let insertErr: any = null;
 
-    let nextNum = 1;
-    if (allIds) {
-      for (const row of allIds) {
-        const match = row.study_participant_id?.match(/RES-(\d+)$/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num >= nextNum) nextNum = num + 1;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data: allIds } = await supabase
+        .from('burnout_participants')
+        .select('study_participant_id')
+        .eq('study_id', study.id)
+        .limit(1000);
+
+      let nextNum = 1;
+      if (allIds) {
+        for (const row of allIds) {
+          const match = row.study_participant_id?.match(/RES-(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num >= nextNum) nextNum = num + 1;
+          }
         }
       }
+      participantId = `RES-${String(nextNum).padStart(3, '0')}`;
+
+      const { data, error } = await supabase
+        .from('burnout_participants')
+        .insert({
+          study_id: study.id,
+          study_participant_id: participantId,
+          full_name: whoopName || null,
+          email: whoopEmail || null,
+          whoop_user_id: whoopUserId,
+          status: 'active',
+          enrollment_date: new Date().toISOString().slice(0, 10),
+        })
+        .select('id')
+        .single();
+
+      if (!error) {
+        newResident = data;
+        insertErr = null;
+        break;
+      }
+
+      // If duplicate key error, retry with fresh ID scan
+      if (error.code === '23505' && attempt < 2) {
+        console.warn(`ID collision on ${participantId}, retrying (attempt ${attempt + 1})`);
+        await new Promise(r => setTimeout(r, 100 * (attempt + 1)));
+        continue;
+      }
+
+      insertErr = error;
+      break;
     }
-    const participantId = `RES-${String(nextNum).padStart(3, '0')}`;
 
-    // Create participant record
-    const { data: newResident, error: insertErr } = await supabase
-      .from('burnout_participants')
-      .insert({
-        study_id: study.id,
-        study_participant_id: participantId,
-        full_name: whoopName || null,
-        email: whoopEmail || null,
-        whoop_user_id: whoopUserId,
-        status: 'active',
-        enrollment_date: new Date().toISOString().slice(0, 10),
-      })
-      .select('id')
-      .single();
-
-    if (insertErr) {
+    if (insertErr || !newResident) {
       console.error('Failed to create resident:', JSON.stringify(insertErr));
-      return res.redirect(`${SITE_URL}/enroll/whoop?error=insert_failed&detail=${encodeURIComponent(insertErr.message || JSON.stringify(insertErr))}`);
+      return res.redirect(`${SITE_URL}/enroll/whoop?error=insert_failed&detail=${encodeURIComponent(insertErr?.message || 'Unknown error')}`);
     }
 
     // Store tokens

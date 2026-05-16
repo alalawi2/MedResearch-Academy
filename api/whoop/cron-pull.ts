@@ -273,7 +273,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { data: tokens, error: tokErr } = await supabase
     .from('whoop_tokens')
     .select('*')
-    .limit(200);
+    .limit(1000);
 
   if (tokErr || !tokens || tokens.length === 0) {
     return res.json({ pulled: 0, message: 'No enrolled residents with WHOOP tokens' });

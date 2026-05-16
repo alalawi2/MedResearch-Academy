@@ -254,7 +254,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const startDate = req.query.start as string || new Date(Date.now() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   // Get tokens
-  let tokenQuery = supabase.from('whoop_tokens').select('*').limit(200);
+  let tokenQuery = supabase.from('whoop_tokens').select('*').limit(1000);
   if (residentId) tokenQuery = tokenQuery.eq('resident_id', residentId);
 
   const { data: tokens, error: tokenErr } = await tokenQuery;
