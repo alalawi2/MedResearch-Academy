@@ -155,6 +155,50 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* OHealth */}
+          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #f0f7f4 0%, #e8f4ec 100%)',border:'2px solid #c8e6d0',borderRadius:16,overflow:'hidden'}}>
+            <div className="resource-body" style={{padding:32}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #1a5c3a, #0d4028)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{color:'#4ade80',fontSize:22,fontWeight:700}}>O</span>
+                </div>
+                <div>
+                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>O<span style={{color:'#16a34a'}}>Health</span></span>
+                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>OMAN HEALTH INTELLIGENCE</div>
+                </div>
+                <span className="badge" style={{background:'rgba(34,197,94,0.15)',color:'#16a34a',marginLeft:12}}>Live</span>
+              </div>
+              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>Oman's Open Health Data — Visualized & Analyzed</h2>
+              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
+                AI-powered health intelligence platform built on NCSI open government data. Interactive maps, capacity forecasting, equity analysis, and disease surveillance across all 11 governorates — empowering evidence-based health planning.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
+                {[
+                  ['Interactive Health Map','Click any governorate for instant statistics'],
+                  ['Capacity Predictor','AI forecasts hospital occupancy trends'],
+                  ['Disease Surveillance','27 diseases with climate correlation'],
+                ].map(([title, desc]) => (
+                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #c8e6d0'}}>
+                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
+                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #c8e6d0',paddingTop:20}}>
+                {[['98','Hospitals'],['9,706','Beds'],['11','Governorates'],['5.36M','Population']].map(([num, label]) => (
+                  <div key={label} style={{textAlign:'center'}}>
+                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#16a34a'}}>{num}</div>
+                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+                <a href="https://ohealth.medresearch-academy.om" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a5c3a',color:'white',border:'none'}}>Launch OHealth →</a>
+                <a href="/active-research/ohealth" className="btn btn-outline btn-lg">Learn More</a>
+              </div>
+            </div>
+          </div>
+
           {/* Publications */}
           <div>
             <h2 style={{fontSize:'1.8rem',marginBottom:8}}>Latest Publications</h2>

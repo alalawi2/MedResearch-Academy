@@ -28,6 +28,18 @@ const STUDIES: StudyCardData[] = [
     icon: '⌚',
   },
   {
+    slug: 'ohealth',
+    title: 'OHealth — Oman Health Intelligence Platform',
+    shortDescription: 'AI-powered health data platform built on Oman\'s open government data. Interactive maps, capacity prediction, equity analysis, and disease surveillance across all 11 governorates.',
+    status: 'recruiting',
+    ethicsIds: [],
+    pi: 'Dr. Abdullah M. Al Alawi',
+    coPi: '',
+    studyType: 'Open Data Analytics Platform',
+    targetPopulation: 'Policymakers, Health Planners, Researchers',
+    icon: '\u{1F3E5}',
+  },
+  {
     slug: 'parenthood',
     title: 'Perspectives on Parenthood During Residency Training in Oman',
     shortDescription: 'A mixed-methods study exploring how residency training affects family planning decisions and the experiences of resident physicians who are also parents — with the goal of informing humane, family-supportive training policies.',
