@@ -345,11 +345,16 @@ export default function ResidentLayout() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-muted)', padding: 24 }}>
         <div style={{ maxWidth: 500, background: 'white', borderRadius: 16, padding: 32, border: '1px solid #e2e8f0' }}>
-          <h2 style={{ color: '#dc2626', margin: '0 0 12px' }}>Profile Not Found</h2>
-          <p style={{ fontSize: 13, color: '#334155', marginBottom: 16 }}>
-            User: {user?.email ?? 'none'} | Staff: {staff ? 'yes' : 'no'}
+          <div style={{ fontSize: 40, marginBottom: 12, textAlign: 'center' }}>&#9888;&#65039;</div>
+          <h2 style={{ color: '#0f766e', margin: '0 0 12px', textAlign: 'center' }}>WHOOP Not Connected</h2>
+          <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 16 }}>
+            Signed in as <strong>{user?.email}</strong>, but no participant record found.
+            You need to <strong>connect your WHOOP device first</strong> before you can access the dashboard.
           </p>
-          <button onClick={signOut} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Sign Out</button>
+          <a href="/enroll/whoop" style={{ display: 'block', textAlign: 'center', padding: '14px 24px', borderRadius: 10, background: '#0f766e', color: 'white', fontWeight: 700, fontSize: 15, textDecoration: 'none', marginBottom: 12 }}>
+            Connect WHOOP & Enroll
+          </a>
+          <button onClick={signOut} style={{ width: '100%', padding: '10px 16px', borderRadius: 8, border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#64748b' }}>Sign Out</button>
         </div>
       </div>
     );
