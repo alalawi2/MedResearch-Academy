@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (linked) return res.json({ profile: linked, action: 'already_linked' });
 
-  // Try to link by email
+  // Try to link by email (exact match)
   const { data: byEmail } = await supabase
     .from('burnout_participants')
     .select('id, study_participant_id')
@@ -37,18 +37,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .limit(1)
     .single();
 
-  if (!byEmail) return res.status(404).json({ error: 'not_enrolled' });
+  // Fallback: if email doesn't match, try case-insensitive email
+  let match = byEmail;
+  if (!match && user.email) {
+    const { data: byEmailCI } = await supabase
+      .from('burnout_participants')
+      .select('id, study_participant_id')
+      .ilike('email', user.email)
+      .is('auth_user_id', null)
+      .limit(1)
+      .single();
+    match = byEmailCI;
+  }
+
+  // Fallback 2: if resident just enrolled (within last 30 min) and has no auth_user_id,
+  // link the most recent unlinked participant. This handles the case where the WHOOP
+  // email differs from the login email (e.g. Gmail for WHOOP, OMSB email for login).
+  if (!match) {
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+    const { data: recent } = await supabase
+      .from('burnout_participants')
+      .select('id, study_participant_id')
+      .is('auth_user_id', null)
+      .gte('created_at', thirtyMinAgo)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    match = recent;
+  }
+
+  if (!match) return res.status(404).json({ error: 'not_enrolled' });
 
   // Link auth_user_id (service role bypasses RLS)
   const { error: updateErr } = await supabase
     .from('burnout_participants')
     .update({ auth_user_id: user.id })
-    .eq('id', byEmail.id);
+    .eq('id', match.id);
 
   if (updateErr) {
     console.error('Link error:', updateErr);
     return res.status(500).json({ error: 'Failed to link account' });
   }
 
-  return res.json({ profile: byEmail, action: 'linked' });
+  return res.json({ profile: match, action: 'linked' });
 }
