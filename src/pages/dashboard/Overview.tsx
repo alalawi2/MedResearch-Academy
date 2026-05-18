@@ -250,6 +250,7 @@ export default function Overview() {
   const studySlug = studyRoles[0]?.study_slug ?? '';
   const userRole = studyRoles[0]?.role ?? '';
   const isAdmin = hasRole(studySlug, 'research_admin');
+  const isSuperAdmin = userRole === 'super_admin';
 
   /* ---- data fetching ---- */
 

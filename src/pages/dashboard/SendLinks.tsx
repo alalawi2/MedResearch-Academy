@@ -21,8 +21,10 @@ interface CompletionRecord {
 const LINK_URL = 'https://www.medresearch-academy.om/resident/login';
 
 export default function SendLinks() {
-  const { studyRoles } = useAuth();
+  const { studyRoles, getRoleForStudy } = useAuth();
   const studyId = studyRoles[0]?.study_id ?? '';
+  const studySlug = studyRoles[0]?.study_slug ?? '';
+  const isSuperAdmin = getRoleForStudy(studySlug) === 'super_admin';
 
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -198,7 +200,7 @@ export default function SendLinks() {
                       />
                     </td>
                     <td style={{ padding: '8px 12px' }}>
-                      <div style={{ fontWeight: 500 }}>{p.full_name}</div>
+                      <div style={{ fontWeight: 500 }}>{isSuperAdmin ? p.full_name : p.study_participant_id}</div>
                       <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.study_participant_id} {p.pgy_level ? `· PGY-${p.pgy_level}` : ''}</div>
                     </td>
                     <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: 12 }}>

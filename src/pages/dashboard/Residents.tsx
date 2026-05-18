@@ -28,7 +28,7 @@ export default function Residents() {
   const studyId = studyRoles[0]?.study_id;
   const studySlug = studyRoles[0]?.study_slug;
   const role = getRoleForStudy(studySlug);
-  const canSeePii = role && ['super_admin', 'research_admin', 'site_coordinator'].includes(role);
+  const canSeePii = role === 'super_admin';
 
   useEffect(() => {
     if (!studyId) return;

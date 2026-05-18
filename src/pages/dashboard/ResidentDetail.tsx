@@ -99,7 +99,7 @@ export default function ResidentDetail() {
   const { studyRoles, getRoleForStudy } = useAuth();
   const studySlug = studyRoles[0]?.study_slug;
   const role = getRoleForStudy(studySlug);
-  const canSeePii = role && ['super_admin', 'research_admin', 'site_coordinator'].includes(role);
+  const canSeePii = role === 'super_admin';
 
   const [resident, setResident] = useState<ResidentRow | null>(null);
   const [blocks, setBlocks] = useState<BlockRow[]>([]);
