@@ -23,6 +23,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     response_type: 'code',
     scope: SCOPES,
     state,
+    prompt: 'login',  // Force fresh login — prevents stale session "Session expired"
+    max_age: '0',     // Never reuse existing WHOOP session
   });
 
   res.redirect(`${WHOOP_AUTH_URL}?${params.toString()}`);
