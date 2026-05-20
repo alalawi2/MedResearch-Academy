@@ -14,7 +14,8 @@ const SCOPES = [
 ].join(' ');
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  const state = Math.random().toString(36).substring(2, 15);
+  // WHOOP requires state to be at least 8 characters
+  const state = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
