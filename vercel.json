@@ -14,6 +14,7 @@
     }
   ],
   "functions": {
+    "api/whoop/callback.ts": { "maxDuration": 30 },
     "api/whoop/cron-pull.ts": { "maxDuration": 120 },
     "api/whoop/admin-pull.ts": { "maxDuration": 120 },
     "api/adherence-check.ts": { "maxDuration": 120 },
