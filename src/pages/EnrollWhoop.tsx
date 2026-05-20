@@ -11,6 +11,7 @@ export default function EnrollWhoop() {
   const participantId = params.get('id');
   const enrollEmail = params.get('email');
 
+  const [connecting, setConnecting] = useState(false);
   const [pwStep, setPwStep] = useState(false);
   const [email, setEmail] = useState(enrollEmail || '');
   const [password, setPassword] = useState('');
@@ -159,9 +160,28 @@ export default function EnrollWhoop() {
                 Your data will be pseudonymized and used exclusively for approved research (MREC #3190). You can revoke access anytime from the WHOOP app.
               </p>
 
-              <a href="/api/whoop/authorize" className="btn btn-primary btn-lg" style={{width:'100%',justifyContent:'center',maxWidth:320,margin:'0 auto'}}>
-                Connect WHOOP →
-              </a>
+              <button
+                onClick={() => {
+                  if (connecting) return;
+                  setConnecting(true);
+                  window.location.href = '/api/whoop/authorize';
+                }}
+                disabled={connecting}
+                className="btn btn-primary btn-lg"
+                style={{
+                  width:'100%',justifyContent:'center',maxWidth:320,margin:'0 auto',
+                  opacity: connecting ? 0.6 : 1,
+                  cursor: connecting ? 'not-allowed' : 'pointer',
+                  border: 'none',
+                }}
+              >
+                {connecting ? 'Connecting to WHOOP...' : 'Connect WHOOP →'}
+              </button>
+              {connecting && (
+                <p style={{fontSize:13,color:'var(--primary)',textAlign:'center',marginTop:12,fontWeight:600}}>
+                  Please wait — do not tap again. You will be redirected to WHOOP.
+                </p>
+              )}
 
               <div style={{marginTop:24,fontSize:12,color:'var(--text-muted)'}}>
                 <a href="/privacy" style={{color:'var(--primary)'}}>Privacy Policy</a> · <a href="/active-research/resident-burnout" style={{color:'var(--primary)'}}>Study Details</a>
