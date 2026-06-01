@@ -41,7 +41,12 @@ function formatWeekRange(weekStart: string): string {
 const RATING_COLORS = ['#e53e3e', '#ed8936', '#ecc94b', '#68d391', '#38a169'];
 
 const CALL_COUNTS = [0, 1, 2, 3, 4, 5];
-const CALL_TYPES = ['None', '24h', 'Shift', 'Mixed'];
+const CALL_TYPES = [
+  { label: 'None', value: 'none' },
+  { label: '24h', value: '24h' },
+  { label: 'Shift', value: 'shift' },
+  { label: 'Mixed', value: 'mixed' },
+];
 
 const SLEEP_LABELS = ['Terrible', 'Poor', 'Fair', 'Good', 'Excellent'];
 const STRESS_LABELS = ['Minimal', 'Mild', 'Moderate', 'High', 'Extreme'];
@@ -313,7 +318,7 @@ export default function WeeklyCheckin() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
             <SummaryItem label="Hours" value={`${existingCheckin.hours_worked}h`} />
             <SummaryItem label="On-calls" value={existingCheckin.on_call_count >= 5 ? '5+' : String(existingCheckin.on_call_count)} />
-            <SummaryItem label="Call type" value={existingCheckin.call_type} />
+            <SummaryItem label="Call type" value={CALL_TYPES.find(t => t.value === existingCheckin.call_type)?.label || existingCheckin.call_type} />
             {existingCheckin.on_call_count > 0 && existingCheckin.call_busyness && (
               <SummaryItem
                 label="Call busyness"
@@ -405,9 +410,9 @@ export default function WeeklyCheckin() {
                   onClick={() => {
                     setOnCallCount(n);
                     if (n === 0) {
-                      setCallType('None');
+                      setCallType('none');
                       setCallBusyness(null);
-                    } else if (callType === 'None') {
+                    } else if (callType === 'none') {
                       setCallType(null);
                     }
                   }}
@@ -425,11 +430,11 @@ export default function WeeklyCheckin() {
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {CALL_TYPES.map((t) => (
                 <button
-                  key={t}
-                  onClick={() => setCallType(t)}
-                  style={pillStyle(callType === t)}
+                  key={t.value}
+                  onClick={() => setCallType(t.value)}
+                  style={pillStyle(callType === t.value)}
                 >
-                  {t}
+                  {t.label}
                 </button>
               ))}
             </div>

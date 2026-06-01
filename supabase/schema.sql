@@ -79,7 +79,7 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type call_type as enum ('none', '24h', 'shift');
+  create type call_type as enum ('none', '24h', 'shift', 'mixed');
 exception when duplicate_object then null; end $$;
 
 do $$ begin
