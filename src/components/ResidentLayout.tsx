@@ -38,9 +38,9 @@ function InlineDashboard({ profile }: { profile: ResidentProfile }) {
     if (aData) setAssessments(aData);
 
     // Counts
-    const { count: ba } = await supabase.from('block_assessments').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
-    const { count: wc } = await supabase.from('weekly_checkins').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
-    const { count: ev } = await supabase.from('event_logs').select('id', { count: 'exact', head: true }).eq('resident_id', rid);
+    const { count: ba } = await supabase.from('block_assessments').select('id', { count: 'exact' }).eq('resident_id', rid).limit(0);
+    const { count: wc } = await supabase.from('weekly_checkins').select('id', { count: 'exact' }).eq('resident_id', rid).limit(0);
+    const { count: ev } = await supabase.from('event_logs').select('id', { count: 'exact' }).eq('resident_id', rid).limit(0);
     setCounts({ assessments: ba ?? 0, checkins: wc ?? 0, events: ev ?? 0 });
     setLoading(false);
   }

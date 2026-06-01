@@ -112,24 +112,24 @@ export default function ResidentDashboard() {
     // Block assessments count
     const { count: baCount, error: baErr } = await supabase
       .from('block_assessments')
-      .select('id', { count: 'exact', head: true })
-      .eq('resident_id', rid);
+      .select('id', { count: 'exact' })
+      .eq('resident_id', rid).limit(0);
     if (baErr) log.push(`Assessments error: ${baErr.message}`);
     else { setAssessmentCount(baCount ?? 0); log.push(`Assessments: ${baCount ?? 0}`); }
 
     // Weekly checkins count
     const { count: wcCount, error: wcErr } = await supabase
       .from('weekly_checkins')
-      .select('id', { count: 'exact', head: true })
-      .eq('resident_id', rid);
+      .select('id', { count: 'exact' })
+      .eq('resident_id', rid).limit(0);
     if (wcErr) log.push(`Checkins error: ${wcErr.message}`);
     else { setCheckinCount(wcCount ?? 0); log.push(`Checkins: ${wcCount ?? 0}`); }
 
     // Event count
     const { count: evCount, error: evErr } = await supabase
       .from('event_logs')
-      .select('id', { count: 'exact', head: true })
-      .eq('resident_id', rid);
+      .select('id', { count: 'exact' })
+      .eq('resident_id', rid).limit(0);
     if (evErr) log.push(`Events error: ${evErr.message}`);
     else { setEventCount(evCount ?? 0); log.push(`Events: ${evCount ?? 0}`); }
 
