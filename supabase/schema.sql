@@ -456,11 +456,11 @@ create table if not exists weekly_checkins (
   resident_id uuid not null references burnout_participants(id) on delete cascade,
   week_start date not null,
   hours_worked numeric,
-  on_call_count integer,
-  call_type text,
-  call_busyness integer,
-  sleep_rating integer,
-  stress_level integer,
+  on_call_count integer check (on_call_count >= 0 and on_call_count <= 7),
+  call_type text check (call_type in ('none', '24h', 'shift', 'mixed')),
+  call_busyness integer check (call_busyness >= 1 and call_busyness <= 5),
+  sleep_rating integer check (sleep_rating >= 1 and sleep_rating <= 5),
+  stress_level integer check (stress_level >= 1 and stress_level <= 5),
   created_at timestamptz not null default now(),
   unique (resident_id, week_start)
 );
