@@ -1,6 +1,6 @@
 -- ============================================================================
 -- MedResearch Academy — Unified Research Data Platform
--- Multi-tenant schema v2.0 — updated instruments per PI feedback
+-- Multi-tenant schema v3.0 — synced with live database (June 2026)
 -- ============================================================================
 -- Run this ENTIRE file in the Supabase SQL editor in ONE go.
 -- Then run seed.sql separately.
@@ -14,11 +14,16 @@ create extension if not exists "pgcrypto";
 -- ============================================================================
 do $$ begin
   create type user_role as enum (
-    'super_admin',
-    'research_admin',
-    'site_coordinator',
-    'research_assistant',
-    'statistician'
+    'admin',
+    'apd',
+    'coordinator',
+    'chief_resident',
+    'resident',
+    'external_coordinator',
+    'external_resident',
+    'faculty',
+    'ec_member',
+    'auditor'
   );
 exception when duplicate_object then null; end $$;
 
@@ -83,6 +88,10 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 
 do $$ begin
+  create type training_level as enum ('R1', 'R2', 'R3', 'R4');
+exception when duplicate_object then null; end $$;
+
+do $$ begin
   create type burnout_category as enum ('low', 'moderate', 'high');
 exception when duplicate_object then null; end $$;
 
@@ -137,7 +146,7 @@ create table if not exists staff_study_roles (
   id uuid primary key default gen_random_uuid(),
   staff_id uuid not null references staff(id) on delete cascade,
   study_id uuid not null references studies(id) on delete cascade,
-  role user_role not null,
+  role text not null default 'research_assistant',
   site_scope study_site,
   created_at timestamptz not null default now(),
   unique (staff_id, study_id)
@@ -146,47 +155,118 @@ create index if not exists idx_ssr_staff on staff_study_roles (staff_id);
 create index if not exists idx_ssr_study on staff_study_roles (study_id);
 
 -- ============================================================================
--- 4. RESIDENTS
+-- 4. USER_PROFILES (referenced by residents)
+-- ============================================================================
+create table if not exists user_profiles (
+  id uuid primary key default gen_random_uuid(),
+  auth_user_id uuid unique,
+  email text,
+  full_name text,
+  role text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ============================================================================
+-- 5. RESIDENTS — residency program roster (NOT burnout study participants)
 -- ============================================================================
 create table if not exists residents (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid references user_profiles(id),
+  full_name text not null,
+  staff_id text unique not null,
+  email text not null,
+  training_level training_level not null,
+  resident_type text not null default 'internal_medicine',
+  program text not null default 'Internal Medicine',
+  academic_day text,
+  longitudinal_clinic_day text,
+  start_date date not null,
+  expected_graduation date,
+  is_extension boolean default false,
+  is_active boolean default true,
+  pregnancy_due_date date,
+  gender text,
+  marital_status text,
+  phone text,
+  onboarding_complete boolean default false,
+  schedule_confirmed boolean default false,
+  schedule_confirmed_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- ============================================================================
+-- 6. BURNOUT_PARTICIPANTS — study-specific participant enrollment
+-- ============================================================================
+create table if not exists burnout_participants (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
   study_participant_id text not null,
+  auth_user_id uuid unique,
   full_name text,
   email text,
   phone text,
   whoop_user_id text,
+  -- Demographics
+  date_of_birth date,
+  gender text,
   age_at_enrollment integer,
-  sex text check (sex in ('male', 'female')),
+  sex text,
   marital_status text,
   number_of_kids integer,
+  has_children boolean,
+  number_of_children text,
   social_support text,
   annual_income_bracket text,
-  program residency_program,
-  pgy_level integer check (pgy_level between 1 and 6),
-  primary_site study_site,
-  status enrollment_status not null default 'pending',
+  region_of_origin text,
+  hometown_visit_frequency text,
+  special_care_dependents boolean,
+  financial_difficulties boolean,
+  -- Physical
+  weight_kg numeric,
+  height_cm numeric,
+  -- Program
+  program text,
+  pgy_level integer,
+  residency_level text,
+  residency_program text,
+  primary_site text,
+  -- Health
+  chronic_conditions jsonb default '[]'::jsonb,
+  psychiatric_conditions jsonb default '[]'::jsonb,
+  on_medications boolean,
+  medications_list text,
+  -- Lifestyle
+  exercise_days_per_week text,
+  diet_type jsonb default '[]'::jsonb,
+  caffeine_drinks_daily text,
+  sleep_hours_non_call text,
+  -- Enrollment
+  status text not null default 'pending',
   enrollment_date date,
   withdrawal_date date,
   withdrawal_reason text,
   whoop_device_serial text,
-  created_by uuid references staff(id),
+  demographics_completed boolean default false,
+  baseline_completed boolean default false,
+  -- Timestamps
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (study_id, study_participant_id)
 );
-create index if not exists idx_residents_study on residents (study_id);
-create index if not exists idx_residents_status on residents (study_id, status);
-create index if not exists idx_residents_site on residents (study_id, primary_site);
+create index if not exists idx_bp_study on burnout_participants (study_id);
+create index if not exists idx_bp_status on burnout_participants (study_id, status);
+create index if not exists idx_bp_auth on burnout_participants (auth_user_id);
 
 -- ============================================================================
--- 5. ROTATION BLOCKS
+-- 7. ROTATION BLOCKS
 -- ============================================================================
 create table if not exists rotation_blocks (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
-  block_number integer not null check (block_number between 1 and 13),
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  block_number integer not null,
   academic_year text not null,
   rotation_name text,
   rotation_type rotation_type,
@@ -195,8 +275,8 @@ create table if not exists rotation_blocks (
   period_end date not null,
   calls_count integer,
   primary_call_type call_type,
-  hours_worked_per_week numeric(5,1),
-  hours_slept_per_day numeric(4,1),
+  hours_worked_per_week numeric,
+  hours_slept_per_day numeric,
   entered_by uuid references staff(id),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -206,26 +286,86 @@ create index if not exists idx_blocks_study on rotation_blocks (study_id);
 create index if not exists idx_blocks_resident on rotation_blocks (resident_id);
 
 -- ============================================================================
--- 6. CBI RESPONSES — Copenhagen Burnout Inventory (22 items)
+-- 8. BLOCK_ASSESSMENTS — unified block-level assessment (CBI+PHQ9+GAD7+ISI+WHO5)
+-- ============================================================================
+create table if not exists block_assessments (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  assessment_date date not null default CURRENT_DATE,
+  block_number integer,
+  rotation_name text,
+  clinical_intensity integer,
+  calls_count integer,
+  call_types jsonb default '[]'::jsonb,
+  rotation_types jsonb default '[]'::jsonb,
+  weekly_hours text,
+  major_life_event boolean,
+  annual_leave text,
+  sick_leave text,
+  pregnancy_status boolean,
+  -- WHO-5
+  who5_items jsonb,
+  who5_total integer,
+  who5_percent integer,
+  -- CBI
+  cbi_items jsonb,
+  cbi_personal_score numeric,
+  cbi_work_score numeric,
+  cbi_patient_score numeric,
+  cbi_personal_burnout boolean,
+  cbi_work_burnout boolean,
+  cbi_patient_burnout boolean,
+  cbi_any_burnout boolean,
+  -- PHQ-9
+  phq9_items jsonb,
+  phq9_total integer,
+  phq9_severity text,
+  -- GAD-7
+  gad7_items jsonb,
+  gad7_total integer,
+  gad7_severity text,
+  -- ISI
+  isi_items jsonb,
+  isi_total integer,
+  isi_severity text,
+  -- Review
+  review_status text default 'pending',
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  review_notes text,
+  -- Timestamp
+  created_at timestamptz not null default now(),
+  unique (resident_id, assessment_date)
+);
+create index if not exists idx_ba_study on block_assessments (study_id);
+create index if not exists idx_ba_resident on block_assessments (resident_id);
+
+-- ============================================================================
+-- 9. CBI RESPONSES — Copenhagen Burnout Inventory (22 items)
 --    3 subscales: Personal (6), Work-related (7), Patient-related (9)
---    Each item scored 1-5 (never → always). Subscale = mean × 25 → 0-100.
---    Burnout if subscale ≥ 50.
+--    Each item scored 1-5 (never -> always). Subscale = mean * 25 -> 0-100.
+--    Burnout if subscale >= 50.
 -- ============================================================================
 create table if not exists cbi_responses (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   block_id uuid references rotation_blocks(id) on delete set null,
   response_date date not null,
-  items jsonb not null,                          -- {"q1": 3, "q2": 4, ...}
-  personal_score numeric(5,1) not null,          -- 0-100
-  work_score numeric(5,1) not null,              -- 0-100
-  patient_score numeric(5,1) not null,           -- 0-100
-  personal_burnout boolean,                      -- ≥ 50
-  work_burnout boolean,                          -- ≥ 50
-  patient_burnout boolean,                       -- ≥ 50
-  any_burnout boolean,                           -- any subscale ≥ 50
+  items jsonb not null,
+  personal_score numeric not null,
+  work_score numeric not null,
+  patient_score numeric not null,
+  personal_burnout boolean,
+  work_burnout boolean,
+  patient_burnout boolean,
+  any_burnout boolean,
   entered_by uuid references staff(id),
+  review_status text default 'pending',
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  review_notes text,
   created_at timestamptz not null default now(),
   unique (resident_id, response_date)
 );
@@ -233,20 +373,24 @@ create index if not exists idx_cbi_study on cbi_responses (study_id);
 create index if not exists idx_cbi_resident on cbi_responses (resident_id);
 
 -- ============================================================================
--- 7. PHQ-9 RESPONSES — Patient Health Questionnaire (9 items)
---    Each item 0-3. Total 0-27.
---    Minimal <5, Mild 5-9, Moderate 10-14, Mod-Severe 15-19, Severe 20-27.
+-- 10. PHQ-9 RESPONSES — Patient Health Questionnaire (9 items)
+--     Each item 0-3. Total 0-27.
+--     Minimal <5, Mild 5-9, Moderate 10-14, Mod-Severe 15-19, Severe 20-27.
 -- ============================================================================
 create table if not exists phq9_responses (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   block_id uuid references rotation_blocks(id) on delete set null,
   response_date date not null,
-  items jsonb not null,                          -- {"q1": 2, ..., "q9": 1}
-  total_score integer not null check (total_score between 0 and 27),
+  items jsonb not null,
+  total_score integer not null,
   severity severity_category,
   entered_by uuid references staff(id),
+  review_status text default 'pending',
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  review_notes text,
   created_at timestamptz not null default now(),
   unique (resident_id, response_date)
 );
@@ -254,20 +398,24 @@ create index if not exists idx_phq9_study on phq9_responses (study_id);
 create index if not exists idx_phq9_resident on phq9_responses (resident_id);
 
 -- ============================================================================
--- 8. GAD-7 RESPONSES — Generalized Anxiety Disorder (7 items)
---    Each item 0-3. Total 0-21.
---    Minimal <5, Mild 5-9, Moderate 10-14, Severe 15-21.
+-- 11. GAD-7 RESPONSES — Generalized Anxiety Disorder (7 items)
+--     Each item 0-3. Total 0-21.
+--     Minimal <5, Mild 5-9, Moderate 10-14, Severe 15-21.
 -- ============================================================================
 create table if not exists gad7_responses (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   block_id uuid references rotation_blocks(id) on delete set null,
   response_date date not null,
-  items jsonb not null,                          -- {"q1": 1, ..., "q7": 0}
-  total_score integer not null check (total_score between 0 and 21),
+  items jsonb not null,
+  total_score integer not null,
   severity severity_category,
   entered_by uuid references staff(id),
+  review_status text default 'pending',
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  review_notes text,
   created_at timestamptz not null default now(),
   unique (resident_id, response_date)
 );
@@ -275,20 +423,24 @@ create index if not exists idx_gad7_study on gad7_responses (study_id);
 create index if not exists idx_gad7_resident on gad7_responses (resident_id);
 
 -- ============================================================================
--- 9. ISI RESPONSES — Insomnia Severity Index (7 items)
---    Each item 0-4. Total 0-28.
---    None 0-7, Subthreshold 8-14, Moderate 15-21, Severe 22-28.
+-- 12. ISI RESPONSES — Insomnia Severity Index (7 items)
+--     Each item 0-4. Total 0-28.
+--     None 0-7, Subthreshold 8-14, Moderate 15-21, Severe 22-28.
 -- ============================================================================
 create table if not exists isi_responses (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   block_id uuid references rotation_blocks(id) on delete set null,
   response_date date not null,
-  items jsonb not null,                          -- {"q1": 3, ..., "q7": 2}
-  total_score integer not null check (total_score between 0 and 28),
+  items jsonb not null,
+  total_score integer not null,
   severity severity_category,
   entered_by uuid references staff(id),
+  review_status text default 'pending',
+  reviewed_by uuid references staff(id),
+  reviewed_at timestamptz,
+  review_notes text,
   created_at timestamptz not null default now(),
   unique (resident_id, response_date)
 );
@@ -296,57 +448,97 @@ create index if not exists idx_isi_study on isi_responses (study_id);
 create index if not exists idx_isi_resident on isi_responses (resident_id);
 
 -- ============================================================================
--- 10. WHOOP PULLS — 4-week aggregated biophysical data
+-- 13. WEEKLY CHECK-INS
+-- ============================================================================
+create table if not exists weekly_checkins (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  week_start date not null,
+  hours_worked numeric,
+  on_call_count integer,
+  call_type text,
+  call_busyness integer,
+  sleep_rating integer,
+  stress_level integer,
+  created_at timestamptz not null default now(),
+  unique (resident_id, week_start)
+);
+create index if not exists idx_wc_study on weekly_checkins (study_id);
+create index if not exists idx_wc_resident on weekly_checkins (resident_id);
+
+-- ============================================================================
+-- 14. WHOOP TOKENS — OAuth tokens for WHOOP API
+-- ============================================================================
+create table if not exists whoop_tokens (
+  id uuid primary key default gen_random_uuid(),
+  resident_id uuid unique not null references burnout_participants(id) on delete cascade,
+  participant_id uuid references burnout_participants(id),
+  whoop_user_id text not null,
+  access_token text not null,
+  refresh_token text default '',
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ============================================================================
+-- 15. WHOOP PULLS — 4-week aggregated biophysical data
 -- ============================================================================
 create table if not exists whoop_pulls (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   block_id uuid references rotation_blocks(id) on delete set null,
   period_start date not null,
   period_end date not null,
-  avg_hrv_rmssd_ms numeric(6,2),
-  avg_resting_hr_bpm numeric(5,2),
-  avg_spo2_pct numeric(5,2),
-  avg_skin_temp_c numeric(5,2),
-  avg_recovery_score numeric(5,2),
-  avg_total_sleep_min numeric(6,1),
-  avg_light_sleep_min numeric(6,1),
-  avg_deep_sleep_min numeric(6,1),
-  avg_rem_sleep_min numeric(6,1),
-  avg_sleep_efficiency_pct numeric(5,2),
-  avg_sleep_consistency_pct numeric(5,2),
-  avg_sleep_performance_pct numeric(5,2),
-  avg_sleep_debt_min numeric(6,1),
-  avg_respiratory_rate_bpm numeric(5,2),
-  avg_time_in_bed_min numeric(6,1),
-  avg_disturbance_count numeric(5,2),
+  -- Recovery metrics
+  avg_hrv_rmssd_ms numeric,
+  avg_resting_hr_bpm numeric,
+  avg_spo2_pct numeric,
+  avg_skin_temp_c numeric,
+  avg_recovery_score numeric,
+  -- Sleep metrics
+  avg_total_sleep_min numeric,
+  avg_light_sleep_min numeric,
+  avg_deep_sleep_min numeric,
+  avg_rem_sleep_min numeric,
+  avg_sleep_efficiency_pct numeric,
+  avg_sleep_consistency_pct numeric,
+  avg_sleep_performance_pct numeric,
+  avg_sleep_debt_min numeric,
+  avg_respiratory_rate_bpm numeric,
+  avg_time_in_bed_min numeric,
+  avg_disturbance_count numeric,
+  avg_awake_time_min numeric,
+  avg_no_data_time_min numeric,
+  avg_sleep_cycle_count numeric,
+  avg_sleep_need_baseline_min numeric,
+  avg_sleep_need_from_strain_min numeric,
+  avg_sleep_need_from_nap_min numeric,
+  avg_sleep_onset_min numeric,
+  avg_wake_time_min numeric,
+  avg_restorative_sleep_min numeric,
   nap_count integer,
-  avg_daily_strain numeric(5,2),
-  avg_hr_bpm numeric(5,2),
-  max_hr_bpm numeric(5,2),
-  avg_kilojoules numeric(8,1),
-  hr_zone1_min numeric(6,1),
-  hr_zone2_min numeric(6,1),
-  hr_zone3_min numeric(6,1),
-  hr_zone4_min numeric(6,1),
-  hr_zone5_min numeric(6,1),
+  -- Strain / workout metrics
+  avg_daily_strain numeric,
+  avg_hr_bpm numeric,
+  max_hr_bpm numeric,
+  avg_kilojoules numeric,
+  hr_zone0_min numeric,
+  hr_zone1_min numeric,
+  hr_zone2_min numeric,
+  hr_zone3_min numeric,
+  hr_zone4_min numeric,
+  hr_zone5_min numeric,
   workout_count integer,
-  hr_zone0_min numeric(6,1),
-  avg_awake_time_min numeric(6,1),
-  avg_no_data_time_min numeric(6,1),
-  avg_sleep_cycle_count numeric(5,2),
-  avg_sleep_need_baseline_min numeric(6,1),
-  avg_sleep_need_from_strain_min numeric(6,1),
-  avg_sleep_need_from_nap_min numeric(6,1),
-  avg_sleep_onset_min numeric(6,1),
-  avg_wake_time_min numeric(6,1),
-  avg_restorative_sleep_min numeric(6,1),
-  avg_workout_distance_m numeric(10,1),
+  avg_workout_distance_m numeric,
   top_sport_name text,
+  -- Quality
   any_calibrating boolean,
   days_with_data integer,
-  pct_recorded numeric(5,2),
+  pct_recorded numeric,
+  -- Raw
   pulled_at timestamptz not null default now(),
   raw_json jsonb,
   unique (resident_id, period_start, period_end)
@@ -355,12 +547,28 @@ create index if not exists idx_whoop_study on whoop_pulls (study_id);
 create index if not exists idx_whoop_resident on whoop_pulls (resident_id);
 
 -- ============================================================================
--- 11. ENROLLMENT EVENTS
+-- 16. EVENT LOGS — general study event tracking
+-- ============================================================================
+create table if not exists event_logs (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  category text not null,
+  event_type text not null,
+  details text,
+  event_date date not null default CURRENT_DATE,
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_el_study on event_logs (study_id);
+create index if not exists idx_el_resident on event_logs (resident_id);
+
+-- ============================================================================
+-- 17. ENROLLMENT EVENTS
 -- ============================================================================
 create table if not exists enrollment_events (
   id uuid primary key default gen_random_uuid(),
   study_id uuid not null references studies(id) on delete cascade,
-  resident_id uuid not null references residents(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
   event_type text not null,
   details jsonb,
   performed_by uuid references staff(id),
@@ -370,7 +578,42 @@ create index if not exists idx_enroll_study on enrollment_events (study_id);
 create index if not exists idx_enroll_resident on enrollment_events (resident_id);
 
 -- ============================================================================
--- 12. AUDIT LOG
+-- 18. ADHERENCE ALERTS
+-- ============================================================================
+create table if not exists adherence_alerts (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  alert_type text not null,
+  pct_recorded numeric,
+  days_with_data integer,
+  message_sent_to text[],
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_aa_study on adherence_alerts (study_id);
+create index if not exists idx_aa_resident on adherence_alerts (resident_id);
+
+-- ============================================================================
+-- 19. ANOMALY INVESTIGATIONS
+-- ============================================================================
+create table if not exists anomaly_investigations (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  anomaly_type text not null,
+  trigger_detail jsonb not null,
+  token text unique not null,
+  resident_response text,
+  response_details text,
+  responded_at timestamptz,
+  email_sent_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_ai_study on anomaly_investigations (study_id);
+create index if not exists idx_ai_resident on anomaly_investigations (resident_id);
+
+-- ============================================================================
+-- 20. AUDIT LOG
 -- ============================================================================
 create table if not exists audit_log (
   id uuid primary key default gen_random_uuid(),
@@ -396,7 +639,7 @@ returns uuid language sql stable security definer set search_path = public as $$
 $$;
 
 create or replace function current_role_for_study(_study_id uuid)
-returns user_role language sql stable security definer set search_path = public as $$
+returns text language sql stable security definer set search_path = public as $$
   select ssr.role from staff_study_roles ssr
   join staff s on s.id = ssr.staff_id
   where s.auth_user_id = auth.uid() and s.active = true and ssr.study_id = _study_id
@@ -419,30 +662,37 @@ $$;
 create or replace function can_read_study_data(_study_id uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select current_role_for_study(_study_id) in (
-    'super_admin','research_admin','research_assistant','statistician','site_coordinator');
+    'admin','apd','coordinator','chief_resident','resident',
+    'external_coordinator','external_resident','faculty','ec_member','auditor');
 $$;
 
 create or replace function can_write_study_data(_study_id uuid)
 returns boolean language sql stable security definer set search_path = public as $$
   select current_role_for_study(_study_id) in (
-    'super_admin','research_admin','research_assistant','site_coordinator');
+    'admin','apd','coordinator','chief_resident');
 $$;
 
 -- ============================================================================
 -- ROW LEVEL SECURITY
 -- ============================================================================
-alter table studies             enable row level security;
-alter table staff               enable row level security;
-alter table staff_study_roles   enable row level security;
-alter table residents           enable row level security;
-alter table rotation_blocks     enable row level security;
-alter table cbi_responses       enable row level security;
-alter table phq9_responses      enable row level security;
-alter table gad7_responses      enable row level security;
-alter table isi_responses       enable row level security;
-alter table whoop_pulls         enable row level security;
-alter table enrollment_events   enable row level security;
-alter table audit_log           enable row level security;
+alter table studies               enable row level security;
+alter table staff                 enable row level security;
+alter table staff_study_roles     enable row level security;
+alter table burnout_participants  enable row level security;
+alter table rotation_blocks       enable row level security;
+alter table block_assessments     enable row level security;
+alter table cbi_responses         enable row level security;
+alter table phq9_responses        enable row level security;
+alter table gad7_responses        enable row level security;
+alter table isi_responses         enable row level security;
+alter table weekly_checkins       enable row level security;
+alter table whoop_tokens          enable row level security;
+alter table whoop_pulls           enable row level security;
+alter table event_logs            enable row level security;
+alter table enrollment_events     enable row level security;
+alter table adherence_alerts      enable row level security;
+alter table anomaly_investigations enable row level security;
+alter table audit_log             enable row level security;
 
 -- Studies
 drop policy if exists studies_select on studies;
@@ -456,28 +706,36 @@ create policy staff_self on staff for select using (auth_user_id = auth.uid() or
 drop policy if exists ssr_self on staff_study_roles;
 create policy ssr_self on staff_study_roles for select using (staff_id = current_staff_id());
 
--- Residents
-drop policy if exists residents_select on residents;
-create policy residents_select on residents for select using (
-  current_role_for_study(study_id) in ('super_admin','research_admin','research_assistant','statistician')
-  or (current_role_for_study(study_id) = 'site_coordinator' and primary_site = current_site_for_study(study_id))
+-- Burnout participants
+drop policy if exists bp_select on burnout_participants;
+create policy bp_select on burnout_participants for select using (
+  can_read_study_data(study_id)
+  or auth_user_id = auth.uid()
 );
-drop policy if exists residents_insert on residents;
-create policy residents_insert on residents for insert with check (
-  current_role_for_study(study_id) in ('super_admin','research_admin','site_coordinator'));
-drop policy if exists residents_update on residents;
-create policy residents_update on residents for update using (
-  current_role_for_study(study_id) in ('super_admin','research_admin')
-  or (current_role_for_study(study_id) = 'site_coordinator' and primary_site = current_site_for_study(study_id))
+drop policy if exists bp_insert on burnout_participants;
+create policy bp_insert on burnout_participants for insert with check (
+  can_write_study_data(study_id));
+drop policy if exists bp_update on burnout_participants;
+create policy bp_update on burnout_participants for update using (
+  can_write_study_data(study_id)
+  or auth_user_id = auth.uid()
 );
-drop policy if exists residents_delete on residents;
-create policy residents_delete on residents for delete using (current_role_for_study(study_id) = 'super_admin');
+drop policy if exists bp_delete on burnout_participants;
+create policy bp_delete on burnout_participants for delete using (
+  current_role_for_study(study_id) = 'admin');
 
 -- Rotation blocks
 drop policy if exists blocks_select on rotation_blocks;
 create policy blocks_select on rotation_blocks for select using (can_read_study_data(study_id));
 drop policy if exists blocks_write on rotation_blocks;
 create policy blocks_write on rotation_blocks for all
+  using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
+
+-- Block assessments
+drop policy if exists ba_select on block_assessments;
+create policy ba_select on block_assessments for select using (can_read_study_data(study_id));
+drop policy if exists ba_write on block_assessments;
+create policy ba_write on block_assessments for all
   using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
 
 -- CBI
@@ -508,41 +766,84 @@ drop policy if exists isi_write on isi_responses;
 create policy isi_write on isi_responses for all
   using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
 
--- WHOOP
+-- Weekly check-ins
+drop policy if exists wc_select on weekly_checkins;
+create policy wc_select on weekly_checkins for select using (can_read_study_data(study_id));
+drop policy if exists wc_write on weekly_checkins;
+create policy wc_write on weekly_checkins for all
+  using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
+
+-- WHOOP tokens
+drop policy if exists wt_select on whoop_tokens;
+create policy wt_select on whoop_tokens for select using (
+  exists (select 1 from burnout_participants bp
+    where bp.id = whoop_tokens.resident_id and can_read_study_data(bp.study_id))
+);
+drop policy if exists wt_write on whoop_tokens;
+create policy wt_write on whoop_tokens for all using (
+  exists (select 1 from burnout_participants bp
+    where bp.id = whoop_tokens.resident_id and can_write_study_data(bp.study_id))
+) with check (
+  exists (select 1 from burnout_participants bp
+    where bp.id = whoop_tokens.resident_id and can_write_study_data(bp.study_id))
+);
+
+-- WHOOP pulls
 drop policy if exists whoop_select on whoop_pulls;
 create policy whoop_select on whoop_pulls for select using (can_read_study_data(study_id));
 drop policy if exists whoop_write on whoop_pulls;
 create policy whoop_write on whoop_pulls for all
-  using (current_role_for_study(study_id) = 'super_admin')
-  with check (current_role_for_study(study_id) = 'super_admin');
+  using (current_role_for_study(study_id) = 'admin')
+  with check (current_role_for_study(study_id) = 'admin');
+
+-- Event logs
+drop policy if exists el_select on event_logs;
+create policy el_select on event_logs for select using (can_read_study_data(study_id));
+drop policy if exists el_write on event_logs;
+create policy el_write on event_logs for all
+  using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
 
 -- Enrollment events
 drop policy if exists enroll_select on enrollment_events;
 create policy enroll_select on enrollment_events for select using (can_read_study_data(study_id));
 drop policy if exists enroll_write on enrollment_events;
 create policy enroll_write on enrollment_events for insert with check (
-  current_role_for_study(study_id) in ('super_admin','research_admin','site_coordinator'));
+  can_write_study_data(study_id));
+
+-- Adherence alerts
+drop policy if exists aa_select on adherence_alerts;
+create policy aa_select on adherence_alerts for select using (can_read_study_data(study_id));
+drop policy if exists aa_write on adherence_alerts;
+create policy aa_write on adherence_alerts for insert with check (
+  can_write_study_data(study_id));
+
+-- Anomaly investigations
+drop policy if exists ai_select on anomaly_investigations;
+create policy ai_select on anomaly_investigations for select using (can_read_study_data(study_id));
+drop policy if exists ai_write on anomaly_investigations;
+create policy ai_write on anomaly_investigations for all
+  using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
 
 -- Audit log
 drop policy if exists audit_select on audit_log;
-create policy audit_select on audit_log for select using (current_role_for_study(study_id) = 'super_admin');
+create policy audit_select on audit_log for select using (current_role_for_study(study_id) = 'admin');
 drop policy if exists audit_insert on audit_log;
 create policy audit_insert on audit_log for insert with check (auth.uid() is not null);
 
 -- ============================================================================
--- ANALYSIS VIEW — one row per resident per block with ALL measures
+-- ANALYSIS VIEW — one row per participant per block with ALL measures
 -- ============================================================================
 drop view if exists v_block_measures;
 create or replace view v_block_measures as
 select
   st.slug as study_slug,
   st.short_name as study_name,
-  r.study_participant_id,
-  r.age_at_enrollment,
-  r.sex,
-  r.program,
-  r.pgy_level,
-  r.primary_site,
+  bp.study_participant_id,
+  bp.age_at_enrollment,
+  bp.sex,
+  bp.program,
+  bp.pgy_level,
+  bp.primary_site,
   b.block_number,
   b.academic_year,
   b.rotation_type,
@@ -576,26 +877,26 @@ select
   w.avg_daily_strain,
   w.days_with_data
 from studies st
-join residents r       on r.study_id = st.id
-join rotation_blocks b on b.resident_id = r.id and b.study_id = st.id
+join burnout_participants bp on bp.study_id = st.id
+join rotation_blocks b      on b.resident_id = bp.id and b.study_id = st.id
 left join lateral (
-  select * from cbi_responses where resident_id = r.id and block_id = b.id
+  select * from cbi_responses where resident_id = bp.id and block_id = b.id
   order by response_date desc limit 1
 ) c on true
 left join lateral (
-  select * from phq9_responses where resident_id = r.id and block_id = b.id
+  select * from phq9_responses where resident_id = bp.id and block_id = b.id
   order by response_date desc limit 1
 ) ph on true
 left join lateral (
-  select * from gad7_responses where resident_id = r.id and block_id = b.id
+  select * from gad7_responses where resident_id = bp.id and block_id = b.id
   order by response_date desc limit 1
 ) g on true
 left join lateral (
-  select * from isi_responses where resident_id = r.id and block_id = b.id
+  select * from isi_responses where resident_id = bp.id and block_id = b.id
   order by response_date desc limit 1
 ) i on true
 left join lateral (
-  select * from whoop_pulls where resident_id = r.id and block_id = b.id
+  select * from whoop_pulls where resident_id = bp.id and block_id = b.id
   order by pulled_at desc limit 1
 ) w on true;
 
@@ -608,10 +909,14 @@ begin new.updated_at = now(); return new; end $$;
 
 drop trigger if exists studies_touch on studies;
 create trigger studies_touch before update on studies for each row execute function touch_updated_at();
-drop trigger if exists residents_touch on residents;
-create trigger residents_touch before update on residents for each row execute function touch_updated_at();
+drop trigger if exists bp_touch on burnout_participants;
+create trigger bp_touch before update on burnout_participants for each row execute function touch_updated_at();
 drop trigger if exists blocks_touch on rotation_blocks;
 create trigger blocks_touch before update on rotation_blocks for each row execute function touch_updated_at();
+drop trigger if exists residents_touch on residents;
+create trigger residents_touch before update on residents for each row execute function touch_updated_at();
+drop trigger if exists whoop_tokens_touch on whoop_tokens;
+create trigger whoop_tokens_touch before update on whoop_tokens for each row execute function touch_updated_at();
 
 -- ============================================================================
 -- Done. Now run seed.sql separately.
