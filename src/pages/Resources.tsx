@@ -199,6 +199,50 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* OLearn */}
+          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #eef2ff 0%, #e8eaff 100%)',border:'2px solid #c7d2fe',borderRadius:16,overflow:'hidden'}}>
+            <div className="resource-body" style={{padding:32}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #4338ca, #3730a3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{color:'#a5b4fc',fontSize:22,fontWeight:700}}>O</span>
+                </div>
+                <div>
+                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>O<span style={{color:'#4f46e5'}}>Learn</span></span>
+                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>OMAN EDUCATION INTELLIGENCE</div>
+                </div>
+                <span className="badge" style={{background:'rgba(79,70,229,0.15)',color:'#4f46e5',marginLeft:12}}>Live</span>
+              </div>
+              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>Oman's Open Education Data — Visualized & Analyzed</h2>
+              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
+                Education intelligence platform built exclusively on datasets from the National Open Data Portal (opendata.gov.om). Enrollment trends, school mapping, workforce Omanization, and research output — empowering evidence-based education planning.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
+                {[
+                  ['Higher Education Dashboard','26-year enrollment trends with gender analysis'],
+                  ['Schools Explorer','1,270 government schools across 11 governorates'],
+                  ['Workforce & Omanization','Staff trends and Omanization rates by branch'],
+                ].map(([title, desc]) => (
+                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #c7d2fe'}}>
+                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
+                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #c7d2fe',paddingTop:20}}>
+                {[['~17,000','SQU Students'],['6,500+','UTAS Graduates'],['1,270','Schools'],['4,510','UTAS Staff']].map(([num, label]) => (
+                  <div key={label} style={{textAlign:'center'}}>
+                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#4f46e5'}}>{num}</div>
+                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+                <a href="https://olearn-sandy.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#4f46e5',color:'white',border:'none'}}>Launch OLearn →</a>
+                <span style={{fontSize:11,color:'#8a9ab5',fontStyle:'italic'}}>Built exclusively on opendata.gov.om datasets — Open Data Lab 2026</span>
+              </div>
+            </div>
+          </div>
+
           {/* Publications */}
           <div>
             <h2 style={{fontSize:'1.8rem',marginBottom:8}}>Latest Publications</h2>
