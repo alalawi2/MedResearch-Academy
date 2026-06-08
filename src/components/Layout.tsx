@@ -52,6 +52,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <Link to="/resources">Resources</Link>
                 <Link to="/wall-of-impact">Wall of Impact</Link>
                 <Link to="/news">News</Link>
+                <Link to="/researcher">Researcher Portal</Link>
               </div>
             </div>
             <div>

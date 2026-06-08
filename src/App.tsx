@@ -43,6 +43,7 @@ import WeeklyCheckin from './pages/resident/WeeklyCheckin';
 import EventLog from './pages/resident/EventLog';
 import DemographicsForm from './pages/resident/DemographicsForm';
 import BaselineAssessment from './pages/resident/BaselineAssessment';
+import ResearcherPortal from './pages/ResearcherPortal';
 import ResidentSetPassword from './pages/resident/SetPassword';
 
 export default function App() {
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/enroll/whoop" element={<EnrollWhoop />} />
+          <Route path="/researcher" element={<ResearcherPortal />} />
 
           {/* ── Auth ── */}
           <Route path="/login" element={<Login />} />

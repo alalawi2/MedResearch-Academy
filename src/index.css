@@ -698,3 +698,105 @@ textarea { resize: vertical; min-height: 140px; }
     padding: 10px 2px !important;
   }
 }
+
+
+/* ═══════════════════════════════════
+   RESEARCHER PORTAL
+═══════════════════════════════════ */
+
+.researcher-auth-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: var(--shadow);
+}
+
+.researcher-survey-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s;
+}
+.researcher-survey-card:hover {
+  box-shadow: 0 4px 20px rgba(26,58,92,0.10);
+}
+
+.researcher-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+.researcher-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.researcher-btn-primary {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+}
+.researcher-btn-primary:hover:not(:disabled) {
+  background: var(--primary-light);
+}
+.researcher-btn-outline {
+  background: white;
+  color: var(--primary);
+  border: 1px solid var(--border);
+}
+.researcher-btn-outline:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: rgba(26,58,92,0.03);
+}
+
+.researcher-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.researcher-table thead th {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  background: rgba(26,58,92,0.02);
+}
+.researcher-table tbody td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.researcher-table tbody tr:hover {
+  background: rgba(26,58,92,0.015);
+}
+.researcher-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  .researcher-auth-card {
+    padding: 28px 20px;
+  }
+  .researcher-survey-card {
+    padding: 16px;
+  }
+}
