@@ -33,6 +33,109 @@ interface Question {
   type: string;
   section_id: string;
   order_num: number;
+  options_en: string[];
+  options_ar: string[];
+}
+
+/* ── Analytics helpers ── */
+const LIKERT_LABELS = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
+const LIKERT_COLORS = ['#dc2626', '#f97316', '#eab308', '#22c55e', '#16a34a'];
+const CHART_COLORS = ['#1a3a5c', '#2d5f8a', '#c8972a', '#e8b84b', '#16a34a', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#f43f5e'];
+
+interface AnalyticsData {
+  totalResponses: number;
+  completedResponses: number;
+  completionRate: number;
+  languageBreakdown: Record<string, number>;
+  questionStats: QuestionStat[];
+  timeline: { date: string; count: number }[];
+}
+
+interface QuestionStat {
+  question: Question;
+  index: number;
+  optionCounts: Record<string, number>;
+  totalAnswered: number;
+  // For number questions
+  numericValues?: number[];
+  // For text questions
+  recentTexts?: string[];
+  // For likert questions
+  meanScore?: number;
+}
+
+function computeAnalytics(
+  allResponses: SurveyResponse[],
+  qs: Question[]
+): AnalyticsData {
+  const completed = allResponses.filter(r => r.completed);
+  const totalResponses = allResponses.length;
+  const completedResponses = completed.length;
+  const completionRate = totalResponses > 0 ? Math.round((completedResponses / totalResponses) * 100) : 0;
+
+  // Language breakdown (from all responses)
+  const languageBreakdown: Record<string, number> = {};
+  allResponses.forEach(r => {
+    const lang = (r.language_used || 'EN').toUpperCase();
+    languageBreakdown[lang] = (languageBreakdown[lang] || 0) + 1;
+  });
+
+  // Per-question stats (from completed responses only)
+  const questionStats: QuestionStat[] = qs.map((q, idx) => {
+    const stat: QuestionStat = {
+      question: q,
+      index: idx,
+      optionCounts: {},
+      totalAnswered: 0,
+    };
+
+    const answeredResponses = completed.filter(r => r.answers[q.id] !== undefined && r.answers[q.id] !== '' && r.answers[q.id] !== null);
+    stat.totalAnswered = answeredResponses.length;
+
+    if (q.type === 'radio' || q.type === 'dropdown') {
+      answeredResponses.forEach(r => {
+        const val = String(r.answers[q.id]);
+        stat.optionCounts[val] = (stat.optionCounts[val] || 0) + 1;
+      });
+    } else if (q.type === 'checkbox') {
+      answeredResponses.forEach(r => {
+        const val = r.answers[q.id];
+        const arr = Array.isArray(val) ? val : [val];
+        arr.forEach(v => {
+          stat.optionCounts[String(v)] = (stat.optionCounts[String(v)] || 0) + 1;
+        });
+      });
+    } else if (q.type === 'likert') {
+      answeredResponses.forEach(r => {
+        const val = String(r.answers[q.id]);
+        stat.optionCounts[val] = (stat.optionCounts[val] || 0) + 1;
+      });
+      // Compute mean score
+      const nums = answeredResponses.map(r => parseInt(String(r.answers[q.id]), 10)).filter(n => !isNaN(n));
+      if (nums.length > 0) {
+        stat.meanScore = nums.reduce((a, b) => a + b, 0) / nums.length;
+      }
+    } else if (q.type === 'number') {
+      stat.numericValues = answeredResponses.map(r => parseFloat(String(r.answers[q.id]))).filter(n => !isNaN(n));
+    } else if (q.type === 'text') {
+      stat.recentTexts = answeredResponses.slice(0, 5).map(r => String(r.answers[q.id]));
+    }
+
+    return stat;
+  });
+
+  // Timeline: responses per day (last 14 days)
+  const now = new Date();
+  const timeline: { date: string; count: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const count = allResponses.filter(r => r.created_at.slice(0, 10) === key).length;
+    timeline.push({ date: key, count });
+  }
+
+  return { totalResponses, completedResponses, completionRate, languageBreakdown, questionStats, timeline };
 }
 
 /* ── Helpers ── */
@@ -74,6 +177,11 @@ export default function ResearcherPortal() {
   const [showShareLink, setShowShareLink] = useState<string | null>(null);
   const [showQR, setShowQR] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Analytics state
+  const [analyticsSurveyId, setAnalyticsSurveyId] = useState<string | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
 
   const RESPONSES_PER_PAGE = 20;
 
@@ -218,7 +326,7 @@ export default function ResearcherPortal() {
     setResponsePage(0);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('id,respondent_id,answers,language_used,completed,created_at').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: false }).limit(500),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,section_id,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,section_id,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
     if (respResult.data) setResponses(respResult.data);
     if (qResult.data) setQuestions(qResult.data);
@@ -333,6 +441,273 @@ export default function ResearcherPortal() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  }
+
+  /* ── Analytics loading ── */
+  async function loadAnalytics(surveyId: string) {
+    if (analyticsSurveyId === surveyId) { setAnalyticsSurveyId(null); setAnalyticsData(null); return; }
+    setAnalyticsLoading(true);
+    setAnalyticsSurveyId(surveyId);
+
+    const [respResult, qResult] = await Promise.all([
+      supabase.from('survey_responses').select('id,respondent_id,answers,language_used,completed,created_at').eq('survey_id', surveyId).order('created_at', { ascending: false }).limit(1000),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,section_id,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+    ]);
+
+    if (respResult.data && qResult.data) {
+      setAnalyticsData(computeAnalytics(respResult.data, qResult.data));
+    }
+    setAnalyticsLoading(false);
+  }
+
+  /* ── Analytics renderer ── */
+  function renderAnalytics(surveyId: string) {
+    if (analyticsSurveyId !== surveyId || !analyticsData) return null;
+    if (analyticsLoading) {
+      return (
+        <div className="analytics-panel">
+          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>Loading analytics...</div>
+        </div>
+      );
+    }
+
+    const { totalResponses, completedResponses, completionRate, languageBreakdown, questionStats, timeline } = analyticsData;
+    const maxTimeline = Math.max(...timeline.map(t => t.count), 1);
+    const langTotal = Object.values(languageBreakdown).reduce((a, b) => a + b, 0) || 1;
+
+    // Build conic-gradient segments for language pie
+    const langEntries = Object.entries(languageBreakdown);
+    let conicParts: string[] = [];
+    let cumPct = 0;
+    const langColors = ['#1a3a5c', '#c8972a', '#16a34a', '#8b5cf6', '#ec4899'];
+    langEntries.forEach(([, count], i) => {
+      const pct = (count / langTotal) * 100;
+      conicParts.push(`${langColors[i % langColors.length]} ${cumPct}% ${cumPct + pct}%`);
+      cumPct += pct;
+    });
+
+    return (
+      <div className="analytics-panel" id={`analytics-${surveyId}`}>
+        <div className="analytics-header">
+          <h3 className="analytics-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+            Survey Analytics
+          </h3>
+          <button onClick={() => { window.print(); }} className="researcher-btn researcher-btn-outline btn-sm" style={{ gap: 4 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print Report
+          </button>
+        </div>
+
+        {/* ── Summary Stats Bar ── */}
+        <div className="analytics-stats-bar">
+          <div className="analytics-stat-card">
+            <div className="analytics-stat-value">{totalResponses}</div>
+            <div className="analytics-stat-label">Total Responses</div>
+          </div>
+          <div className="analytics-stat-card">
+            <div className="analytics-stat-value">{completionRate}%</div>
+            <div className="analytics-stat-label">Completion Rate</div>
+            <div className="analytics-stat-sub">{completedResponses} of {totalResponses} completed</div>
+          </div>
+          <div className="analytics-stat-card">
+            <div className="analytics-stat-value">{langEntries.map(([l, c]) => `${l}: ${c}`).join(' / ')}</div>
+            <div className="analytics-stat-label">Language Breakdown</div>
+          </div>
+        </div>
+
+        {/* ── Response Timeline ── */}
+        <div className="analytics-chart-card">
+          <h4 className="analytics-chart-title">Response Timeline (Last 14 Days)</h4>
+          <div className="analytics-timeline">
+            {timeline.map(t => (
+              <div key={t.date} className="analytics-timeline-bar-wrap">
+                <div className="analytics-timeline-count">{t.count > 0 ? t.count : ''}</div>
+                <div className="analytics-timeline-bar" style={{ height: `${Math.max((t.count / maxTimeline) * 100, t.count > 0 ? 8 : 2)}%` }} />
+                <div className="analytics-timeline-label">{t.date.slice(5)}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Language Distribution Donut ── */}
+        {langEntries.length > 0 && (
+          <div className="analytics-chart-card">
+            <h4 className="analytics-chart-title">Language Distribution</h4>
+            <div className="analytics-donut-wrap">
+              <div
+                className="analytics-donut"
+                style={{ background: `conic-gradient(${conicParts.join(', ')})` }}
+              >
+                <div className="analytics-donut-hole">
+                  <span className="analytics-donut-total">{langTotal}</span>
+                  <span className="analytics-donut-total-label">total</span>
+                </div>
+              </div>
+              <div className="analytics-donut-legend">
+                {langEntries.map(([lang, count], i) => (
+                  <div key={lang} className="analytics-legend-item">
+                    <span className="analytics-legend-dot" style={{ background: langColors[i % langColors.length] }} />
+                    <span className="analytics-legend-label">{lang}</span>
+                    <span className="analytics-legend-value">{count} ({Math.round((count / langTotal) * 100)}%)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Per-Question Charts ── */}
+        <h4 className="analytics-section-title">Question-by-Question Analysis</h4>
+        {questionStats.map(stat => {
+          const q = stat.question;
+          const qLabel = `Q${stat.index + 1}: ${q.question_en}`;
+
+          // Radio / Dropdown → Horizontal bar chart
+          if (q.type === 'radio' || q.type === 'dropdown') {
+            const options = q.options_en && q.options_en.length > 0 ? q.options_en : Object.keys(stat.optionCounts);
+            const maxCount = Math.max(...options.map(o => stat.optionCounts[o] || 0), 1);
+            return (
+              <div key={q.id} className="analytics-chart-card">
+                <h4 className="analytics-chart-title">{qLabel}</h4>
+                <div className="analytics-chart-type-badge">Single Choice</div>
+                <div className="analytics-bar-list">
+                  {options.map((opt, oi) => {
+                    const count = stat.optionCounts[opt] || 0;
+                    const pct = stat.totalAnswered > 0 ? Math.round((count / stat.totalAnswered) * 100) : 0;
+                    return (
+                      <div key={opt} className="analytics-bar-row">
+                        <div className="analytics-bar-label" title={opt}>{opt}</div>
+                        <div className="analytics-bar-track">
+                          <div className="analytics-bar-fill" style={{ width: `${(count / maxCount) * 100}%`, background: CHART_COLORS[oi % CHART_COLORS.length] }} />
+                        </div>
+                        <div className="analytics-bar-value">{count} ({pct}%)</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="analytics-chart-footer">{stat.totalAnswered} responses</div>
+              </div>
+            );
+          }
+
+          // Checkbox → Horizontal bar chart (multi-select)
+          if (q.type === 'checkbox') {
+            const options = q.options_en && q.options_en.length > 0 ? q.options_en : Object.keys(stat.optionCounts);
+            const maxCount = Math.max(...options.map(o => stat.optionCounts[o] || 0), 1);
+            return (
+              <div key={q.id} className="analytics-chart-card">
+                <h4 className="analytics-chart-title">{qLabel}</h4>
+                <div className="analytics-chart-type-badge">Multiple Choice</div>
+                <div className="analytics-bar-list">
+                  {options.map((opt, oi) => {
+                    const count = stat.optionCounts[opt] || 0;
+                    const pct = stat.totalAnswered > 0 ? Math.round((count / stat.totalAnswered) * 100) : 0;
+                    return (
+                      <div key={opt} className="analytics-bar-row">
+                        <div className="analytics-bar-label" title={opt}>{opt}</div>
+                        <div className="analytics-bar-track">
+                          <div className="analytics-bar-fill" style={{ width: `${(count / maxCount) * 100}%`, background: CHART_COLORS[oi % CHART_COLORS.length] }} />
+                        </div>
+                        <div className="analytics-bar-value">{count} ({pct}%)</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="analytics-chart-footer">{stat.totalAnswered} responses (multiple selections allowed)</div>
+              </div>
+            );
+          }
+
+          // Likert → Stacked horizontal bar
+          if (q.type === 'likert') {
+            const segments = LIKERT_LABELS.map((label, i) => {
+              const val = String(i + 1);
+              const count = stat.optionCounts[val] || 0;
+              const pct = stat.totalAnswered > 0 ? (count / stat.totalAnswered) * 100 : 0;
+              return { label, count, pct, color: LIKERT_COLORS[i] };
+            });
+            return (
+              <div key={q.id} className="analytics-chart-card">
+                <h4 className="analytics-chart-title">{qLabel}</h4>
+                <div className="analytics-chart-type-badge">Likert Scale</div>
+                {stat.meanScore !== undefined && (
+                  <div className="analytics-likert-mean">Mean Score: <strong>{stat.meanScore.toFixed(2)}</strong> / 5</div>
+                )}
+                <div className="analytics-likert-stacked">
+                  {segments.map(seg => seg.pct > 0 ? (
+                    <div key={seg.label} className="analytics-likert-segment" style={{ width: `${seg.pct}%`, background: seg.color }} title={`${seg.label}: ${seg.count} (${Math.round(seg.pct)}%)`}>
+                      {seg.pct >= 8 && <span>{Math.round(seg.pct)}%</span>}
+                    </div>
+                  ) : null)}
+                </div>
+                <div className="analytics-likert-legend">
+                  {segments.map(seg => (
+                    <div key={seg.label} className="analytics-legend-item">
+                      <span className="analytics-legend-dot" style={{ background: seg.color }} />
+                      <span className="analytics-legend-label">{seg.label}</span>
+                      <span className="analytics-legend-value">{seg.count}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="analytics-chart-footer">{stat.totalAnswered} responses</div>
+              </div>
+            );
+          }
+
+          // Number → Min, max, mean, median
+          if (q.type === 'number' && stat.numericValues && stat.numericValues.length > 0) {
+            const vals = [...stat.numericValues].sort((a, b) => a - b);
+            const min = vals[0];
+            const max = vals[vals.length - 1];
+            const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+            const median = vals.length % 2 === 0 ? (vals[vals.length / 2 - 1] + vals[vals.length / 2]) / 2 : vals[Math.floor(vals.length / 2)];
+            return (
+              <div key={q.id} className="analytics-chart-card">
+                <h4 className="analytics-chart-title">{qLabel}</h4>
+                <div className="analytics-chart-type-badge">Numeric</div>
+                <div className="analytics-number-stats">
+                  <div className="analytics-number-stat"><div className="analytics-number-stat-val">{min}</div><div className="analytics-number-stat-label">Min</div></div>
+                  <div className="analytics-number-stat"><div className="analytics-number-stat-val">{max}</div><div className="analytics-number-stat-label">Max</div></div>
+                  <div className="analytics-number-stat"><div className="analytics-number-stat-val">{mean.toFixed(1)}</div><div className="analytics-number-stat-label">Mean</div></div>
+                  <div className="analytics-number-stat"><div className="analytics-number-stat-val">{median}</div><div className="analytics-number-stat-label">Median</div></div>
+                </div>
+                <div className="analytics-chart-footer">{stat.totalAnswered} responses</div>
+              </div>
+            );
+          }
+
+          // Text → Recent responses
+          if (q.type === 'text') {
+            return (
+              <div key={q.id} className="analytics-chart-card">
+                <h4 className="analytics-chart-title">{qLabel}</h4>
+                <div className="analytics-chart-type-badge">Free Text</div>
+                <div className="analytics-text-count">{stat.totalAnswered} text responses received</div>
+                {stat.recentTexts && stat.recentTexts.length > 0 && (
+                  <div className="analytics-text-list">
+                    <div className="analytics-text-list-title">Recent responses:</div>
+                    {stat.recentTexts.map((txt, i) => (
+                      <div key={i} className="analytics-text-item">&ldquo;{txt}&rdquo;</div>
+                    ))}
+                  </div>
+                )}
+                <div className="analytics-chart-footer">{stat.totalAnswered} responses</div>
+              </div>
+            );
+          }
+
+          // Fallback for unknown types
+          return (
+            <div key={q.id} className="analytics-chart-card">
+              <h4 className="analytics-chart-title">{qLabel}</h4>
+              <div className="analytics-chart-type-badge">{q.type}</div>
+              <div className="analytics-chart-footer">{stat.totalAnswered} responses</div>
+            </div>
+          );
+        })}
+      </div>
+    );
   }
 
   /* ═══════════════════════════════════
@@ -552,6 +927,10 @@ export default function ResearcherPortal() {
                           <button onClick={() => loadResponses(s.id)} className="researcher-btn researcher-btn-outline">
                             {selectedSurvey === s.id ? 'Hide Responses' : 'View Responses'}
                           </button>
+                          <button onClick={() => loadAnalytics(s.id)} className="researcher-btn researcher-btn-outline" style={analyticsSurveyId === s.id ? { background: 'rgba(26,58,92,0.08)', borderColor: 'var(--primary)' } : {}}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                            {analyticsSurveyId === s.id ? 'Hide Analytics' : 'Analytics'}
+                          </button>
                           <button onClick={() => exportCSV(s.id)} disabled={exporting} className="researcher-btn researcher-btn-outline">
                             {exporting ? 'Exporting...' : 'CSV'}
                           </button>
@@ -672,6 +1051,9 @@ export default function ResearcherPortal() {
                           )}
                         </div>
                       )}
+
+                      {/* Analytics panel */}
+                      {renderAnalytics(s.id)}
                     </div>
                   );
                 })}
