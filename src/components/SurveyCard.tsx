@@ -49,11 +49,13 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
   // Researcher login state
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [generatedCode, setGeneratedCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code' | 'dashboard'>('email');
+  const [password, setPassword] = useState('');
+  const [step, setStep] = useState<'login' | 'dashboard' | 'reset'>('login');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
 
   // Dashboard state
   const [responses, setResponses] = useState<Response[]>([]);
@@ -67,13 +69,12 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
   const sessionKey = `researcher_${survey.id}`;
   const isLoggedIn = sessionStorage.getItem(sessionKey) === 'true';
 
-  const handleEmailSubmit = async () => {
+  const handleLogin = async () => {
     setError('');
     setLoading(true);
-    // Check if email matches this survey's researcher
     const { data } = await supabase
       .from('surveys')
-      .select('researcher_email')
+      .select('researcher_email,researcher_password')
       .eq('id', survey.id)
       .single();
 
@@ -82,38 +83,47 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
       setLoading(false);
       return;
     }
-
-    // Generate 6-digit code
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-    setGeneratedCode(otp);
-
-    // Store in DB
-    await supabase.from('researcher_access_codes').insert({
-      email,
-      code: otp,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    });
-
-    setStep('code');
-    setLoading(false);
-  };
-
-  const handleCodeVerify = async () => {
-    setError('');
-    if (code !== generatedCode) {
-      setError('Invalid code. Please try again.');
+    if (data.researcher_password !== password) {
+      setError('Incorrect password.');
+      setLoading(false);
       return;
     }
-    // Mark code as used
-    await supabase
-      .from('researcher_access_codes')
-      .update({ used: true })
-      .eq('email', email)
-      .eq('code', generatedCode);
 
     sessionStorage.setItem(sessionKey, 'true');
     setStep('dashboard');
+    setLoading(false);
     loadDashboard();
+  };
+
+  const handleResetPassword = async () => {
+    setError('');
+    setLoading(true);
+    const { data } = await supabase
+      .from('surveys')
+      .select('researcher_email')
+      .eq('id', survey.id)
+      .single();
+
+    if (!data || data.researcher_email !== resetEmail) {
+      setError('Email does not match the survey owner.');
+      setLoading(false);
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 4) {
+      setError('Password must be at least 4 characters.');
+      setLoading(false);
+      return;
+    }
+
+    await supabase
+      .from('surveys')
+      .update({ researcher_password: newPassword })
+      .eq('id', survey.id);
+
+    setResetSuccess(true);
+    setLoading(false);
+    setTimeout(() => { setStep('login'); setResetSuccess(false); setResetEmail(''); setNewPassword(''); }, 2000);
   };
 
   const loadDashboard = async () => {
@@ -172,11 +182,10 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
 
   const handleLogout = () => {
     sessionStorage.removeItem(sessionKey);
-    setStep('email');
+    setStep('login');
     setShowLogin(false);
     setEmail('');
-    setCode('');
-    setGeneratedCode('');
+    setPassword('');
     setResponses([]);
     setQuestions([]);
     setShowResponses(false);
@@ -270,44 +279,65 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
         {(showLogin || dashboardActive) && (
           <div style={{ marginTop: 20, padding: 20, background: 'var(--bg-muted)', borderRadius: 14, border: '1px solid var(--border)' }}>
 
-            {/* Step 1: Email */}
-            {step === 'email' && !isLoggedIn && (
+            {/* Login */}
+            {step === 'login' && !isLoggedIn && (
               <div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 10 }}>🔑 Researcher Access</h4>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>Enter the email you used when creating this survey.</p>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 10 }}>🔑 Researcher Login</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <input
                     type="email" value={email} onChange={e => setEmail(e.target.value)}
-                    placeholder="researcher@email.com"
-                    style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, outline: 'none' }}
-                    onKeyDown={e => e.key === 'Enter' && handleEmailSubmit()}
+                    placeholder="Email"
+                    style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, outline: 'none' }}
                   />
-                  <button onClick={handleEmailSubmit} disabled={loading || !email} className="btn btn-primary" style={{ cursor: 'pointer' }}>
-                    {loading ? '...' : 'Send Code'}
+                  <input
+                    type="password" value={password} onChange={e => setPassword(e.target.value)}
+                    placeholder="Password"
+                    style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, outline: 'none' }}
+                    onKeyDown={e => e.key === 'Enter' && handleLogin()}
+                  />
+                  <button onClick={handleLogin} disabled={loading || !email || !password} className="btn btn-primary" style={{ cursor: 'pointer', justifyContent: 'center' }}>
+                    {loading ? 'Logging in...' : 'Login'}
                   </button>
                 </div>
                 {error && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 8 }}>{error}</p>}
+                <button onClick={() => { setStep('reset'); setError(''); }} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 12, marginTop: 10, textDecoration: 'underline', padding: 0 }}>
+                  Forgot password?
+                </button>
               </div>
             )}
 
-            {/* Step 2: Code verification */}
-            {step === 'code' && !isLoggedIn && (
+            {/* Reset Password */}
+            {step === 'reset' && !isLoggedIn && (
               <div>
-                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 10 }}>Enter Verification Code</h4>
-                <div style={{ background: 'rgba(34,197,94,0.08)', padding: '10px 14px', borderRadius: 8, marginBottom: 12, fontSize: 13, color: '#15803d', border: '1px solid rgba(34,197,94,0.2)' }}>
-                  Your code: <strong style={{ fontSize: 18, letterSpacing: 4 }}>{generatedCode}</strong>
-                  <span style={{ fontSize: 11, display: 'block', marginTop: 4, opacity: 0.7 }}>(In production, this would be sent via email)</span>
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    type="text" value={code} onChange={e => setCode(e.target.value)}
-                    placeholder="6-digit code" maxLength={6}
-                    style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 18, letterSpacing: 6, textAlign: 'center', outline: 'none' }}
-                    onKeyDown={e => e.key === 'Enter' && handleCodeVerify()}
-                  />
-                  <button onClick={handleCodeVerify} className="btn btn-primary" style={{ cursor: 'pointer' }}>Verify</button>
-                </div>
-                {error && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 8 }}>{error}</p>}
+                <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--primary)', marginBottom: 10 }}>Reset Password</h4>
+                {resetSuccess ? (
+                  <div style={{ background: 'rgba(34,197,94,0.08)', padding: '14px', borderRadius: 8, color: '#15803d', fontSize: 13, border: '1px solid rgba(34,197,94,0.2)' }}>
+                    Password reset successfully! Redirecting to login...
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      <input
+                        type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)}
+                        placeholder="Your email"
+                        style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, outline: 'none' }}
+                      />
+                      <input
+                        type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                        placeholder="New password"
+                        style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, outline: 'none' }}
+                        onKeyDown={e => e.key === 'Enter' && handleResetPassword()}
+                      />
+                      <button onClick={handleResetPassword} disabled={loading || !resetEmail || !newPassword} className="btn btn-primary" style={{ cursor: 'pointer', justifyContent: 'center' }}>
+                        {loading ? 'Resetting...' : 'Reset Password'}
+                      </button>
+                    </div>
+                    {error && <p style={{ color: '#ef4444', fontSize: 12, marginTop: 8 }}>{error}</p>}
+                    <button onClick={() => { setStep('login'); setError(''); }} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 12, marginTop: 10, textDecoration: 'underline', padding: 0 }}>
+                      Back to login
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
