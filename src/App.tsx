@@ -13,6 +13,9 @@ import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import SmartBlock from './pages/studies/SmartBlock';
 import OHealth from './pages/studies/OHealth';
 import Contact from './pages/Contact';
+import Surveys from './pages/Surveys';
+import SurveyTake from './pages/SurveyTake';
+import SurveySubmit from './pages/SurveySubmit';
 import Events from './pages/Events';
 import Privacy from './pages/Privacy';
 import EnrollWhoop from './pages/EnrollWhoop';
@@ -28,6 +31,7 @@ import BulkImport from './pages/dashboard/BulkImport';
 import SendLinks from './pages/dashboard/SendLinks';
 import ReviewQueue from './pages/dashboard/ReviewQueue';
 import ReviewDetail from './pages/dashboard/ReviewDetail';
+import SurveyManager from './pages/dashboard/SurveyManager';
 import SetPassword from './pages/dashboard/SetPassword';
 import NotFound from './pages/NotFound';
 import ResidentLayout from './components/ResidentLayout';
@@ -60,6 +64,9 @@ export default function App() {
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />
           <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
           <Route path="/active-research/ohealth" element={<OHealth />} />
+          <Route path="/surveys" element={<Surveys />} />
+          <Route path="/survey/:id" element={<SurveyTake />} />
+          <Route path="/surveys/submit" element={<SurveySubmit />} />
           <Route path="/events" element={<Events />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -81,6 +88,7 @@ export default function App() {
             <Route path="review/:instrument/:id" element={<ReviewDetail />} />
             <Route path="enrollment" element={<Enrollment />} />
             <Route path="exports" element={<Exports />} />
+            <Route path="surveys" element={<SurveyManager />} />
           </Route>
 
           {/* ── Resident Portal ── */}

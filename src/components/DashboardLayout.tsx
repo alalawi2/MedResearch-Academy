@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { path: '/dashboard/review', label: 'Review Queue', icon: '🔍' },
   { path: '/dashboard/enrollment', label: 'Enrollment', icon: '🔗' },
   { path: '/dashboard/exports', label: 'Exports', icon: '📦' },
+  { path: '/dashboard/surveys', label: 'Surveys', icon: '📋' },
 ];
 
 export default function DashboardLayout() {

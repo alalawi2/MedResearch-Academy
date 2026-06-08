@@ -22,6 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link to="/wall-of-impact" className={active('/wall-of-impact')}>Wall of Impact</Link>
             <Link to="/active-research" className={active('/active-research')}>Active Research</Link>
             <a href="https://ohealth.medresearch-academy.om" target="_blank" rel="noopener noreferrer" style={{color:'var(--accent)',fontWeight:600,fontSize:13,border:'1px solid var(--accent)',borderRadius:20,padding:'4px 12px'}}>OHealth ↗</a>
+            <Link to="/surveys" className={active('/surveys')}>Surveys</Link>
             <Link to="/news" className={active('/news')}>News</Link>
             <Link to="/contact" className={`nav-cta ${active('/contact')}`}>Contact</Link>
           </div>
@@ -30,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
           {[['/', 'Home'], ['/about', 'About'], ['/programs', 'Programs'], ['/lectures', 'Lectures'],
             ['/resources', 'Resources'], ['/wall-of-impact', 'Wall of Impact'], ['/active-research', 'Active Research'],
-            ['/news', 'News'], ['/contact', 'Contact']].map(([path, label]) => (
+            ['/surveys', 'Surveys'], ['/news', 'News'], ['/contact', 'Contact']].map(([path, label]) => (
             <Link key={path} to={path} onClick={() => setMenuOpen(false)}>{label}</Link>
           ))}
           <a href="https://ohealth.medresearch-academy.om" target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)} style={{color:'var(--accent)',fontWeight:600}}>OHealth ↗</a>

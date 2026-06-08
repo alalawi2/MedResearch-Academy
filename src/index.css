@@ -633,3 +633,68 @@ textarea { resize: vertical; min-height: 140px; }
   .event-featured-title { font-size: 1.6rem; }
   .event-details-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ═══════════════════════════════════
+   SURVEYS
+═══════════════════════════════════ */
+
+/* Language toggle */
+.survey-lang-toggle button:hover {
+  opacity: 0.9;
+}
+
+/* Progress bar */
+.survey-progress-bar {
+  background: var(--bg-muted);
+}
+.survey-progress-fill {
+  transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Radio options hover */
+.survey-radio-group label:hover,
+.survey-checkbox-group label:hover {
+  border-color: var(--primary-light) !important;
+  background: rgba(26,58,92,0.03) !important;
+}
+
+/* Likert buttons hover */
+.survey-likert-btn:hover:not(.selected) {
+  background: var(--bg-muted) !important;
+}
+
+/* Question card */
+.survey-question {
+  transition: border-color 0.2s, background 0.2s;
+}
+
+/* RTL support */
+[dir="rtl"] .survey-question-label span {
+  margin-left: 0;
+  margin-right: 4px;
+}
+[dir="rtl"] textarea,
+[dir="rtl"] input[type="text"],
+[dir="rtl"] select {
+  text-align: right;
+}
+
+/* Powered footer */
+.survey-powered-footer {
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.survey-powered-footer:hover {
+  opacity: 1;
+}
+
+/* Survey cards grid responsive */
+@media (max-width: 640px) {
+  .survey-likert-btn span:last-child {
+    display: none;
+  }
+  .survey-likert-btn {
+    padding: 10px 2px !important;
+  }
+}
