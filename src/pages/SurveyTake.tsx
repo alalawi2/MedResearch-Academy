@@ -140,6 +140,38 @@ export default function SurveyTake() {
 
   const handleNext = () => {
     if (!validateSection()) return;
+
+    // Check for section-skip logic in current section's questions
+    const currentQuestions = questions.filter(q => q.section_id === currentSectionData?.id);
+    for (const q of currentQuestions) {
+      if (q.skip_logic && q.skip_logic.skip_to_section) {
+        const logic = q.skip_logic;
+        const questionVal = answers[logic.if_question];
+        let shouldSkip = false;
+
+        // Check equals_any (e.g., Yanqul/Ibri/Dhank)
+        if (logic.equals_any && Array.isArray(logic.equals_any)) {
+          shouldSkip = logic.equals_any.includes(questionVal);
+        }
+
+        // Check compound AND condition (e.g., AND nationality = Omani)
+        if (shouldSkip && logic.and_question && logic.and_equals) {
+          const andVal = answers[logic.and_question];
+          shouldSkip = andVal === logic.and_equals;
+        }
+
+        if (shouldSkip) {
+          // Find the target section index
+          const targetIdx = sections.findIndex(s => s.id === logic.skip_to_section);
+          if (targetIdx > currentSection) {
+            setCurrentSection(targetIdx);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+          }
+        }
+      }
+    }
+
     if (currentSection < totalSections - 1) {
       setCurrentSection(prev => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
