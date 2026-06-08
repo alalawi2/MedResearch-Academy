@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
+import { formatSurveyAnswer } from '../../lib/survey-utils';
 
 interface Survey {
   id: string;
@@ -19,7 +20,7 @@ interface Survey {
 interface Response {
   id: string;
   respondent_id: string;
-  answers: Record<string, string | string[]>;
+  answers: Record<string, unknown>;
   language_used: string;
   completed: boolean;
   created_at: string;
@@ -32,6 +33,8 @@ interface Question {
   type: string;
   section_id: string;
   order_num: number;
+  options_en?: unknown[];
+  options_ar?: unknown[];
 }
 
 export default function SurveyManager() {
@@ -68,7 +71,7 @@ export default function SurveyManager() {
     setSelectedSurvey(surveyId);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: false }).limit(500),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,section_id,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,section_id,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
     if (respResult.data) setResponses(respResult.data);
     if (qResult.data) setQuestions(qResult.data);
@@ -78,7 +81,7 @@ export default function SurveyManager() {
     setExporting(true);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: true }).limit(5000),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
 
     if (!respResult.data || !qResult.data) { setExporting(false); return; }
@@ -93,11 +96,7 @@ export default function SurveyManager() {
         r.respondent_id.slice(0, 8),
         new Date(r.created_at).toLocaleDateString(),
         r.language_used,
-        ...qs.map(q => {
-          const ans = r.answers[q.id];
-          if (Array.isArray(ans)) return ans.join('; ');
-          return ans || '';
-        }),
+        ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
       ];
       return row;
     });
@@ -123,7 +122,7 @@ export default function SurveyManager() {
     setExporting(true);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: true }).limit(5000),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
 
     if (!respResult.data || !qResult.data) { setExporting(false); return; }
@@ -138,11 +137,7 @@ export default function SurveyManager() {
         r.respondent_id.slice(0, 8),
         new Date(r.created_at).toLocaleDateString(),
         r.language_used,
-        ...qs.map(q => {
-          const ans = r.answers[q.id];
-          if (Array.isArray(ans)) return ans.join('; ');
-          return ans || '';
-        }),
+        ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -278,7 +273,7 @@ export default function SurveyManager() {
                               <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border)' }}>{r.language_used?.toUpperCase()}</td>
                               {questions.slice(0, 8).map(q => (
                                 <td key={q.id} style={{ padding: '6px 10px', borderBottom: '1px solid var(--border)', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {Array.isArray(r.answers[q.id]) ? (r.answers[q.id] as string[]).join(', ') : (r.answers[q.id] || '—')}
+                                  {formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en') || '—'}
                                 </td>
                               ))}
                               {questions.length > 8 && <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border)', color: 'var(--text-muted)' }}>...</td>}

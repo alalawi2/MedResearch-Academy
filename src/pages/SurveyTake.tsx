@@ -1,6 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase, supabaseConfigured } from '../lib/supabase';
+import {
+  getLikertLabels,
+  getLocalizedOptionLabel,
+  getQuestionMaxSelections,
+  getQuestionOtherTextKey,
+  getQuestionSkipTarget,
+  getSurveySectionPath,
+  getVisibleQuestionsForSection,
+  normalizeSurveyOptions,
+  shouldAutoAdvanceQuestion,
+  type SurveyAnswers,
+} from '../lib/survey-utils';
 
 interface Survey {
   id: string;
@@ -31,15 +43,12 @@ interface Question {
   question_en: string;
   question_ar: string | null;
   type: 'radio' | 'checkbox' | 'likert' | 'text' | 'number' | 'dropdown';
-  options_en: string[];
-  options_ar: string[];
+  options_en: unknown[];
+  options_ar: unknown[];
   required: boolean;
   order_num: number;
-  skip_logic: any;
+  skip_logic: unknown;
 }
-
-const LIKERT_LABELS_EN = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-const LIKERT_LABELS_AR = ['أعارض بشدة', 'أعارض', 'محايد', 'أوافق', 'أوافق بشدة'];
 
 export default function SurveyTake() {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +56,9 @@ export default function SurveyTake() {
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<SurveyAnswers>({});
   const [currentSection, setCurrentSection] = useState(0);
+  const [sectionHistory, setSectionHistory] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -76,31 +86,11 @@ export default function SurveyTake() {
     })();
   }, [id]);
 
-  // Evaluate skip logic for a question
-  const isQuestionVisible = (q: Question): boolean => {
-    if (!q.skip_logic) return true;
-    const logic = q.skip_logic;
-    if (logic.show_if) {
-      const cond = logic.show_if;
-      const val = answers[cond.question_id];
-      if (cond.equals !== undefined) {
-        return val === cond.equals || (Array.isArray(val) && val.includes(cond.equals));
-      }
-      if (cond.not_equals !== undefined) {
-        return val !== cond.not_equals && !(Array.isArray(val) && val.includes(cond.not_equals));
-      }
-      return true;
-    }
-    return true;
-  };
-
   // Questions for current section
   const currentSectionData = sections[currentSection];
   const sectionQuestions = useMemo(() => {
     if (!currentSectionData) return [];
-    return questions
-      .filter(q => q.section_id === currentSectionData.id)
-      .filter(isQuestionVisible);
+    return getVisibleQuestionsForSection(currentSectionData.id, questions, answers) as Question[];
   }, [currentSectionData, questions, answers]);
 
   const totalSections = sections.length;
@@ -111,18 +101,80 @@ export default function SurveyTake() {
     return en || '';
   };
 
-  const setAnswer = (questionId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }));
-    setErrors(prev => { const next = { ...prev }; delete next[questionId]; return next; });
+  const hasAnswerValue = (value: unknown): boolean => {
+    if (Array.isArray(value)) return value.length > 0;
+    return value !== undefined && value !== null && value !== '';
   };
 
-  const toggleCheckbox = (questionId: string, option: string) => {
-    setAnswers(prev => {
-      const current: string[] = prev[questionId] || [];
-      const next = current.includes(option) ? current.filter(o => o !== option) : [...current, option];
-      return { ...prev, [questionId]: next };
+  const clearQuestionError = (questionId: string) => {
+    setErrors(prev => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
     });
-    setErrors(prev => { const next = { ...prev }; delete next[questionId]; return next; });
+  };
+
+  const navigateToSection = (targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex === currentSection || targetIndex >= sections.length) return;
+    setSectionHistory(prev => (prev[prev.length - 1] === currentSection ? prev : [...prev, currentSection]));
+    setCurrentSection(targetIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const maybeAutoAdvance = (question: Question, nextAnswers: SurveyAnswers) => {
+    if (!shouldAutoAdvanceQuestion(question)) return;
+    const targetSectionId = getQuestionSkipTarget(question, nextAnswers);
+    if (!targetSectionId) return;
+    const targetIndex = sections.findIndex(section => section.id === targetSectionId);
+    if (targetIndex > currentSection) {
+      navigateToSection(targetIndex);
+    }
+  };
+
+  const setAnswer = (question: Question, value: string | number) => {
+    const questionOptions = normalizeSurveyOptions(question);
+    const selectedOption = questionOptions.find(option => option.value === value);
+    const otherTextKey = getQuestionOtherTextKey(question.id);
+    const nextAnswers: SurveyAnswers = { ...answers, [question.id]: value };
+    if (selectedOption && !selectedOption.requiresText) {
+      delete nextAnswers[otherTextKey];
+    }
+    setAnswers(nextAnswers);
+    maybeAutoAdvance(question, nextAnswers);
+    clearQuestionError(question.id);
+  };
+
+  const setOtherText = (question: Question, value: string) => {
+    setAnswers(prev => ({ ...prev, [getQuestionOtherTextKey(question.id)]: value }));
+    clearQuestionError(question.id);
+  };
+
+  const toggleCheckbox = (question: Question, optionValue: string) => {
+    const questionOptions = normalizeSurveyOptions(question);
+    const toggledOption = questionOptions.find(option => option.value === optionValue);
+    const otherTextKey = getQuestionOtherTextKey(question.id);
+    const current = Array.isArray(answers[question.id]) ? [...(answers[question.id] as string[])] : [];
+    const maxSelections = getQuestionMaxSelections(question);
+    const nextSelection = current.includes(optionValue)
+      ? current.filter(option => option !== optionValue)
+      : [...current, optionValue];
+
+    if (maxSelections && !current.includes(optionValue) && current.length >= maxSelections) {
+      setErrors(prev => ({
+        ...prev,
+        [question.id]: lang === 'ar'
+          ? `يمكنك اختيار ما يصل إلى ${maxSelections} خيارات فقط`
+          : `You can select up to ${maxSelections} options only`,
+      }));
+      return;
+    }
+
+    const nextAnswers: SurveyAnswers = { ...answers, [question.id]: nextSelection };
+    if (toggledOption?.requiresText && !nextSelection.includes(optionValue)) {
+      delete nextAnswers[otherTextKey];
+    }
+    setAnswers(nextAnswers);
+    clearQuestionError(question.id);
   };
 
   const validateSection = (): boolean => {
@@ -133,6 +185,27 @@ export default function SurveyTake() {
       if (val === undefined || val === null || val === '' || (Array.isArray(val) && val.length === 0)) {
         errs[q.id] = lang === 'ar' ? 'هذا السؤال مطلوب' : 'This question is required';
       }
+
+      const maxSelections = getQuestionMaxSelections(q);
+      if (q.type === 'checkbox' && maxSelections && Array.isArray(val) && val.length > maxSelections) {
+        errs[q.id] = lang === 'ar'
+          ? `يمكنك اختيار ما يصل إلى ${maxSelections} خيارات فقط`
+          : `You can select up to ${maxSelections} options only`;
+      }
+
+      const otherTextKey = getQuestionOtherTextKey(q.id);
+      const selectedOptions = normalizeSurveyOptions(q).filter(option => option.requiresText);
+      if (selectedOptions.length > 0) {
+        const selectedOtherOption = selectedOptions.find(option =>
+          Array.isArray(val) ? val.includes(option.value) : val === option.value
+        );
+        if (selectedOtherOption) {
+          const otherText = typeof answers[otherTextKey] === 'string' ? answers[otherTextKey].trim() : '';
+          if (!otherText) {
+            errs[q.id] = lang === 'ar' ? 'يرجى تحديد الإجابة الأخرى' : 'Please specify your other answer';
+          }
+        }
+      }
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -140,58 +213,73 @@ export default function SurveyTake() {
 
   const handleNext = () => {
     if (!validateSection()) return;
+    const currentQuestions = questions
+      .filter(question => question.section_id === currentSectionData?.id)
+      .sort((a, b) => a.order_num - b.order_num);
 
-    // Check for section-skip logic in current section's questions
-    const currentQuestions = questions.filter(q => q.section_id === currentSectionData?.id);
-    for (const q of currentQuestions) {
-      if (q.skip_logic && q.skip_logic.skip_to_section) {
-        const logic = q.skip_logic;
-        const questionVal = answers[logic.if_question];
-        let shouldSkip = false;
+    for (const question of currentQuestions) {
+      const targetSectionId = getQuestionSkipTarget(question, answers);
+      if (!targetSectionId) continue;
 
-        // Check equals_any (e.g., Yanqul/Ibri/Dhank)
-        if (logic.equals_any && Array.isArray(logic.equals_any)) {
-          shouldSkip = logic.equals_any.includes(questionVal);
-        }
-
-        // Check compound AND condition (e.g., AND nationality = Omani)
-        if (shouldSkip && logic.and_question && logic.and_equals) {
-          const andVal = answers[logic.and_question];
-          shouldSkip = andVal === logic.and_equals;
-        }
-
-        if (shouldSkip) {
-          // Find the target section index
-          const targetIdx = sections.findIndex(s => s.id === logic.skip_to_section);
-          if (targetIdx > currentSection) {
-            setCurrentSection(targetIdx);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-          }
-        }
+      const targetIndex = sections.findIndex(section => section.id === targetSectionId);
+      if (targetIndex > currentSection) {
+        navigateToSection(targetIndex);
+        return;
       }
     }
 
     if (currentSection < totalSections - 1) {
-      setCurrentSection(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      navigateToSection(currentSection + 1);
     }
   };
 
   const handlePrev = () => {
-    if (currentSection > 0) {
-      setCurrentSection(prev => prev - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (sectionHistory.length === 0) return;
+    const previousSection = sectionHistory[sectionHistory.length - 1];
+    setSectionHistory(sectionHistory.slice(0, -1));
+    setCurrentSection(previousSection);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleSubmit = async () => {
     if (!validateSection()) return;
     if (!id) return;
+
+    const visibleQuestionIds = new Set<string>();
+    const sectionPath = getSurveySectionPath(sections, questions, answers);
+    for (const sectionId of sectionPath) {
+      const visibleQuestions = getVisibleQuestionsForSection(sectionId, questions, answers) as Question[];
+      visibleQuestions.forEach(question => {
+        visibleQuestionIds.add(question.id);
+      });
+    }
+
+    const submissionAnswers: SurveyAnswers = {};
+    questions.forEach(question => {
+      if (!visibleQuestionIds.has(question.id)) return;
+      const mainAnswer = answers[question.id];
+      if (!hasAnswerValue(mainAnswer)) return;
+
+      submissionAnswers[question.id] = mainAnswer;
+
+      const otherTextKey = getQuestionOtherTextKey(question.id);
+      const otherTextValue = typeof answers[otherTextKey] === 'string' ? answers[otherTextKey].trim() : '';
+      if (!otherTextValue) return;
+
+      const otherOptionSelected = normalizeSurveyOptions(question).some(option => {
+        if (!option.requiresText) return false;
+        return Array.isArray(mainAnswer) ? mainAnswer.includes(option.value) : mainAnswer === option.value;
+      });
+
+      if (otherOptionSelected) {
+        submissionAnswers[otherTextKey] = otherTextValue;
+      }
+    });
+
     setSubmitting(true);
     const { error } = await supabase.from('survey_responses').insert({
       survey_id: id,
-      answers,
+      answers: submissionAnswers,
       language_used: lang,
       completed: true,
     });
@@ -202,8 +290,16 @@ export default function SurveyTake() {
   // Render question based on type
   const renderQuestion = (q: Question) => {
     const label = t(q.question_en, q.question_ar);
-    const opts = lang === 'ar' && q.options_ar && q.options_ar.length > 0 ? q.options_ar : q.options_en || [];
+    const opts = normalizeSurveyOptions(q);
     const hasError = !!errors[q.id];
+    const otherTextKey = getQuestionOtherTextKey(q.id);
+    const rawAnswer = answers[q.id];
+    const currentOtherText = typeof answers[otherTextKey] === 'string' ? answers[otherTextKey] : '';
+    const answerList = Array.isArray(rawAnswer) ? (rawAnswer as string[]) : [];
+    const currentInputValue: string | number =
+      typeof rawAnswer === 'string' || typeof rawAnswer === 'number'
+        ? rawAnswer
+        : '';
 
     return (
       <div key={q.id} className="survey-question" style={{ marginBottom: 28, padding: 20, background: hasError ? 'rgba(239,68,68,0.04)' : 'var(--bg-muted)', borderRadius: 12, border: hasError ? '1px solid rgba(239,68,68,0.3)' : '1px solid transparent' }}>
@@ -218,29 +314,47 @@ export default function SurveyTake() {
         {q.type === 'radio' && (
           <div className="survey-radio-group">
             {opts.map((opt, i) => (
-              <label key={i} className={`survey-radio-option ${answers[q.id] === opt ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: answers[q.id] === opt ? 'rgba(26,58,92,0.08)' : 'white', border: answers[q.id] === opt ? '1.5px solid var(--primary)' : '1px solid var(--border)', cursor: 'pointer', marginBottom: 6, transition: 'all 0.15s' }}>
-                <span className="survey-radio-dot" style={{ width: 18, height: 18, borderRadius: '50%', border: answers[q.id] === opt ? '5px solid var(--primary)' : '2px solid var(--border)', flexShrink: 0, transition: 'all 0.15s', background: 'white' }} />
-                <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ display: 'none' }} />
-                <span style={{ fontSize: 14 }}>{opt}</span>
+              <label key={i} className={`survey-radio-option ${answers[q.id] === opt.value ? 'selected' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: answers[q.id] === opt.value ? 'rgba(26,58,92,0.08)' : 'white', border: answers[q.id] === opt.value ? '1.5px solid var(--primary)' : '1px solid var(--border)', cursor: 'pointer', marginBottom: 6, transition: 'all 0.15s' }}>
+                <span className="survey-radio-dot" style={{ width: 18, height: 18, borderRadius: '50%', border: answers[q.id] === opt.value ? '5px solid var(--primary)' : '2px solid var(--border)', flexShrink: 0, transition: 'all 0.15s', background: 'white' }} />
+                <input type="radio" name={q.id} value={opt.value} checked={answers[q.id] === opt.value} onChange={() => setAnswer(q, opt.value)} style={{ display: 'none' }} />
+                <span style={{ fontSize: 14 }}>{getLocalizedOptionLabel(opt, lang)}</span>
               </label>
             ))}
+            {opts.some(opt => opt.requiresText && answers[q.id] === opt.value) && (
+              <input
+                type="text"
+                value={currentOtherText}
+                onChange={e => setOtherText(q, e.target.value)}
+                placeholder={lang === 'ar' ? 'يرجى التحديد' : 'Please specify'}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', boxSizing: 'border-box', marginTop: 8, direction: isRtl ? 'rtl' : 'ltr' }}
+              />
+            )}
           </div>
         )}
 
         {q.type === 'checkbox' && (
           <div className="survey-checkbox-group">
             {opts.map((opt, i) => {
-              const checked = (answers[q.id] || []).includes(opt);
+              const checked = answerList.includes(opt.value);
               return (
                 <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: checked ? 'rgba(26,58,92,0.08)' : 'white', border: checked ? '1.5px solid var(--primary)' : '1px solid var(--border)', cursor: 'pointer', marginBottom: 6, transition: 'all 0.15s' }}>
                   <span style={{ width: 18, height: 18, borderRadius: 4, border: checked ? 'none' : '2px solid var(--border)', background: checked ? 'var(--primary)' : 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s', color: 'white', fontSize: 12, fontWeight: 700 }}>
                     {checked ? '✓' : ''}
                   </span>
-                  <input type="checkbox" checked={checked} onChange={() => toggleCheckbox(q.id, opt)} style={{ display: 'none' }} />
-                  <span style={{ fontSize: 14 }}>{opt}</span>
+                  <input type="checkbox" checked={checked} onChange={() => toggleCheckbox(q, opt.value)} style={{ display: 'none' }} />
+                  <span style={{ fontSize: 14 }}>{getLocalizedOptionLabel(opt, lang)}</span>
                 </label>
               );
             })}
+            {opts.some(opt => opt.requiresText && answerList.includes(opt.value)) && (
+              <input
+                type="text"
+                value={currentOtherText}
+                onChange={e => setOtherText(q, e.target.value)}
+                placeholder={lang === 'ar' ? 'يرجى التحديد' : 'Please specify'}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', boxSizing: 'border-box', marginTop: 8, direction: isRtl ? 'rtl' : 'ltr' }}
+              />
+            )}
           </div>
         )}
 
@@ -248,12 +362,14 @@ export default function SurveyTake() {
           <div className="survey-likert-group" style={{ display: 'flex', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid var(--border)' }}>
             {[1, 2, 3, 4, 5].map(n => {
               const selected = answers[q.id] === n;
-              const labels = lang === 'ar' ? LIKERT_LABELS_AR : LIKERT_LABELS_EN;
+              const labels = getLikertLabels(q, lang);
+              const labelText = labels[n - 1] || '';
+              const labelIncludesNumber = labelText.trim().startsWith(`${n}`);
               return (
                 <button
                   key={n}
                   type="button"
-                  onClick={() => setAnswer(q.id, n)}
+                  onClick={() => setAnswer(q, n)}
                   className={`survey-likert-btn ${selected ? 'selected' : ''}`}
                   style={{
                     flex: 1,
@@ -271,8 +387,8 @@ export default function SurveyTake() {
                     fontFamily: 'var(--font-sans)',
                   }}
                 >
-                  <span style={{ fontWeight: 700, fontSize: 16 }}>{n}</span>
-                  <span style={{ fontSize: 10, opacity: 0.7, lineHeight: 1.2, textAlign: 'center' }}>{labels[n - 1]}</span>
+                  {!labelIncludesNumber && <span style={{ fontWeight: 700, fontSize: 16 }}>{n}</span>}
+                  <span style={{ fontSize: 10, opacity: 0.7, lineHeight: 1.2, textAlign: 'center' }}>{labelText}</span>
                 </button>
               );
             })}
@@ -281,8 +397,8 @@ export default function SurveyTake() {
 
         {q.type === 'text' && (
           <textarea
-            value={answers[q.id] || ''}
-            onChange={e => setAnswer(q.id, e.target.value)}
+            value={currentInputValue}
+            onChange={e => setAnswer(q, e.target.value)}
             rows={3}
             placeholder={lang === 'ar' ? 'اكتب إجابتك هنا...' : 'Type your answer here...'}
             style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', resize: 'vertical', outline: 'none', boxSizing: 'border-box', direction: isRtl ? 'rtl' : 'ltr' }}
@@ -292,8 +408,8 @@ export default function SurveyTake() {
         {q.type === 'number' && (
           <input
             type="number"
-            value={answers[q.id] || ''}
-            onChange={e => setAnswer(q.id, e.target.value)}
+            value={currentInputValue}
+            onChange={e => setAnswer(q, e.target.value)}
             placeholder={lang === 'ar' ? 'أدخل رقمًا' : 'Enter a number'}
             style={{ width: '100%', maxWidth: 200, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', boxSizing: 'border-box' }}
           />
@@ -301,13 +417,23 @@ export default function SurveyTake() {
 
         {q.type === 'dropdown' && (
           <select
-            value={answers[q.id] || ''}
-            onChange={e => setAnswer(q.id, e.target.value)}
+            value={currentInputValue}
+            onChange={e => setAnswer(q, e.target.value)}
             style={{ width: '100%', maxWidth: 400, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', background: 'white' }}
           >
             <option value="">{lang === 'ar' ? 'اختر...' : 'Select...'}</option>
-            {opts.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
+            {opts.map((opt, i) => <option key={i} value={opt.value}>{getLocalizedOptionLabel(opt, lang)}</option>)}
           </select>
+        )}
+
+        {q.type === 'dropdown' && opts.some(opt => opt.requiresText && answers[q.id] === opt.value) && (
+          <input
+            type="text"
+            value={currentOtherText}
+            onChange={e => setOtherText(q, e.target.value)}
+            placeholder={lang === 'ar' ? 'يرجى التحديد' : 'Please specify'}
+            style={{ width: '100%', maxWidth: 400, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 14, fontFamily: 'var(--font-sans)', outline: 'none', boxSizing: 'border-box', marginTop: 8, direction: isRtl ? 'rtl' : 'ltr' }}
+          />
         )}
 
         {hasError && (
@@ -348,8 +474,8 @@ export default function SurveyTake() {
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: 15, maxWidth: 480, lineHeight: 1.7 }}>
           {lang === 'ar'
-            ? 'تم تسجيل إجابتك بنجاح. مشاركتك تساهم في تطوير البحث الطبي.'
-            : 'Your response has been recorded successfully. Your participation contributes to advancing medical research.'}
+            ? 'تم تسجيل إجابتك بنجاح. مشاركتك تساهم في دعم هذا البحث الأكاديمي.'
+            : 'Your response has been recorded successfully. Your participation supports this academic research.'}
         </p>
         <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
           <a href="/surveys" className="btn btn-primary">
@@ -402,9 +528,29 @@ export default function SurveyTake() {
                   <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--primary)', marginBottom: 8 }}>
                     {lang === 'ar' ? 'حول هذا الاستبيان' : 'About This Survey'}
                   </h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.7 }}>
-                    {t(survey.description_en, survey.description_ar)}
-                  </p>
+                  <div style={{ display: 'grid', gap: 10 }}>
+                    {t(survey.description_en, survey.description_ar)
+                      .split(/\n\s*\n/)
+                      .filter(Boolean)
+                      .map((paragraph, index) => {
+                        const isMethodologicalNote = paragraph.startsWith('Methodological Note') || paragraph.startsWith('ملاحظة منهجية');
+                        if (isMethodologicalNote) {
+                          return (
+                            <div key={index} style={{ padding: 14, background: 'rgba(200,151,42,0.08)', border: '1px solid rgba(200,151,42,0.25)', borderRadius: 10 }}>
+                              <p style={{ color: 'var(--text)', fontSize: 13, lineHeight: 1.8, margin: 0 }}>
+                                {paragraph}
+                              </p>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <p key={index} style={{ color: 'var(--text-muted)', fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+                            {paragraph}
+                          </p>
+                        );
+                      })}
+                  </div>
                 </div>
               )}
 
@@ -433,15 +579,6 @@ export default function SurveyTake() {
                   </div>
                 </div>
               )}
-
-              {/* Consent text */}
-              <div style={{ padding: 16, background: 'var(--bg-muted)', borderRadius: 10, marginBottom: 28, borderLeft: isRtl ? 'none' : '4px solid var(--accent)', borderRight: isRtl ? '4px solid var(--accent)' : 'none' }}>
-                <p style={{ fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.7 }}>
-                  {lang === 'ar'
-                    ? 'بالنقر على "ابدأ الاستبيان"، فإنك توافق على المشاركة طوعيًا في هذا البحث. إجاباتك مجهولة الهوية ولن يتم ربطها بمعلوماتك الشخصية. يمكنك الانسحاب في أي وقت.'
-                    : 'By clicking "Start Survey", you consent to voluntarily participate in this research. Your responses are anonymous and will not be linked to your personal information. You may withdraw at any time.'}
-                </p>
-              </div>
 
               <button onClick={() => setStarted(true)} className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                 {lang === 'ar' ? 'ابدأ الاستبيان →' : 'Start Survey →'}
@@ -522,9 +659,9 @@ export default function SurveyTake() {
             <div style={{ padding: '16px 28px 24px', display: 'flex', justifyContent: 'space-between', gap: 12 }}>
               <button
                 onClick={handlePrev}
-                disabled={currentSection === 0}
+                disabled={sectionHistory.length === 0}
                 className="btn btn-outline"
-                style={{ opacity: currentSection === 0 ? 0.4 : 1 }}
+                style={{ opacity: sectionHistory.length === 0 ? 0.4 : 1 }}
               >
                 {lang === 'ar' ? '← السابق' : '← Previous'}
               </button>

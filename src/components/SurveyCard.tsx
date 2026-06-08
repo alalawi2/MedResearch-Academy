@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { formatSurveyAnswer } from '../lib/survey-utils';
 
 export interface SurveyCardData {
   id: string;
@@ -21,7 +22,7 @@ export interface SurveyCardData {
 interface Response {
   id: string;
   respondent_id: string;
-  answers: Record<string, string | string[]>;
+  answers: Record<string, unknown>;
   language_used: string;
   completed: boolean;
   created_at: string;
@@ -31,6 +32,9 @@ interface Question {
   id: string;
   question_en: string;
   order_num: number;
+  type?: string;
+  options_en?: unknown[];
+  options_ar?: unknown[];
 }
 
 const langLabel: Record<string, { label: string; bg: string; color: string }> = {
@@ -115,7 +119,7 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
   const loadDashboard = async () => {
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', survey.id).eq('completed', true).order('created_at', { ascending: false }).limit(500),
-      supabase.from('survey_questions').select('id,question_en,order_num').eq('survey_id', survey.id).order('order_num').limit(200),
+      supabase.from('survey_questions').select('id,question_en,type,order_num,options_en,options_ar').eq('survey_id', survey.id).order('order_num').limit(200),
     ]);
     if (respResult.data) setResponses(respResult.data);
     if (qResult.data) setQuestions(qResult.data);
@@ -130,11 +134,7 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
       idx + 1,
       new Date(r.created_at).toLocaleDateString(),
       r.language_used,
-      ...qs.map(q => {
-        const ans = r.answers[q.id];
-        if (Array.isArray(ans)) return ans.join('; ');
-        return ans || '';
-      }),
+      ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
     ]);
     const csv = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -158,7 +158,7 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
         idx + 1,
         new Date(r.created_at).toLocaleDateString(),
         r.language_used,
-        ...qs.map(q => { const a = r.answers[q.id]; return Array.isArray(a) ? a.join('; ') : (a || ''); }),
+        ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
       ]);
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
       const wb = XLSX.utils.book_new();
@@ -396,7 +396,7 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
                               <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--border)' }}>{r.language_used?.toUpperCase()}</td>
                               {questions.slice(0, 6).map(q => (
                                 <td key={q.id} style={{ padding: '5px 8px', borderBottom: '1px solid var(--border)', maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {Array.isArray(r.answers[q.id]) ? (r.answers[q.id] as string[]).join(', ') : (r.answers[q.id] || '—')}
+                                  {formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en') || '—'}
                                 </td>
                               ))}
                             </tr>

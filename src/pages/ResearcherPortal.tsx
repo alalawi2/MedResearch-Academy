@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import { supabase } from '../lib/supabase';
+import { formatSurveyAnswer, getLikertLabels, normalizeSurveyOptions } from '../lib/survey-utils';
 
 /* ── Types ── */
 interface Survey {
@@ -20,7 +21,7 @@ interface Survey {
 interface SurveyResponse {
   id: string;
   respondent_id: string;
-  answers: Record<string, string | string[]>;
+  answers: Record<string, unknown>;
   language_used: string;
   completed: boolean;
   created_at: string;
@@ -33,12 +34,11 @@ interface Question {
   type: string;
   section_id: string;
   order_num: number;
-  options_en: string[];
-  options_ar: string[];
+  options_en: unknown[];
+  options_ar: unknown[];
 }
 
 /* ── Analytics helpers ── */
-const LIKERT_LABELS = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
 const LIKERT_COLORS = ['#dc2626', '#f97316', '#eab308', '#22c55e', '#16a34a'];
 const CHART_COLORS = ['#1a3a5c', '#2d5f8a', '#c8972a', '#e8b84b', '#16a34a', '#8b5cf6', '#ec4899', '#06b6d4', '#64748b', '#f43f5e'];
 
@@ -337,7 +337,7 @@ export default function ResearcherPortal() {
     setExporting(true);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: true }).limit(5000),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
 
     if (!respResult.data || !qResult.data) { setExporting(false); return; }
@@ -351,11 +351,7 @@ export default function ResearcherPortal() {
         String(idx + 1),
         new Date(r.created_at).toLocaleDateString(),
         r.language_used,
-        ...qs.map(q => {
-          const ans = r.answers[q.id];
-          if (Array.isArray(ans)) return ans.join('; ');
-          return ans || '';
-        }),
+        ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
       ];
       return row;
     });
@@ -380,7 +376,7 @@ export default function ResearcherPortal() {
     setExporting(true);
     const [respResult, qResult] = await Promise.all([
       supabase.from('survey_responses').select('*').eq('survey_id', surveyId).eq('completed', true).order('created_at', { ascending: true }).limit(5000),
-      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
+      supabase.from('survey_questions').select('id,question_en,question_ar,type,order_num,options_en,options_ar').eq('survey_id', surveyId).order('order_num', { ascending: true }).limit(200),
     ]);
 
     if (!respResult.data || !qResult.data) { setExporting(false); return; }
@@ -395,11 +391,7 @@ export default function ResearcherPortal() {
         idx + 1,
         new Date(r.created_at).toLocaleDateString(),
         r.language_used,
-        ...qs.map(q => {
-          const ans = r.answers[q.id];
-          if (Array.isArray(ans)) return ans.join('; ');
-          return ans || '';
-        }),
+        ...qs.map(q => formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en')),
       ]);
 
       const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -565,19 +557,25 @@ export default function ResearcherPortal() {
 
           // Radio / Dropdown → Horizontal bar chart
           if (q.type === 'radio' || q.type === 'dropdown') {
-            const options = q.options_en && q.options_en.length > 0 ? q.options_en : Object.keys(stat.optionCounts);
-            const maxCount = Math.max(...options.map(o => stat.optionCounts[o] || 0), 1);
+            const normalizedOptions = normalizeSurveyOptions(q);
+            const optionValues = Array.from(new Set([
+              ...normalizedOptions.map(option => option.value),
+              ...Object.keys(stat.optionCounts),
+            ]));
+            const maxCount = Math.max(...optionValues.map(value => stat.optionCounts[value] || 0), 1);
             return (
               <div key={q.id} className="analytics-chart-card">
                 <h4 className="analytics-chart-title">{qLabel}</h4>
                 <div className="analytics-chart-type-badge">Single Choice</div>
                 <div className="analytics-bar-list">
-                  {options.map((opt, oi) => {
-                    const count = stat.optionCounts[opt] || 0;
+                  {optionValues.map((value, oi) => {
+                    const option = normalizedOptions.find(item => item.value === value);
+                    const label = option?.labelEn || value;
+                    const count = stat.optionCounts[value] || 0;
                     const pct = stat.totalAnswered > 0 ? Math.round((count / stat.totalAnswered) * 100) : 0;
                     return (
-                      <div key={opt} className="analytics-bar-row">
-                        <div className="analytics-bar-label" title={opt}>{opt}</div>
+                      <div key={value} className="analytics-bar-row">
+                        <div className="analytics-bar-label" title={label}>{label}</div>
                         <div className="analytics-bar-track">
                           <div className="analytics-bar-fill" style={{ width: `${(count / maxCount) * 100}%`, background: CHART_COLORS[oi % CHART_COLORS.length] }} />
                         </div>
@@ -593,19 +591,25 @@ export default function ResearcherPortal() {
 
           // Checkbox → Horizontal bar chart (multi-select)
           if (q.type === 'checkbox') {
-            const options = q.options_en && q.options_en.length > 0 ? q.options_en : Object.keys(stat.optionCounts);
-            const maxCount = Math.max(...options.map(o => stat.optionCounts[o] || 0), 1);
+            const normalizedOptions = normalizeSurveyOptions(q);
+            const optionValues = Array.from(new Set([
+              ...normalizedOptions.map(option => option.value),
+              ...Object.keys(stat.optionCounts),
+            ]));
+            const maxCount = Math.max(...optionValues.map(value => stat.optionCounts[value] || 0), 1);
             return (
               <div key={q.id} className="analytics-chart-card">
                 <h4 className="analytics-chart-title">{qLabel}</h4>
                 <div className="analytics-chart-type-badge">Multiple Choice</div>
                 <div className="analytics-bar-list">
-                  {options.map((opt, oi) => {
-                    const count = stat.optionCounts[opt] || 0;
+                  {optionValues.map((value, oi) => {
+                    const option = normalizedOptions.find(item => item.value === value);
+                    const label = option?.labelEn || value;
+                    const count = stat.optionCounts[value] || 0;
                     const pct = stat.totalAnswered > 0 ? Math.round((count / stat.totalAnswered) * 100) : 0;
                     return (
-                      <div key={opt} className="analytics-bar-row">
-                        <div className="analytics-bar-label" title={opt}>{opt}</div>
+                      <div key={value} className="analytics-bar-row">
+                        <div className="analytics-bar-label" title={label}>{label}</div>
                         <div className="analytics-bar-track">
                           <div className="analytics-bar-fill" style={{ width: `${(count / maxCount) * 100}%`, background: CHART_COLORS[oi % CHART_COLORS.length] }} />
                         </div>
@@ -621,7 +625,8 @@ export default function ResearcherPortal() {
 
           // Likert → Stacked horizontal bar
           if (q.type === 'likert') {
-            const segments = LIKERT_LABELS.map((label, i) => {
+            const likertLabels = getLikertLabels(q, 'en');
+            const segments = likertLabels.map((label, i) => {
               const val = String(i + 1);
               const count = stat.optionCounts[val] || 0;
               const pct = stat.totalAnswered > 0 ? (count / stat.totalAnswered) * 100 : 0;
@@ -1015,7 +1020,7 @@ export default function ResearcherPortal() {
                                         <td>{r.language_used?.toUpperCase()}</td>
                                         {questions.slice(0, 8).map(q => (
                                           <td key={q.id} style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {Array.isArray(r.answers[q.id]) ? (r.answers[q.id] as string[]).join(', ') : (r.answers[q.id] || '\u2014')}
+                                            {formatSurveyAnswer(q, r.answers, r.language_used === 'ar' ? 'ar' : 'en') || '\u2014'}
                                           </td>
                                         ))}
                                         {questions.length > 8 && <td style={{ color: 'var(--text-muted)' }}>...</td>}
