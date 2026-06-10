@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { verifyEnrollmentToken } from './_enrollment-token';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -7,22 +8,43 @@ const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-  const { email, password } = req.body || {};
+  const { email, password, enrollmentToken } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
   if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Check participant exists
-  const { data: participant } = await supabase
-    .from('burnout_participants')
-    .select('id, auth_user_id')
-    .eq('email', email.trim().toLowerCase())
-    .limit(1)
-    .single();
+  const normalizedEmail = email.trim().toLowerCase();
+  const tokenPayload = verifyEnrollmentToken(typeof enrollmentToken === 'string' ? enrollmentToken : null);
+
+  let participant: { id: string; auth_user_id: string | null } | null = null;
+
+  if (tokenPayload?.participantId) {
+    const { data: byParticipantId } = await supabase
+      .from('burnout_participants')
+      .select('id, auth_user_id')
+      .eq('study_participant_id', tokenPayload.participantId)
+      .limit(1)
+      .single();
+    participant = byParticipantId;
+  }
 
   if (!participant) {
-    return res.status(404).json({ error: 'No participant found with this email. Please enroll via WHOOP first.' });
+    const { data: byEmail } = await supabase
+      .from('burnout_participants')
+      .select('id, auth_user_id')
+      .eq('email', normalizedEmail)
+      .limit(1)
+      .single();
+    participant = byEmail;
+  }
+
+  if (!participant) {
+    return res.status(404).json({
+      error: tokenPayload
+        ? 'Enrollment session expired. Please reconnect WHOOP and try again.'
+        : 'No participant found with this email. Please enroll via WHOOP first.',
+    });
   }
 
   // If already has auth account, just update password
@@ -37,7 +59,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Create new auth user
   const { data: authUser, error: createErr } = await supabase.auth.admin.createUser({
-    email: email.trim().toLowerCase(),
+    email: normalizedEmail,
     password,
     email_confirm: true,
   });
@@ -47,7 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (createErr.message.includes('already been registered')) {
       // Find existing auth user and link
       const { data: { users } } = await supabase.auth.admin.listUsers();
-      const existing = users?.find(u => u.email === email.trim().toLowerCase());
+      const existing = (users ?? []).find((u: { id: string; email?: string | null }) => u.email === normalizedEmail);
       if (existing) {
         await supabase
           .from('burnout_participants')

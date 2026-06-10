@@ -2,6 +2,8 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '../lib/supabase';
 
+const ENROLLMENT_TOKEN_KEY = 'whoop-enrollment-token';
+
 interface StaffProfile {
   id: string;
   email: string;
@@ -84,9 +86,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const session = await supabase.auth.getSession();
       const token = session.data.session?.access_token;
       if (token) {
+        let enrollmentToken: string | null = null;
+        try {
+          enrollmentToken = localStorage.getItem(ENROLLMENT_TOKEN_KEY);
+        } catch {
+          enrollmentToken = null;
+        }
+
         const res = await fetch('/api/link-resident', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(enrollmentToken ? { enrollmentToken } : {}),
         });
         if (res.ok) {
           // Re-fetch the now-linked profile
@@ -97,6 +107,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             .limit(1)
             .single();
           if (linked) {
+            if (enrollmentToken) {
+              try {
+                localStorage.removeItem(ENROLLMENT_TOKEN_KEY);
+              } catch {
+                // ignore storage failures
+              }
+            }
             setResidentProfile(linked);
             return;
           }

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { createEnrollmentToken } from '../_enrollment-token';
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token';
 const WHOOP_PROFILE_URL = 'https://api.prod.whoop.com/developer/v1/user/profile/basic';
@@ -18,6 +19,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const buildSuccessRedirect = (participantId: string, email: string) => {
+      const params = new URLSearchParams({
+        success: 'enrolled',
+        id: participantId,
+        email,
+        token: createEnrollmentToken(participantId),
+      });
+      return `${SITE_URL}/enroll/whoop?${params.toString()}`;
+    };
+
     // Exchange authorization code for tokens
     const tokenRes = await fetch(WHOOP_TOKEN_URL, {
       method: 'POST',
@@ -135,7 +146,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           details: { whoop_user_id: whoopUserId, participant_id: existing.study_participant_id },
         });
 
-      return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${existing.study_participant_id}&email=${encodeURIComponent(whoopEmail || '')}`);
+      return res.redirect(buildSuccessRedirect(existing.study_participant_id, whoopEmail || ''));
     }
 
     // New participant — generate next study participant ID with retry for race conditions
@@ -225,7 +236,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         details: { whoop_user_id: whoopUserId, participant_id: participantId },
       });
 
-    return res.redirect(`${SITE_URL}/enroll/whoop?success=enrolled&id=${participantId}&email=${encodeURIComponent(whoopEmail || '')}`);
+    return res.redirect(buildSuccessRedirect(participantId, whoopEmail || ''));
   } catch (err: any) {
     console.error('WHOOP callback error:', err);
     return res.redirect(`${SITE_URL}/enroll/whoop?error=server_error`);

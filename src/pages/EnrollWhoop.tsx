@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { supabase } from '../lib/supabase';
+
+const ENROLLMENT_TOKEN_KEY = 'whoop-enrollment-token';
 
 export default function EnrollWhoop() {
   const [params] = useSearchParams();
@@ -10,6 +12,7 @@ export default function EnrollWhoop() {
   const detail = params.get('detail');
   const participantId = params.get('id');
   const enrollEmail = params.get('email');
+  const enrollmentToken = params.get('token');
 
   const [connecting, setConnecting] = useState(false);
   const [pwStep, setPwStep] = useState(false);
@@ -19,6 +22,15 @@ export default function EnrollWhoop() {
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwDone, setPwDone] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
+
+  useEffect(() => {
+    if (!success || !participantId || !enrollmentToken) return;
+    try {
+      localStorage.setItem(ENROLLMENT_TOKEN_KEY, enrollmentToken);
+    } catch {
+      // ignore storage failures
+    }
+  }, [success, participantId, enrollmentToken]);
 
   async function handleCreateAccount(e: React.FormEvent) {
     e.preventDefault();
@@ -31,13 +43,18 @@ export default function EnrollWhoop() {
       const res = await fetch('/api/create-resident-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email: email.trim(), password, enrollmentToken }),
       });
       const data = await res.json();
       if (!res.ok) { setPwError(data.error || 'Failed to create account'); setPwLoading(false); return; }
       // Sign in immediately
       const { error: signErr } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       if (signErr) { setPwError('Account created but sign-in failed: ' + signErr.message); setPwLoading(false); return; }
+      try {
+        localStorage.removeItem(ENROLLMENT_TOKEN_KEY);
+      } catch {
+        // ignore storage failures
+      }
       setPwDone(true);
     } catch (err: any) {
       setPwError(err.message || 'Network error');

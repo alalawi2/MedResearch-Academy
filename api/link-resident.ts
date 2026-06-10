@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { verifyEnrollmentToken } from './_enrollment-token';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -27,6 +28,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .single();
 
   if (linked) return res.json({ profile: linked, action: 'already_linked' });
+
+  const enrollmentToken = typeof req.body?.enrollmentToken === 'string' ? req.body.enrollmentToken : null;
+  const tokenPayload = verifyEnrollmentToken(enrollmentToken);
+
+  if (tokenPayload?.participantId) {
+    const { data: byParticipantId } = await supabase
+      .from('burnout_participants')
+      .select('id, study_participant_id')
+      .eq('study_participant_id', tokenPayload.participantId)
+      .is('auth_user_id', null)
+      .limit(1)
+      .single();
+
+    if (byParticipantId) {
+      const { error: tokenUpdateErr } = await supabase
+        .from('burnout_participants')
+        .update({ auth_user_id: user.id })
+        .eq('id', byParticipantId.id);
+
+      if (tokenUpdateErr) {
+        console.error('Token link error:', tokenUpdateErr);
+        return res.status(500).json({ error: 'Failed to link account' });
+      }
+
+      await logLinkEvent(supabase, byParticipantId.id, byParticipantId.study_participant_id, user.id, user.email, 'enrollment_token');
+      return res.json({ profile: byParticipantId, action: 'linked_by_token' });
+    }
+  }
 
   // Try to link by email (exact match)
   const { data: byEmail } = await supabase
@@ -79,5 +108,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to link account' });
   }
 
+  const method = match === byEmail ? 'email_exact' : (match && !byEmail ? 'recent_30min' : 'email_ci');
+  await logLinkEvent(supabase, match.id, match.study_participant_id, user.id, user.email, method);
   return res.json({ profile: match, action: 'linked' });
+}
+
+async function logLinkEvent(
+  supabase: any,
+  participantDbId: string,
+  studyParticipantId: string,
+  authUserId: string,
+  authEmail: string | undefined,
+  method: string,
+) {
+  try {
+    await supabase.from('enrollment_events').insert({
+      resident_id: participantDbId,
+      event_type: 'auth_linked',
+      details: {
+        participant_id: studyParticipantId,
+        auth_user_id: authUserId,
+        auth_email: authEmail || null,
+        method,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to log link event:', err);
+  }
 }
