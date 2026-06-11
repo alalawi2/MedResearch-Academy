@@ -1,6 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { createEnrollmentToken } from '../_enrollment-token';
+import { createHmac } from 'crypto';
+
+function createEnrollmentToken(participantId: string, ttlSeconds = 86400) {
+  const secret = process.env.ENROLLMENT_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  const payload = JSON.stringify({ participantId, exp: Math.floor(Date.now() / 1000) + ttlSeconds });
+  const encoded = Buffer.from(payload, 'utf8').toString('base64url');
+  const sig = createHmac('sha256', secret).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
+}
 
 const WHOOP_TOKEN_URL = 'https://api.prod.whoop.com/oauth/oauth2/token';
 const WHOOP_PROFILE_URL = 'https://api.prod.whoop.com/developer/v1/user/profile/basic';

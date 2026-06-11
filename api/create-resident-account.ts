@@ -1,6 +1,24 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { verifyEnrollmentToken } from './_enrollment-token';
+import { createHmac, timingSafeEqual } from 'crypto';
+
+type EnrollmentTokenPayload = { participantId: string; exp: number };
+
+function verifyEnrollmentToken(token: string | undefined | null): EnrollmentTokenPayload | null {
+  if (!token) return null;
+  const secret = process.env.ENROLLMENT_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+  if (!secret) return null;
+  const [enc, sig] = token.split('.');
+  if (!enc || !sig) return null;
+  const expected = createHmac('sha256', secret).update(enc).digest('base64url');
+  const a = Buffer.from(sig), b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  try {
+    const p = JSON.parse(Buffer.from(enc, 'base64url').toString('utf8')) as EnrollmentTokenPayload;
+    if (!p.participantId || !p.exp || p.exp < Math.floor(Date.now() / 1000)) return null;
+    return p;
+  } catch { return null; }
+}
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
