@@ -691,11 +691,23 @@ textarea { resize: vertical; min-height: 140px; }
 
 /* Survey cards grid responsive */
 @media (max-width: 640px) {
-  .survey-likert-btn span:last-child {
-    display: none;
+  .survey-likert-group {
+    flex-direction: column !important;
+    border-radius: 10px !important;
   }
   .survey-likert-btn {
-    padding: 10px 2px !important;
+    flex-direction: row !important;
+    padding: 12px 14px !important;
+    gap: 10px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+  .survey-likert-btn:last-child {
+    border-bottom: none;
+  }
+  .survey-likert-btn span:last-child {
+    font-size: 14px !important;
+    opacity: 1 !important;
   }
 }
 
