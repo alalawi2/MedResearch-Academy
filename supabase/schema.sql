@@ -613,7 +613,25 @@ create index if not exists idx_ai_study on anomaly_investigations (study_id);
 create index if not exists idx_ai_resident on anomaly_investigations (resident_id);
 
 -- ============================================================================
--- 20. AUDIT LOG
+-- 20. QUESTIONNAIRE REMINDERS — escalation tracking for overdue assessments
+-- ============================================================================
+create table if not exists questionnaire_reminders (
+  id uuid primary key default gen_random_uuid(),
+  study_id uuid not null references studies(id) on delete cascade,
+  resident_id uuid not null references burnout_participants(id) on delete cascade,
+  block_number integer not null,
+  level integer not null check (level between 1 and 5),
+  reminder_type text not null,  -- email_gentle, email_firm, email_final, coordinator_escalation
+  sent_to text[] not null default '{}',
+  missing_items text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+create index if not exists idx_qr_study on questionnaire_reminders (study_id);
+create index if not exists idx_qr_resident on questionnaire_reminders (resident_id);
+create index if not exists idx_qr_block on questionnaire_reminders (block_number, level);
+
+-- ============================================================================
+-- 21. AUDIT LOG
 -- ============================================================================
 create table if not exists audit_log (
   id uuid primary key default gen_random_uuid(),
@@ -823,6 +841,14 @@ create policy ai_select on anomaly_investigations for select using (can_read_stu
 drop policy if exists ai_write on anomaly_investigations;
 create policy ai_write on anomaly_investigations for all
   using (can_write_study_data(study_id)) with check (can_write_study_data(study_id));
+
+-- Questionnaire reminders
+alter table questionnaire_reminders enable row level security;
+drop policy if exists qr_select on questionnaire_reminders;
+create policy qr_select on questionnaire_reminders for select using (can_read_study_data(study_id));
+drop policy if exists qr_write on questionnaire_reminders;
+create policy qr_write on questionnaire_reminders for insert with check (
+  can_write_study_data(study_id));
 
 -- Audit log
 drop policy if exists audit_select on audit_log;

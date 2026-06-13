@@ -98,7 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!existing) return res.status(400).json({ error: 'Account exists but could not find user' });
         authUserId = existing.id;
         // Update password
-        await supabase.auth.admin.updateUser(authUserId, { password });
+        await supabase.auth.admin.updateUserById(authUserId, { password });
       } else {
         return res.status(400).json({ error: createAuthErr.message });
       }

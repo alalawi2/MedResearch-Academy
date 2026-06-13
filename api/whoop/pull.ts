@@ -67,9 +67,10 @@ async function whoopGet(base: string, path: string, accessToken: string) {
   return res.json();
 }
 
-function avg(nums: number[]): number | null {
-  if (nums.length === 0) return null;
-  return nums.reduce((a, b) => a + b, 0) / nums.length;
+function avg(nums: (number | null | undefined)[]): number | null {
+  const valid = nums.filter((n): n is number => n != null && !isNaN(n));
+  if (valid.length === 0) return null;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
 async function pullResidentData(token: TokenRow, supabase: any, startDate: string, endDate: string) {

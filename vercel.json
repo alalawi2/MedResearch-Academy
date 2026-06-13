@@ -11,6 +11,10 @@
     {
       "path": "/api/anomaly-detect",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/questionnaire-reminder",
+      "schedule": "0 5 * * *"
     }
   ],
   "functions": {
@@ -18,7 +22,8 @@
     "api/whoop/cron-pull.ts": { "maxDuration": 120 },
     "api/whoop/admin-pull.ts": { "maxDuration": 120 },
     "api/adherence-check.ts": { "maxDuration": 120 },
-    "api/anomaly-detect.ts": { "maxDuration": 120 }
+    "api/anomaly-detect.ts": { "maxDuration": 120 },
+    "api/questionnaire-reminder.ts": { "maxDuration": 120 }
   },
   "rewrites": [
     { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
