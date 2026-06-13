@@ -12,6 +12,7 @@ import ResidentBurnout from './pages/studies/ResidentBurnout';
 import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import SmartBlock from './pages/studies/SmartBlock';
 import OHealth from './pages/studies/OHealth';
+import CognitiveShifts from './pages/studies/CognitiveShifts';
 import Contact from './pages/Contact';
 import Surveys from './pages/Surveys';
 import SurveyTake from './pages/SurveyTake';
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />
           <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
           <Route path="/active-research/ohealth" element={<OHealth />} />
+          <Route path="/active-research/cognitive-shifts" element={<CognitiveShifts />} />
           <Route path="/surveys" element={<Surveys />} />
           <Route path="/survey/:id" element={<SurveyTake />} />
           <Route path="/surveys/submit" element={<SurveySubmit />} />

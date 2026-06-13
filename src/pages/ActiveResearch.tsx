@@ -40,6 +40,18 @@ const STUDIES: StudyCardData[] = [
     icon: '\u{1F3E5}',
   },
   {
+    slug: 'cognitive-shifts',
+    title: 'Comparative Study of Cognitive Effects of 24-Hour and 12-Hour Shifts on OMSB Residents',
+    shortDescription: 'A prospective cohort study comparing cognitive function (memory, attention) between 24-hour on-call and 12-hour night shift residents using TestMyBrain assessments, validated screening tools (PHQ-9, GAD-7, CBI, PSS, NASA-TLX), and Fitbit sleep tracking. 128 residents across Internal Medicine and Pediatrics.',
+    status: 'recruiting',
+    ethicsIds: ['OMSB MREC'],
+    pi: 'Dr. Said Al Farsi',
+    coPi: 'Dr. Siham Al Shimli',
+    studyType: 'Prospective Cohort Study',
+    targetPopulation: 'OMSB IM & Pediatrics Residents R1-R4 (Oman)',
+    icon: '🧠',
+  },
+  {
     slug: 'parenthood',
     title: 'Perspectives on Parenthood During Residency Training in Oman',
     shortDescription: 'A mixed-methods study exploring how residency training affects family planning decisions and the experiences of resident physicians who are also parents — with the goal of informing humane, family-supportive training policies.',
