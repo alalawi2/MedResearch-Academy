@@ -200,6 +200,23 @@ export default function ShiftStudyAssessment() {
 
     setSubmitting(true);
 
+    // Server-side timepoint validation
+    try {
+      const vr = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'validate_timepoint', participant_id: participant.id, timepoint }),
+      });
+      if (!vr.ok) {
+        const err = await vr.json();
+        alert(err.error || 'Cannot submit this assessment');
+        setSubmitting(false);
+        return;
+      }
+    } catch {
+      // If validation endpoint is unreachable, allow submission (graceful degradation)
+    }
+
     const now = new Date().toISOString();
     if (existingTimepointId) {
       await supabase

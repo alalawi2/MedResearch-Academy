@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase, supabaseConfigured } from '../../lib/supabase';
 import Layout from '../../components/Layout';
 
 type Tab = 'login' | 'register';
@@ -26,32 +25,27 @@ export default function ShiftStudyLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabaseConfigured) { setError('Database not configured'); return; }
     setLoading(true);
     setError('');
 
-    const { data, error: dbErr } = await supabase
-      .from('shift_study_participants')
-      .select('id,email,full_name,participant_id,role,status,gender,specialty,residency_year,shift_type')
-      .eq('email', loginEmail.trim().toLowerCase())
-      .eq('password', loginPassword)
-      .limit(1)
-      .single();
-
-    if (dbErr || !data) {
-      setError('Invalid email or password');
-      setLoading(false);
-      return;
+    try {
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email: loginEmail, password: loginPassword }),
+      });
+      const result = await r.json();
+      if (!r.ok) { setError(result.error || 'Login failed'); setLoading(false); return; }
+      sessionStorage.setItem('shift_study_participant', JSON.stringify(result.participant));
+      navigate('/active-research/cognitive-shifts/dashboard');
+    } catch {
+      setError('Network error. Please try again.');
     }
-
-    sessionStorage.setItem('shift_study_participant', JSON.stringify(data));
-    navigate('/active-research/cognitive-shifts/dashboard');
     setLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabaseConfigured) { setError('Database not configured'); return; }
     if (!fullName || !regEmail || !regPassword || !gender || !specialty || !residencyYear || !shiftType) {
       setError('Please fill in all fields');
       return;
@@ -59,53 +53,28 @@ export default function ShiftStudyLogin() {
     setLoading(true);
     setError('');
 
-    // Check if email already exists
-    const { data: existing } = await supabase
-      .from('shift_study_participants')
-      .select('id')
-      .eq('email', regEmail.trim().toLowerCase())
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      setError('An account with this email already exists. Please login instead.');
-      setLoading(false);
-      return;
+    try {
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'register',
+          email: regEmail,
+          password: regPassword,
+          full_name: fullName.trim(),
+          gender,
+          specialty,
+          residency_year: residencyYear,
+          shift_type: shiftType,
+        }),
+      });
+      const result = await r.json();
+      if (!r.ok) { setError(result.error || 'Registration failed'); setLoading(false); return; }
+      sessionStorage.setItem('shift_study_participant', JSON.stringify(result.participant));
+      navigate('/active-research/cognitive-shifts/dashboard');
+    } catch {
+      setError('Network error. Please try again.');
     }
-
-    // Generate participant_id
-    const { count } = await supabase
-      .from('shift_study_participants')
-      .select('id', { count: 'exact', head: false })
-      .limit(0);
-
-    const nextNum = (count || 0) + 1;
-    const participantId = 'CS-' + String(nextNum).padStart(4, '0');
-
-    const { data: newParticipant, error: insertErr } = await supabase
-      .from('shift_study_participants')
-      .insert({
-        email: regEmail.trim().toLowerCase(),
-        password: regPassword,
-        full_name: fullName.trim(),
-        gender,
-        specialty,
-        residency_year: residencyYear,
-        shift_type: shiftType,
-        participant_id: participantId,
-        role: 'participant',
-        status: 'active',
-      })
-      .select('id,email,full_name,participant_id,role,status,gender,specialty,residency_year,shift_type')
-      .single();
-
-    if (insertErr || !newParticipant) {
-      setError(insertErr?.message || 'Registration failed. Please try again.');
-      setLoading(false);
-      return;
-    }
-
-    sessionStorage.setItem('shift_study_participant', JSON.stringify(newParticipant));
-    navigate('/active-research/cognitive-shifts/dashboard');
     setLoading(false);
   };
 
