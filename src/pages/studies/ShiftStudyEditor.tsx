@@ -6,7 +6,8 @@ import Layout from '../../components/Layout';
 interface ConfigRow { key: string; value: string; }
 
 const CONFIG_KEYS = [
-  { key: 'testmybrain_url', label: 'TestMyBrain URL', type: 'url' as const, help: 'The link participants click to take the cognitive assessment' },
+  { key: 'testmybrain_pre_url', label: 'Pre-Shift Cognitive Assessment URL', type: 'url' as const, help: 'The link participants click before their shift to take the cognitive assessment' },
+  { key: 'testmybrain_post_url', label: 'Post-Shift Cognitive Assessment URL', type: 'url' as const, help: 'The link participants click after their shift to take the cognitive assessment' },
   { key: 'pre_shift_instructions', label: 'Pre-Shift Instructions', type: 'textarea' as const, help: 'One instruction per line. Shown as bullet points before the cognitive assessment.' },
   { key: 'post_shift_instructions', label: 'Post-Shift Instructions', type: 'textarea' as const, help: 'One instruction per line. Shown as bullet points after the shift.' },
 ];

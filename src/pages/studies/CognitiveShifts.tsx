@@ -98,9 +98,10 @@ export default function CognitiveShifts() {
           <h3 style={{color:'var(--primary)',marginBottom:16,fontSize:'1.2rem'}}>Procedure</h3>
           <div style={{display:'grid',gap:16}}>
             {[
-              ['Pre-Exposure','Complete all baseline surveys, cognitive assessments, and Fitbit setup'],
-              ['Exposure','Group 1: 24-hour on-call shift | Group 2: 12-hour night shift'],
-              ['Post-Exposure','Repeat cognitive assessments + NASA-TLX workload assessment'],
+              ['Baseline','Complete all screening questionnaires (Demographics, STOP-BANG, rMEQ, WHO-5, PHQ-9, GAD-7, PSS, CBI) and Fitbit setup'],
+              ['Pre-Shift','Complete online cognitive assessment via TestMyBrain (digit span + sustained attention)'],
+              ['Shift','Group 1: 24-hour on-call shift | Group 2: 12-hour night shift'],
+              ['Post-Shift','Repeat cognitive assessment via TestMyBrain + NASA-TLX workload questionnaire'],
             ].map(([phase,desc]) => (
               <div key={phase} style={{display:'flex',gap:16,alignItems:'flex-start',background:'var(--bg-muted)',borderRadius:12,padding:'16px 20px',border:'1px solid var(--border)'}}>
                 <div style={{background:'var(--primary)',color:'white',borderRadius:8,padding:'6px 14px',fontSize:13,fontWeight:700,whiteSpace:'nowrap'}}>{phase}</div>

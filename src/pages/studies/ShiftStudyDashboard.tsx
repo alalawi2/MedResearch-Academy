@@ -26,7 +26,7 @@ interface Timepoint {
 }
 
 const TIMEPOINTS = [
-  { key: 'baseline', label: 'Baseline Assessment', description: 'All 9 questionnaires (Demographics, STOP-BANG, rMEQ, WHO-5, PHQ-9, GAD-7, PSS, CBI, NASA-TLX) — ~25 min' },
+  { key: 'baseline', label: 'Baseline Assessment', description: 'All 8 questionnaires (Demographics, STOP-BANG, rMEQ, WHO-5, PHQ-9, GAD-7, PSS, CBI) — ~20 min' },
   { key: 'pre_shift_1', label: 'Pre-Shift 1', description: 'Cognitive assessment via TestMyBrain (before shift) — ~15 min' },
   { key: 'post_shift_1', label: 'Post-Shift 1', description: 'Cognitive assessment + NASA-TLX workload survey (after shift) — ~20 min' },
   { key: 'pre_shift_2', label: 'Pre-Shift 2', description: 'Cognitive assessment via TestMyBrain (before shift) — ~15 min' },

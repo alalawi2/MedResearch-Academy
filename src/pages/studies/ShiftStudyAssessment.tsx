@@ -96,11 +96,13 @@ export default function ShiftStudyAssessment() {
     })();
   }, [navigate, timepoint]);
 
-  // For post-shift: only NASA-TLX section
+  // Baseline: sections 1-8 (exclude NASA-TLX which is post-shift only)
+  // Post-shift: NASA-TLX only (section 9)
+  // Pre-shift: no questionnaire sections (cognitive link only)
   const filteredSections = useMemo(() => {
-    if (!timepoint || timepoint === 'baseline') return sections;
+    if (!timepoint || timepoint === 'baseline') return sections.filter(s => s.order_num !== NASA_TLX_SECTION_ORDER);
     if (isPostShift(timepoint)) return sections.filter(s => s.order_num === NASA_TLX_SECTION_ORDER);
-    return []; // pre-shift has no questionnaire sections
+    return [];
   }, [sections, timepoint]);
 
   const totalSections = filteredSections.length;
@@ -160,24 +162,10 @@ export default function ShiftStudyAssessment() {
   };
 
   const handleSubmit = async () => {
-    // For pre-shift, just mark as completed (no questionnaire answers)
-    if (timepoint && isPreShift(timepoint)) {
-      setSubmitting(true);
-      const now = new Date().toISOString();
-      if (existingTimepointId) {
-        await supabase.from('shift_study_timepoints').update({ answers: { cognitive_link_confirmed: true }, completed: true, completed_at: now }).eq('id', existingTimepointId);
-      } else {
-        await supabase.from('shift_study_timepoints').insert({ participant_id: participant!.id, timepoint, answers: { cognitive_link_confirmed: true }, completed: true, started_at: now, completed_at: now });
-      }
-      setSubmitting(false);
-      navigate('/active-research/cognitive-shifts/dashboard');
-      return;
-    }
-
-    if (!validateSection()) return;
     if (!participant || !timepoint || !supabaseConfigured) return;
-    setSubmitting(true);
 
+    // Server-side timepoint validation (runs for ALL timepoints including pre-shift)
+    setSubmitting(true);
     try {
       const vr = await fetch('/api/shift-study-auth', {
         method: 'POST',
@@ -191,6 +179,21 @@ export default function ShiftStudyAssessment() {
         return;
       }
     } catch { /* graceful degradation */ }
+
+    // For pre-shift, just mark as completed (no questionnaire answers)
+    if (isPreShift(timepoint)) {
+      const now = new Date().toISOString();
+      if (existingTimepointId) {
+        await supabase.from('shift_study_timepoints').update({ answers: { cognitive_link_confirmed: true }, completed: true, completed_at: now }).eq('id', existingTimepointId);
+      } else {
+        await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers: { cognitive_link_confirmed: true }, completed: true, started_at: now, completed_at: now });
+      }
+      setSubmitting(false);
+      navigate('/active-research/cognitive-shifts/dashboard');
+      return;
+    }
+
+    if (!validateSection()) { setSubmitting(false); return; }
 
     const now = new Date().toISOString();
     const finalAnswers = timepoint && isPostShift(timepoint) ? { ...answers, cognitive_link_confirmed: true } : answers;
@@ -271,7 +274,7 @@ export default function ShiftStudyAssessment() {
             Click the link below to open the cognitive assessment on TestMyBrain:
           </p>
           <a
-            href={config.testmybrain_url || 'https://www.testmybrain.org'}
+            href={config.testmybrain_pre_url || config.testmybrain_url || 'https://www.testmybrain.org'}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary"
@@ -335,7 +338,7 @@ export default function ShiftStudyAssessment() {
 
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <a
-              href={config.testmybrain_url || 'https://www.testmybrain.org'}
+              href={config.testmybrain_post_url || config.testmybrain_url || 'https://www.testmybrain.org'}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary"

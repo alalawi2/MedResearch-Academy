@@ -43,10 +43,24 @@ ALTER TABLE shift_study_timepoints ENABLE ROW LEVEL SECURITY;
 CREATE POLICY srv_ssp ON shift_study_participants FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY srv_sst ON shift_study_timepoints FOR ALL TO service_role USING (true) WITH CHECK (true);
 
--- Anon: read own data, insert, update own
+-- Anon: read-only for participants (auth goes through /api/shift-study-auth)
+-- Insert/update on participants restricted to service_role only
 CREATE POLICY anon_sel_ssp ON shift_study_participants FOR SELECT TO anon USING (true);
-CREATE POLICY anon_ins_ssp ON shift_study_participants FOR INSERT TO anon WITH CHECK (true);
-CREATE POLICY anon_upd_ssp ON shift_study_participants FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+-- Anon: read + write for timepoints (participant saves their own progress)
 CREATE POLICY anon_sel_sst ON shift_study_timepoints FOR SELECT TO anon USING (true);
 CREATE POLICY anon_ins_sst ON shift_study_timepoints FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY anon_upd_sst ON shift_study_timepoints FOR UPDATE TO anon USING (true) WITH CHECK (true);
+
+-- ── Config table (editable by investigator) ──
+CREATE TABLE IF NOT EXISTS shift_study_config (
+  key text PRIMARY KEY,
+  value text NOT NULL,
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE shift_study_config ENABLE ROW LEVEL SECURITY;
+CREATE POLICY srv_cfg ON shift_study_config FOR ALL TO service_role USING (true) WITH CHECK (true);
+CREATE POLICY anon_sel_cfg ON shift_study_config FOR SELECT TO anon USING (true);
+CREATE POLICY anon_ups_cfg ON shift_study_config FOR UPDATE TO anon USING (true) WITH CHECK (true);
+CREATE POLICY anon_ins_cfg ON shift_study_config FOR INSERT TO anon WITH CHECK (true);
