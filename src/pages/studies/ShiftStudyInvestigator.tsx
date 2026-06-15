@@ -207,6 +207,21 @@ export default function ShiftStudyInvestigator() {
                 Export CSV
               </button>
               <button
+                onClick={() => navigate('/active-research/cognitive-shifts/settings')}
+                style={{
+                  padding: '8px 18px',
+                  background: 'none',
+                  border: '1px solid var(--border)',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-sans)',
+                }}
+              >
+                Study Settings
+              </button>
+              <button
                 onClick={() => navigate('/active-research/cognitive-shifts/dashboard')}
                 style={{
                   padding: '8px 18px',

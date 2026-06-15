@@ -60,6 +60,7 @@ export default function ShiftStudyAssessment() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [existingTimepointId, setExistingTimepointId] = useState<string | null>(null);
   const [cogLinkConfirmed, setCogLinkConfirmed] = useState(false);
+  const [config, setConfig] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const stored = sessionStorage.getItem('shift_study_participant');
@@ -77,6 +78,14 @@ export default function ShiftStudyAssessment() {
 
       if (sectionsRes.data) setSections(sectionsRes.data as Section[]);
       if (questionsRes.data) setQuestions(questionsRes.data as Question[]);
+      // Load config (instructions + TestMyBrain URL)
+      const cfgRes = await supabase.from('shift_study_config').select('key,value').limit(20);
+      if (cfgRes.data) {
+        const map: Record<string, string> = {};
+        cfgRes.data.forEach((r: any) => { map[r.key] = r.value; });
+        setConfig(map);
+      }
+
       if (timepointRes.data && timepointRes.data.length > 0) {
         const existing = timepointRes.data[0];
         setExistingTimepointId(existing.id);
@@ -251,13 +260,9 @@ export default function ShiftStudyAssessment() {
         <div style={{ background: '#eff6ff', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: '1px solid #bfdbfe' }}>
           <h3 style={{ fontSize: 16, color: '#1e40af', marginBottom: 12, fontFamily: 'var(--font-sans)' }}>Standardized Instructions</h3>
           <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.8, color: '#1e3a5f', fontFamily: 'var(--font-sans)' }}>
-            <li>Please complete this assessment <strong>before starting your shift</strong>.</li>
-            <li>Find a <strong>quiet environment</strong> with minimal distractions.</li>
-            <li>Ensure your phone or computer screen is at a comfortable viewing distance.</li>
-            <li>Do not use any aids or references during the cognitive tests.</li>
-            <li>The assessment includes <strong>forward and backward digit span tests</strong> and a <strong>sustained attention task</strong>.</li>
-            <li>Follow all on-screen instructions on the TestMyBrain website carefully.</li>
-            <li>The cognitive assessment takes approximately <strong>10-15 minutes</strong>.</li>
+            {(config.pre_shift_instructions || '').split('\n').filter(Boolean).map((line, i) => (
+              <li key={i}>{line}</li>
+            ))}
           </ul>
         </div>
 
@@ -266,7 +271,7 @@ export default function ShiftStudyAssessment() {
             Click the link below to open the cognitive assessment on TestMyBrain:
           </p>
           <a
-            href="https://www.testmybrain.org"
+            href={config.testmybrain_url || 'https://www.testmybrain.org'}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-primary"
@@ -322,18 +327,15 @@ export default function ShiftStudyAssessment() {
           <div style={{ background: '#eff6ff', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: '1px solid #bfdbfe' }}>
             <h3 style={{ fontSize: 16, color: '#1e40af', marginBottom: 12, fontFamily: 'var(--font-sans)' }}>Standardized Instructions</h3>
             <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.8, color: '#1e3a5f', fontFamily: 'var(--font-sans)' }}>
-              <li>Please complete this assessment <strong>immediately after your shift ends</strong>.</li>
-              <li>Find a <strong>quiet environment</strong> with minimal distractions.</li>
-              <li>Do not consume caffeine or take a nap before completing this assessment.</li>
-              <li>The assessment includes <strong>forward and backward digit span tests</strong> and a <strong>sustained attention task</strong>.</li>
-              <li>Follow all on-screen instructions on the TestMyBrain website carefully.</li>
-              <li>The cognitive assessment takes approximately <strong>10-15 minutes</strong>.</li>
+              {(config.post_shift_instructions || '').split('\n').filter(Boolean).map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
             </ul>
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
             <a
-              href="https://www.testmybrain.org"
+              href={config.testmybrain_url || 'https://www.testmybrain.org'}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary"

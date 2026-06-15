@@ -17,6 +17,7 @@ import ShiftStudyLogin from './pages/studies/ShiftStudyLogin';
 import ShiftStudyDashboard from './pages/studies/ShiftStudyDashboard';
 import ShiftStudyAssessment from './pages/studies/ShiftStudyAssessment';
 import ShiftStudyInvestigator from './pages/studies/ShiftStudyInvestigator';
+import ShiftStudyEditor from './pages/studies/ShiftStudyEditor';
 import Contact from './pages/Contact';
 import Surveys from './pages/Surveys';
 import SurveyTake from './pages/SurveyTake';
@@ -75,6 +76,7 @@ export default function App() {
           <Route path="/active-research/cognitive-shifts/dashboard" element={<ShiftStudyDashboard />} />
           <Route path="/active-research/cognitive-shifts/assessment/:timepoint" element={<ShiftStudyAssessment />} />
           <Route path="/active-research/cognitive-shifts/investigator" element={<ShiftStudyInvestigator />} />
+          <Route path="/active-research/cognitive-shifts/settings" element={<ShiftStudyEditor />} />
           <Route path="/surveys" element={<Surveys />} />
           <Route path="/survey/:id" element={<SurveyTake />} />
           <Route path="/surveys/submit" element={<SurveySubmit />} />
