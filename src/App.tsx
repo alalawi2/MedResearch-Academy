@@ -11,7 +11,6 @@ import ActiveResearch from './pages/ActiveResearch';
 import ResidentBurnout from './pages/studies/ResidentBurnout';
 import ResidencyParenthood from './pages/studies/ResidencyParenthood';
 import SmartBlock from './pages/studies/SmartBlock';
-import OHealth from './pages/studies/OHealth';
 import CognitiveShifts from './pages/studies/CognitiveShifts';
 import ShiftStudyLogin from './pages/studies/ShiftStudyLogin';
 import ShiftStudyDashboard from './pages/studies/ShiftStudyDashboard';
@@ -70,7 +69,6 @@ export default function App() {
           <Route path="/active-research/smartblock" element={<SmartBlock />} />
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />
           <Route path="/active-research/parenthood" element={<ResidencyParenthood />} />
-          <Route path="/active-research/ohealth" element={<OHealth />} />
           <Route path="/active-research/cognitive-shifts" element={<CognitiveShifts />} />
           <Route path="/active-research/cognitive-shifts/login" element={<ShiftStudyLogin />} />
           <Route path="/active-research/cognitive-shifts/dashboard" element={<ShiftStudyDashboard />} />

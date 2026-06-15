@@ -28,18 +28,6 @@ const STUDIES: StudyCardData[] = [
     icon: '⌚',
   },
   {
-    slug: 'ohealth',
-    title: 'OHealth — Oman Health Intelligence Platform',
-    shortDescription: 'AI-powered health data platform built on Oman\'s open government data. Interactive maps, capacity prediction, equity analysis, and disease surveillance across all 11 governorates.',
-    status: 'recruiting',
-    ethicsIds: [],
-    pi: 'Dr. Abdullah M. Al Alawi',
-    coPi: '',
-    studyType: 'Open Data Analytics Platform',
-    targetPopulation: 'Policymakers, Health Planners, Researchers',
-    icon: '\u{1F3E5}',
-  },
-  {
     slug: 'cognitive-shifts',
     title: 'Comparative Study of Cognitive Effects of 24-Hour and 12-Hour Shifts on OMSB Residents',
     shortDescription: 'A prospective cohort study comparing cognitive function (memory, attention) between 24-hour on-call and 12-hour night shift residents using TestMyBrain assessments, validated screening tools (PHQ-9, GAD-7, CBI, PSS, NASA-TLX), and Fitbit sleep tracking. 128 residents across Internal Medicine and Pediatrics.',
