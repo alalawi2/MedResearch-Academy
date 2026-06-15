@@ -142,13 +142,16 @@ export default function ShiftStudyAssessment() {
   };
 
   const saveProgress = async () => {
-    if (!participant || !timepoint || !supabaseConfigured) return;
-    if (existingTimepointId) {
-      await supabase.from('shift_study_timepoints').update({ answers }).eq('id', existingTimepointId);
-    } else {
-      const { data } = await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers, completed: false, started_at: new Date().toISOString() }).select('id').single();
-      if (data) setExistingTimepointId(data.id);
-    }
+    if (!participant || !timepoint) return;
+    try {
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_timepoint', participant_id: participant.id, timepoint, answers, completed: false }),
+      });
+      const result = await r.json();
+      if (result.id && !existingTimepointId) setExistingTimepointId(result.id);
+    } catch { /* allow offline progress */ }
   };
 
   const handleNext = async () => {
@@ -178,16 +181,19 @@ export default function ShiftStudyAssessment() {
         setSubmitting(false);
         return;
       }
-    } catch { /* graceful degradation */ }
+    } catch {
+      alert('Network error. Please check your connection and try again.');
+      setSubmitting(false);
+      return;
+    }
 
     // For pre-shift, just mark as completed (no questionnaire answers)
     if (isPreShift(timepoint)) {
-      const now = new Date().toISOString();
-      if (existingTimepointId) {
-        await supabase.from('shift_study_timepoints').update({ answers: { cognitive_link_confirmed: true }, completed: true, completed_at: now }).eq('id', existingTimepointId);
-      } else {
-        await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers: { cognitive_link_confirmed: true }, completed: true, started_at: now, completed_at: now });
-      }
+      await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_timepoint', participant_id: participant.id, timepoint, answers: { cognitive_link_confirmed: true }, completed: true }),
+      });
       setSubmitting(false);
       navigate('/active-research/cognitive-shifts/dashboard');
       return;
@@ -195,14 +201,13 @@ export default function ShiftStudyAssessment() {
 
     if (!validateSection()) { setSubmitting(false); return; }
 
-    const now = new Date().toISOString();
-    const finalAnswers = timepoint && isPostShift(timepoint) ? { ...answers, cognitive_link_confirmed: true } : answers;
+    const finalAnswers = isPostShift(timepoint) ? { ...answers, cognitive_link_confirmed: true } : answers;
 
-    if (existingTimepointId) {
-      await supabase.from('shift_study_timepoints').update({ answers: finalAnswers, completed: true, completed_at: now }).eq('id', existingTimepointId);
-    } else {
-      await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers: finalAnswers, completed: true, started_at: now, completed_at: now });
-    }
+    await fetch('/api/shift-study-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'save_timepoint', participant_id: participant.id, timepoint, answers: finalAnswers, completed: true }),
+    });
     setSubmitting(false);
     navigate('/active-research/cognitive-shifts/dashboard');
   };

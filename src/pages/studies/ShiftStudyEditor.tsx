@@ -14,7 +14,7 @@ const CONFIG_KEYS = [
 
 export default function ShiftStudyEditor() {
   const navigate = useNavigate();
-  const [participant, setParticipant] = useState<{ role: string; full_name: string } | null>(null);
+  const [participant, setParticipant] = useState<{ id: string; role: string; full_name: string } | null>(null);
   const [values, setValues] = useState<Record<string, string>>({});
   const [original, setOriginal] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -46,9 +46,17 @@ export default function ShiftStudyEditor() {
     setSaved(false);
     for (const cfg of CONFIG_KEYS) {
       if (values[cfg.key] !== original[cfg.key]) {
-        await supabase
-          .from('shift_study_config')
-          .upsert({ key: cfg.key, value: values[cfg.key], updated_at: new Date().toISOString() }, { onConflict: 'key' });
+        const r = await fetch('/api/shift-study-auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_config', participant_id: participant?.id, key: cfg.key, value: values[cfg.key] }),
+        });
+        if (!r.ok) {
+          const err = await r.json();
+          alert(err.error || 'Failed to save');
+          setSaving(false);
+          return;
+        }
       }
     }
     setOriginal({ ...values });

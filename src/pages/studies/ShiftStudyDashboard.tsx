@@ -45,25 +45,21 @@ function getTimepointStatus(
   return 'in_progress';
 }
 
+// Must match TIMEPOINT_PREREQS in api/shift-study-auth.ts
+const PREREQS: Record<string, string | null> = {
+  baseline: null,
+  pre_shift_1: 'baseline',
+  post_shift_1: 'pre_shift_1',
+  pre_shift_2: 'post_shift_1',
+  post_shift_2: 'pre_shift_2',
+  pre_shift_3: 'post_shift_2',
+  post_shift_3: 'pre_shift_3',
+};
+
 function isTimepointLocked(key: string, timepointData: Timepoint[]): boolean {
-  const baselineStatus = getTimepointStatus('baseline', timepointData);
-
-  if (key === 'baseline') return false;
-
-  // All non-baseline require baseline completed
-  if (baselineStatus !== 'completed') return true;
-
-  // pre_shift_N requires nothing beyond baseline
-  if (key.startsWith('pre_shift_')) return false;
-
-  // post_shift_N requires corresponding pre_shift_N completed
-  if (key.startsWith('post_shift_')) {
-    const cycleNum = key.replace('post_shift_', '');
-    const preStatus = getTimepointStatus(`pre_shift_${cycleNum}`, timepointData);
-    return preStatus !== 'completed';
-  }
-
-  return false;
+  const prereq = PREREQS[key];
+  if (!prereq) return false;
+  return getTimepointStatus(prereq, timepointData) !== 'completed';
 }
 
 export default function ShiftStudyDashboard() {

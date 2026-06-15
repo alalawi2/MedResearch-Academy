@@ -56,17 +56,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('id', data.id)
       .single();
 
-    const storedPw = (pwRow as any)?.password_hash || (pwRow as any)?.password;
-    if (storedPw !== hash && storedPw !== password) {
+    const storedPw = (pwRow as any)?.password_hash;
+    if (!storedPw || storedPw !== hash) {
       return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // If password was plaintext, upgrade to hash
-    if (storedPw === password && storedPw !== hash) {
-      await supabase
-        .from('shift_study_participants')
-        .update({ password_hash: hash })
-        .eq('id', data.id);
     }
 
     return res.json({ participant: data });
@@ -171,6 +163,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     return res.json({ valid: true });
+  }
+
+  // ── SAVE TIMEPOINT (server-side write with service role) ──
+  if (action === 'save_timepoint') {
+    const { participant_id, timepoint, answers, completed } = req.body;
+    if (!participant_id || !timepoint) {
+      return res.status(400).json({ error: 'participant_id and timepoint required' });
+    }
+    if (!VALID_TIMEPOINTS.includes(timepoint)) {
+      return res.status(400).json({ error: `Invalid timepoint: ${timepoint}` });
+    }
+
+    const now = new Date().toISOString();
+
+    // Check if record exists
+    const { data: existing } = await supabase
+      .from('shift_study_timepoints')
+      .select('id,completed')
+      .eq('participant_id', participant_id)
+      .eq('timepoint', timepoint)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      if (existing[0].completed && completed) {
+        return res.status(409).json({ error: 'Assessment already completed' });
+      }
+      const { error } = await supabase
+        .from('shift_study_timepoints')
+        .update({
+          answers: answers || {},
+          completed: !!completed,
+          ...(completed ? { completed_at: now } : {}),
+        })
+        .eq('id', existing[0].id);
+      if (error) return res.status(500).json({ error: error.message });
+      return res.json({ id: existing[0].id });
+    } else {
+      const { data, error } = await supabase
+        .from('shift_study_timepoints')
+        .insert({
+          participant_id,
+          timepoint,
+          answers: answers || {},
+          completed: !!completed,
+          started_at: now,
+          ...(completed ? { completed_at: now } : {}),
+        })
+        .select('id')
+        .single();
+      if (error) return res.status(500).json({ error: error.message });
+      return res.json({ id: data?.id });
+    }
+  }
+
+  // ── UPDATE CONFIG (investigator only) ──
+  if (action === 'update_config') {
+    const { participant_id, key, value } = req.body;
+    if (!participant_id || !key || value === undefined) {
+      return res.status(400).json({ error: 'participant_id, key, and value required' });
+    }
+
+    // Verify investigator role
+    const { data: caller } = await supabase
+      .from('shift_study_participants')
+      .select('role')
+      .eq('id', participant_id)
+      .single();
+
+    if (!caller || caller.role !== 'investigator') {
+      return res.status(403).json({ error: 'Only investigators can update settings' });
+    }
+
+    const { error } = await supabase
+      .from('shift_study_config')
+      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ ok: true });
   }
 
   return res.status(400).json({ error: 'Unknown action' });

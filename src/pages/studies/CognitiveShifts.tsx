@@ -191,10 +191,7 @@ export default function CognitiveShifts() {
           <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.7}}>
             If you are an OMSB resident in Internal Medicine or Pediatrics and would like to participate in this study, please reach out to the research team.
           </p>
-          <div style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
-            <Link to="/active-research/cognitive-shifts/login" className="btn btn-primary">Participant Login / Register</Link>
-            <Link to="/active-research/cognitive-shifts/investigator" className="btn btn-outline">Investigator Dashboard</Link>
-          </div>
+          <Link to="/active-research/cognitive-shifts/login" className="btn btn-primary">Participant Login / Register</Link>
         </div>
       </section>
     </Layout>
