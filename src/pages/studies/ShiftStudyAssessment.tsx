@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase, supabaseConfigured } from '../../lib/supabase';
 import Layout from '../../components/Layout';
 
@@ -30,16 +30,21 @@ interface Question {
 type Answers = Record<string, string | number | string[]>;
 
 const SURVEY_ID = 'd1d1d1d1-0001-4000-8000-000000000001';
+const NASA_TLX_SECTION_ORDER = 9; // Section 9 = NASA-TLX
 
 const TIMEPOINT_LABELS: Record<string, string> = {
   baseline: 'Baseline Assessment',
-  pre_shift_1: 'Pre-Shift 1',
-  post_shift_1: 'Post-Shift 1',
-  pre_shift_2: 'Pre-Shift 2',
-  post_shift_2: 'Post-Shift 2',
-  pre_shift_3: 'Pre-Shift 3',
-  post_shift_3: 'Post-Shift 3',
+  pre_shift_1: 'Pre-Shift Assessment 1',
+  post_shift_1: 'Post-Shift Assessment 1',
+  pre_shift_2: 'Pre-Shift Assessment 2',
+  post_shift_2: 'Post-Shift Assessment 2',
+  pre_shift_3: 'Pre-Shift Assessment 3',
+  post_shift_3: 'Post-Shift Assessment 3',
 };
+
+function isPreShift(tp: string) { return tp.startsWith('pre_shift_'); }
+function isPostShift(tp: string) { return tp.startsWith('post_shift_'); }
+function getShiftNumber(tp: string) { return tp.replace(/^(pre|post)_shift_/, ''); }
 
 export default function ShiftStudyAssessment() {
   const { timepoint } = useParams<{ timepoint: string }>();
@@ -54,91 +59,62 @@ export default function ShiftStudyAssessment() {
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [existingTimepointId, setExistingTimepointId] = useState<string | null>(null);
+  const [cogLinkConfirmed, setCogLinkConfirmed] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('shift_study_participant');
-    if (!stored) {
-      navigate('/active-research/cognitive-shifts/login');
-      return;
-    }
+    if (!stored) { navigate('/active-research/cognitive-shifts/login'); return; }
     const p = JSON.parse(stored) as Participant;
     setParticipant(p);
-
     if (!supabaseConfigured || !timepoint) { setLoading(false); return; }
 
     (async () => {
-      // Fetch survey structure and existing answers in parallel
       const [sectionsRes, questionsRes, timepointRes] = await Promise.all([
-        supabase
-          .from('survey_sections')
-          .select('id,title_en,description_en,order_num')
-          .eq('survey_id', SURVEY_ID)
-          .order('order_num')
-          .limit(100),
-        supabase
-          .from('survey_questions')
-          .select('id,section_id,question_en,type,options_en,required,order_num')
-          .eq('survey_id', SURVEY_ID)
-          .order('order_num')
-          .limit(500),
-        supabase
-          .from('shift_study_timepoints')
-          .select('id,answers,completed,started_at,completed_at')
-          .eq('participant_id', p.id)
-          .eq('timepoint', timepoint)
-          .limit(1),
+        supabase.from('survey_sections').select('id,title_en,description_en,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(100),
+        supabase.from('survey_questions').select('id,section_id,question_en,type,options_en,required,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(500),
+        supabase.from('shift_study_timepoints').select('id,answers,completed').eq('participant_id', p.id).eq('timepoint', timepoint).limit(1),
       ]);
 
       if (sectionsRes.data) setSections(sectionsRes.data as Section[]);
       if (questionsRes.data) setQuestions(questionsRes.data as Question[]);
-
       if (timepointRes.data && timepointRes.data.length > 0) {
         const existing = timepointRes.data[0];
         setExistingTimepointId(existing.id);
-        if (existing.completed) {
-          setAlreadyCompleted(true);
-        } else if (existing.answers) {
-          setAnswers(existing.answers as Answers);
-        }
+        if (existing.completed) setAlreadyCompleted(true);
+        else if (existing.answers) setAnswers(existing.answers as Answers);
       }
-
       setLoading(false);
     })();
   }, [navigate, timepoint]);
 
-  const currentSectionData = sections[currentSection];
+  // For post-shift: only NASA-TLX section
+  const filteredSections = useMemo(() => {
+    if (!timepoint || timepoint === 'baseline') return sections;
+    if (isPostShift(timepoint)) return sections.filter(s => s.order_num === NASA_TLX_SECTION_ORDER);
+    return []; // pre-shift has no questionnaire sections
+  }, [sections, timepoint]);
+
+  const totalSections = filteredSections.length;
+  const currentSectionData = filteredSections[currentSection];
   const sectionQuestions = useMemo(() => {
     if (!currentSectionData) return [];
-    return questions
-      .filter(q => q.section_id === currentSectionData.id)
-      .sort((a, b) => a.order_num - b.order_num);
+    return questions.filter(q => q.section_id === currentSectionData.id).sort((a, b) => a.order_num - b.order_num);
   }, [currentSectionData, questions]);
 
-  const totalSections = sections.length;
   const progress = totalSections > 0 ? Math.round(((currentSection + 1) / totalSections) * 100) : 0;
 
   const setAnswer = (questionId: string, value: string | number) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
-    setErrors(prev => {
-      const next = { ...prev };
-      delete next[questionId];
-      return next;
-    });
+    setErrors(prev => { const n = { ...prev }; delete n[questionId]; return n; });
   };
 
   const toggleCheckbox = (questionId: string, optionValue: string) => {
     setAnswers(prev => {
       const current = Array.isArray(prev[questionId]) ? [...(prev[questionId] as string[])] : [];
-      const next = current.includes(optionValue)
-        ? current.filter(v => v !== optionValue)
-        : [...current, optionValue];
+      const next = current.includes(optionValue) ? current.filter(v => v !== optionValue) : [...current, optionValue];
       return { ...prev, [questionId]: next };
     });
-    setErrors(prev => {
-      const next = { ...prev };
-      delete next[questionId];
-      return next;
-    });
+    setErrors(prev => { const n = { ...prev }; delete n[questionId]; return n; });
   };
 
   const validateSection = (): boolean => {
@@ -156,24 +132,10 @@ export default function ShiftStudyAssessment() {
 
   const saveProgress = async () => {
     if (!participant || !timepoint || !supabaseConfigured) return;
-
     if (existingTimepointId) {
-      await supabase
-        .from('shift_study_timepoints')
-        .update({ answers })
-        .eq('id', existingTimepointId);
+      await supabase.from('shift_study_timepoints').update({ answers }).eq('id', existingTimepointId);
     } else {
-      const { data } = await supabase
-        .from('shift_study_timepoints')
-        .insert({
-          participant_id: participant.id,
-          timepoint,
-          answers,
-          completed: false,
-          started_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
+      const { data } = await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers, completed: false, started_at: new Date().toISOString() }).select('id').single();
       if (data) setExistingTimepointId(data.id);
     }
   };
@@ -181,26 +143,32 @@ export default function ShiftStudyAssessment() {
   const handleNext = async () => {
     if (!validateSection()) return;
     await saveProgress();
-    if (currentSection < totalSections - 1) {
-      setCurrentSection(prev => prev + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (currentSection < totalSections - 1) { setCurrentSection(prev => prev + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
   const handlePrev = () => {
-    if (currentSection > 0) {
-      setCurrentSection(prev => prev - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    if (currentSection > 0) { setCurrentSection(prev => prev - 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }
   };
 
   const handleSubmit = async () => {
+    // For pre-shift, just mark as completed (no questionnaire answers)
+    if (timepoint && isPreShift(timepoint)) {
+      setSubmitting(true);
+      const now = new Date().toISOString();
+      if (existingTimepointId) {
+        await supabase.from('shift_study_timepoints').update({ answers: { cognitive_link_confirmed: true }, completed: true, completed_at: now }).eq('id', existingTimepointId);
+      } else {
+        await supabase.from('shift_study_timepoints').insert({ participant_id: participant!.id, timepoint, answers: { cognitive_link_confirmed: true }, completed: true, started_at: now, completed_at: now });
+      }
+      setSubmitting(false);
+      navigate('/active-research/cognitive-shifts/dashboard');
+      return;
+    }
+
     if (!validateSection()) return;
     if (!participant || !timepoint || !supabaseConfigured) return;
-
     setSubmitting(true);
 
-    // Server-side timepoint validation
     try {
       const vr = await fetch('/api/shift-study-auth', {
         method: 'POST',
@@ -213,29 +181,16 @@ export default function ShiftStudyAssessment() {
         setSubmitting(false);
         return;
       }
-    } catch {
-      // If validation endpoint is unreachable, allow submission (graceful degradation)
-    }
+    } catch { /* graceful degradation */ }
 
     const now = new Date().toISOString();
-    if (existingTimepointId) {
-      await supabase
-        .from('shift_study_timepoints')
-        .update({ answers, completed: true, completed_at: now })
-        .eq('id', existingTimepointId);
-    } else {
-      await supabase
-        .from('shift_study_timepoints')
-        .insert({
-          participant_id: participant.id,
-          timepoint,
-          answers,
-          completed: true,
-          started_at: now,
-          completed_at: now,
-        });
-    }
+    const finalAnswers = timepoint && isPostShift(timepoint) ? { ...answers, cognitive_link_confirmed: true } : answers;
 
+    if (existingTimepointId) {
+      await supabase.from('shift_study_timepoints').update({ answers: finalAnswers, completed: true, completed_at: now }).eq('id', existingTimepointId);
+    } else {
+      await supabase.from('shift_study_timepoints').insert({ participant_id: participant.id, timepoint, answers: finalAnswers, completed: true, started_at: now, completed_at: now });
+    }
     setSubmitting(false);
     navigate('/active-research/cognitive-shifts/dashboard');
   };
@@ -243,143 +198,185 @@ export default function ShiftStudyAssessment() {
   if (!participant) return null;
 
   const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '10px 14px',
-    borderRadius: 8,
-    border: '1px solid var(--border)',
-    fontSize: 15,
-    fontFamily: 'var(--font-sans)',
-    color: 'var(--text)',
-    outline: 'none',
-    boxSizing: 'border-box',
+    width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)',
+    fontSize: 15, fontFamily: 'var(--font-sans)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
   };
 
   const renderQuestion = (q: Question) => {
     const hasError = !!errors[q.id];
-    const opts: string[] = Array.isArray(q.options_en) ? q.options_en.map(o => typeof o === 'object' && o !== null ? (o as { value?: string; label?: string }).label || (o as { value?: string }).value || String(o) : String(o)) : [];
-
+    const opts: string[] = Array.isArray(q.options_en) ? q.options_en.map(o => typeof o === 'object' && o !== null ? (o as any).label || (o as any).value || String(o) : String(o)) : [];
     return (
-      <div
-        key={q.id}
-        style={{
-          marginBottom: 24,
-          padding: '18px 20px',
-          borderRadius: 12,
-          border: hasError ? '1px solid #fca5a5' : '1px solid var(--border)',
-          background: hasError ? '#fef2f2' : '#fff',
-        }}
-      >
-        <p style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 15,
-          color: 'var(--text)',
-          marginBottom: 14,
-          fontWeight: 500,
-          lineHeight: 1.5,
-        }}>
-          {q.question_en}
-          {q.required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
+      <div key={q.id} style={{ marginBottom: 24, padding: '18px 20px', borderRadius: 12, border: hasError ? '1px solid #fca5a5' : '1px solid var(--border)', background: hasError ? '#fef2f2' : '#fff' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 15, color: 'var(--text)', marginBottom: 14, fontWeight: 500, lineHeight: 1.5 }}>
+          {q.question_en}{q.required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
         </p>
-
         {(q.type === 'radio' || q.type === 'likert') && opts.map((opt, i) => (
-          <label
-            key={i}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '8px 12px',
-              borderRadius: 8,
-              cursor: 'pointer',
-              marginBottom: 4,
-              background: answers[q.id] === opt ? 'var(--accent-light)' : 'transparent',
-              transition: 'background 0.15s',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 14,
-              color: 'var(--text)',
-            }}
-          >
-            <input
-              type="radio"
-              name={q.id}
-              value={opt}
-              checked={answers[q.id] === opt}
-              onChange={() => setAnswer(q.id, opt)}
-              style={{ accentColor: 'var(--primary)' }}
-            />
-            {opt}
+          <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: answers[q.id] === opt ? 'var(--accent-light)' : 'transparent', transition: 'background 0.15s', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
+            <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
           </label>
         ))}
-
         {q.type === 'checkbox' && opts.map((opt, i) => {
           const selected = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).includes(opt) : false;
           return (
-            <label
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                padding: '8px 12px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                marginBottom: 4,
-                background: selected ? 'var(--accent-light)' : 'transparent',
-                transition: 'background 0.15s',
-                fontFamily: 'var(--font-sans)',
-                fontSize: 14,
-                color: 'var(--text)',
-              }}
-            >
-              <input
-                type="checkbox"
-                checked={selected}
-                onChange={() => toggleCheckbox(q.id, opt)}
-                style={{ accentColor: 'var(--primary)' }}
-              />
-              {opt}
+            <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: selected ? 'var(--accent-light)' : 'transparent', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
+              <input type="checkbox" checked={selected} onChange={() => toggleCheckbox(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
             </label>
           );
         })}
-
-        {q.type === 'text' && (
-          <textarea
-            value={(answers[q.id] as string) || ''}
-            onChange={e => setAnswer(q.id, e.target.value)}
-            style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }}
-            placeholder="Type your answer..."
-          />
-        )}
-
-        {q.type === 'number' && (
-          <input
-            type="number"
-            value={(answers[q.id] as number) ?? ''}
-            onChange={e => setAnswer(q.id, e.target.value ? Number(e.target.value) : '')}
-            style={{ ...inputStyle, maxWidth: 200 }}
-            placeholder="Enter a number"
-          />
-        )}
-
+        {q.type === 'text' && <textarea value={(answers[q.id] as string) || ''} onChange={e => setAnswer(q.id, e.target.value)} style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} placeholder="Type your answer..." />}
+        {q.type === 'number' && <input type="number" value={(answers[q.id] as number) ?? ''} onChange={e => setAnswer(q.id, e.target.value ? Number(e.target.value) : '')} style={{ ...inputStyle, maxWidth: 200 }} placeholder="Enter a number" />}
         {q.type === 'dropdown' && (
-          <select
-            value={(answers[q.id] as string) || ''}
-            onChange={e => setAnswer(q.id, e.target.value)}
-            style={{ ...inputStyle, appearance: 'auto' as const }}
-          >
+          <select value={(answers[q.id] as string) || ''} onChange={e => setAnswer(q.id, e.target.value)} style={{ ...inputStyle, appearance: 'auto' as const }}>
             <option value="">Select...</option>
-            {opts.map((opt, i) => (
-              <option key={i} value={opt}>{opt}</option>
-            ))}
+            {opts.map((opt, i) => <option key={i} value={opt}>{opt}</option>)}
           </select>
         )}
-
-        {hasError && (
-          <p style={{ color: '#ef4444', fontSize: 13, marginTop: 8, marginBottom: 0, fontFamily: 'var(--font-sans)' }}>
-            {errors[q.id]}
-          </p>
-        )}
+        {hasError && <p style={{ color: '#ef4444', fontSize: 13, marginTop: 8, marginBottom: 0, fontFamily: 'var(--font-sans)' }}>{errors[q.id]}</p>}
       </div>
+    );
+  };
+
+  // ── PRE-SHIFT: Instructions + external cognitive link ──
+  const renderPreShift = () => {
+    const shiftNum = getShiftNumber(timepoint || '');
+    return (
+      <div style={{ background: '#fff', borderRadius: 16, border: '1px solid var(--border)', padding: '36px 32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: 28 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>&#129504;</div>
+          <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)', fontSize: 22, marginBottom: 8 }}>
+            Pre-Shift Cognitive Assessment {shiftNum}
+          </h2>
+        </div>
+
+        <div style={{ background: '#eff6ff', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: '1px solid #bfdbfe' }}>
+          <h3 style={{ fontSize: 16, color: '#1e40af', marginBottom: 12, fontFamily: 'var(--font-sans)' }}>Standardized Instructions</h3>
+          <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.8, color: '#1e3a5f', fontFamily: 'var(--font-sans)' }}>
+            <li>Please complete this assessment <strong>before starting your shift</strong>.</li>
+            <li>Find a <strong>quiet environment</strong> with minimal distractions.</li>
+            <li>Ensure your phone or computer screen is at a comfortable viewing distance.</li>
+            <li>Do not use any aids or references during the cognitive tests.</li>
+            <li>The assessment includes <strong>forward and backward digit span tests</strong> and a <strong>sustained attention task</strong>.</li>
+            <li>Follow all on-screen instructions on the TestMyBrain website carefully.</li>
+            <li>The cognitive assessment takes approximately <strong>10-15 minutes</strong>.</li>
+          </ul>
+        </div>
+
+        <div style={{ background: '#f0fdf4', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: '1px solid #bbf7d0', textAlign: 'center' }}>
+          <p style={{ fontSize: 14, color: '#166534', marginBottom: 14, fontFamily: 'var(--font-sans)' }}>
+            Click the link below to open the cognitive assessment on TestMyBrain:
+          </p>
+          <a
+            href="https://www.testmybrain.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary"
+            style={{ padding: '12px 32px', fontSize: 16, borderRadius: 10, display: 'inline-block', textDecoration: 'none' }}
+          >
+            Open Cognitive Assessment &rarr;
+          </a>
+          <p style={{ fontSize: 12, color: '#6b7280', marginTop: 12, fontFamily: 'var(--font-sans)' }}>
+            Opens in a new tab. Return here after completing the assessment.
+          </p>
+        </div>
+
+        <div style={{ marginBottom: 24 }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
+            <input
+              type="checkbox"
+              checked={cogLinkConfirmed}
+              onChange={e => setCogLinkConfirmed(e.target.checked)}
+              style={{ accentColor: 'var(--primary)', marginTop: 2 }}
+            />
+            I confirm that I have completed the cognitive assessment on TestMyBrain before starting my shift.
+          </label>
+        </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!cogLinkConfirmed || submitting}
+          className="btn btn-primary"
+          style={{ width: '100%', padding: '14px', fontSize: 16, borderRadius: 10, opacity: !cogLinkConfirmed ? 0.5 : 1 }}
+        >
+          {submitting ? 'Submitting...' : 'Confirm & Continue'}
+        </button>
+      </div>
+    );
+  };
+
+  // ── POST-SHIFT: Cognitive link + NASA-TLX ──
+  const renderPostShift = () => {
+    const shiftNum = getShiftNumber(timepoint || '');
+    const showNasaTlx = cogLinkConfirmed;
+
+    return (
+      <>
+        {/* Step 1: Cognitive assessment */}
+        <div style={{ background: '#fff', borderRadius: 16, border: '1px solid var(--border)', padding: '36px 32px', marginBottom: 24 }}>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)', fontSize: 22, marginBottom: 4 }}>
+              Post-Shift Assessment {shiftNum} — Step 1 of 2
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-sans)' }}>Cognitive Assessment</p>
+          </div>
+
+          <div style={{ background: '#eff6ff', borderRadius: 12, padding: '20px 24px', marginBottom: 24, border: '1px solid #bfdbfe' }}>
+            <h3 style={{ fontSize: 16, color: '#1e40af', marginBottom: 12, fontFamily: 'var(--font-sans)' }}>Standardized Instructions</h3>
+            <ul style={{ margin: 0, paddingLeft: 20, fontSize: 14, lineHeight: 1.8, color: '#1e3a5f', fontFamily: 'var(--font-sans)' }}>
+              <li>Please complete this assessment <strong>immediately after your shift ends</strong>.</li>
+              <li>Find a <strong>quiet environment</strong> with minimal distractions.</li>
+              <li>Do not consume caffeine or take a nap before completing this assessment.</li>
+              <li>The assessment includes <strong>forward and backward digit span tests</strong> and a <strong>sustained attention task</strong>.</li>
+              <li>Follow all on-screen instructions on the TestMyBrain website carefully.</li>
+              <li>The cognitive assessment takes approximately <strong>10-15 minutes</strong>.</li>
+            </ul>
+          </div>
+
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <a
+              href="https://www.testmybrain.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary"
+              style={{ padding: '12px 32px', fontSize: 16, borderRadius: 10, display: 'inline-block', textDecoration: 'none' }}
+            >
+              Open Cognitive Assessment &rarr;
+            </a>
+          </div>
+
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
+            <input type="checkbox" checked={cogLinkConfirmed} onChange={e => setCogLinkConfirmed(e.target.checked)} style={{ accentColor: 'var(--primary)', marginTop: 2 }} />
+            I confirm that I have completed the post-shift cognitive assessment on TestMyBrain.
+          </label>
+        </div>
+
+        {/* Step 2: NASA-TLX (shown after confirming cognitive assessment) */}
+        {showNasaTlx && filteredSections.length > 0 && (
+          <div style={{ background: '#fff', borderRadius: 16, border: '1px solid var(--border)', padding: '36px 32px' }}>
+            <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)', fontSize: 22, marginBottom: 4 }}>
+              Post-Shift Assessment {shiftNum} — Step 2 of 2
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-sans)', marginBottom: 8 }}>
+              NASA Task Load Index (NASA-TLX)
+            </p>
+            {currentSectionData?.description_en && (
+              <p style={{ color: 'var(--text-muted)', fontSize: 13, fontFamily: 'var(--font-sans)', marginBottom: 20, lineHeight: 1.5 }}>
+                {currentSectionData.description_en}
+              </p>
+            )}
+
+            {sectionQuestions.map(q => renderQuestion(q))}
+
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="btn btn-primary"
+              style={{ width: '100%', padding: '14px', fontSize: 16, borderRadius: 10, marginTop: 16, background: '#15803d' }}
+            >
+              {submitting ? 'Submitting...' : 'Submit Post-Shift Assessment'}
+            </button>
+          </div>
+        )}
+      </>
     );
   };
 
@@ -387,20 +384,8 @@ export default function ShiftStudyAssessment() {
     <Layout>
       <section className="section" style={{ minHeight: '70vh' }}>
         <div className="container" style={{ maxWidth: 760 }}>
-          {/* Back link */}
           <div style={{ marginBottom: 16 }}>
-            <button
-              onClick={() => navigate('/active-research/cognitive-shifts/dashboard')}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--primary)',
-                cursor: 'pointer',
-                fontSize: 14,
-                fontFamily: 'var(--font-sans)',
-                padding: 0,
-              }}
-            >
+            <button onClick={() => navigate('/active-research/cognitive-shifts/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-sans)', padding: 0 }}>
               &larr; Back to Dashboard
             </button>
           </div>
@@ -414,94 +399,44 @@ export default function ShiftStudyAssessment() {
 
           {/* Already completed */}
           {alreadyCompleted && (
-            <div style={{
-              background: '#f0fdf4',
-              border: '1px solid #bbf7d0',
-              borderRadius: 14,
-              padding: '32px 28px',
-              textAlign: 'center',
-            }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 14, padding: '32px 28px', textAlign: 'center' }}>
               <div style={{ fontSize: 40, marginBottom: 12 }}>&#10003;</div>
-              <h2 style={{ fontFamily: 'var(--font-serif)', color: '#15803d', fontSize: 20, marginBottom: 8 }}>
-                Assessment Already Completed
-              </h2>
+              <h2 style={{ fontFamily: 'var(--font-serif)', color: '#15803d', fontSize: 20, marginBottom: 8 }}>Assessment Already Completed</h2>
               <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-sans)', marginBottom: 20 }}>
-                You have already completed the {TIMEPOINT_LABELS[timepoint || '']} assessment. Your responses have been saved.
+                You have already completed the {TIMEPOINT_LABELS[timepoint || '']} assessment.
               </p>
-              <button
-                onClick={() => navigate('/active-research/cognitive-shifts/dashboard')}
-                className="btn btn-primary"
-                style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14 }}
-              >
+              <button onClick={() => navigate('/active-research/cognitive-shifts/dashboard')} className="btn btn-primary" style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14 }}>
                 Return to Dashboard
               </button>
             </div>
           )}
 
-          {/* Loading */}
           {loading && !alreadyCompleted && (
-            <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              Loading assessment...
-            </div>
+            <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Loading assessment...</div>
           )}
 
-          {/* Assessment Form */}
-          {!loading && !alreadyCompleted && sections.length > 0 && (
+          {/* ── PRE-SHIFT: cognitive link only ── */}
+          {!loading && !alreadyCompleted && timepoint && isPreShift(timepoint) && renderPreShift()}
+
+          {/* ── POST-SHIFT: cognitive link + NASA-TLX ── */}
+          {!loading && !alreadyCompleted && timepoint && isPostShift(timepoint) && renderPostShift()}
+
+          {/* ── BASELINE: full 9-section questionnaire ── */}
+          {!loading && !alreadyCompleted && timepoint === 'baseline' && filteredSections.length > 0 && (
             <>
               {/* Progress Bar */}
-              <div style={{
-                background: '#fff',
-                borderRadius: 12,
-                border: '1px solid var(--border)',
-                padding: '16px 20px',
-                marginBottom: 24,
-              }}>
+              <div style={{ background: '#fff', borderRadius: 12, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>
-                    Section {currentSection + 1} of {totalSections}
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-                    {progress}%
-                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>Section {currentSection + 1} of {totalSections}</span>
+                  <span style={{ fontSize: 13, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>{progress}%</span>
                 </div>
                 <div style={{ background: 'var(--bg-muted)', borderRadius: 6, height: 6, overflow: 'hidden' }}>
-                  <div style={{
-                    width: `${progress}%`,
-                    height: '100%',
-                    background: 'var(--primary)',
-                    borderRadius: 6,
-                    transition: 'width 0.3s ease',
-                  }} />
+                  <div style={{ width: `${progress}%`, height: '100%', background: 'var(--primary)', borderRadius: 6, transition: 'width 0.3s ease' }} />
                 </div>
-                {/* Section nav dots */}
                 <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-                  {sections.map((s, i) => (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        if (i <= currentSection) {
-                          setCurrentSection(i);
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }
-                      }}
-                      title={s.title_en}
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        border: i === currentSection ? '2px solid var(--primary)' : '1px solid var(--border)',
-                        background: i < currentSection ? 'var(--primary)' : i === currentSection ? 'var(--accent-light)' : '#fff',
-                        color: i < currentSection ? '#fff' : 'var(--text)',
-                        fontSize: 11,
-                        fontWeight: 600,
-                        cursor: i <= currentSection ? 'pointer' : 'default',
-                        fontFamily: 'var(--font-sans)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: i > currentSection ? 0.4 : 1,
-                      }}
-                    >
+                  {filteredSections.map((s, i) => (
+                    <button key={s.id} onClick={() => { if (i <= currentSection) { setCurrentSection(i); window.scrollTo({ top: 0, behavior: 'smooth' }); } }} title={s.title_en}
+                      style={{ width: 24, height: 24, borderRadius: '50%', border: i === currentSection ? '2px solid var(--primary)' : '1px solid var(--border)', background: i < currentSection ? 'var(--primary)' : i === currentSection ? 'var(--accent-light)' : '#fff', color: i < currentSection ? '#fff' : 'var(--text)', fontSize: 11, fontWeight: 600, cursor: i <= currentSection ? 'pointer' : 'default', fontFamily: 'var(--font-sans)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: i > currentSection ? 0.4 : 1 }}>
                       {i + 1}
                     </button>
                   ))}
@@ -511,69 +446,26 @@ export default function ShiftStudyAssessment() {
               {/* Section Header */}
               {currentSectionData && (
                 <div style={{ marginBottom: 20 }}>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text)', fontSize: 20, marginBottom: 4 }}>
-                    {currentSectionData.title_en}
-                  </h2>
+                  <h2 style={{ fontFamily: 'var(--font-serif)', color: 'var(--text)', fontSize: 20, marginBottom: 4 }}>{currentSectionData.title_en}</h2>
                   {currentSectionData.description_en && (
-                    <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}>
-                      {currentSectionData.description_en}
-                    </p>
+                    <p style={{ color: 'var(--text-muted)', fontSize: 14, fontFamily: 'var(--font-sans)', lineHeight: 1.5 }}>{currentSectionData.description_en}</p>
                   )}
                 </div>
               )}
 
-              {/* Questions */}
               {sectionQuestions.map(q => renderQuestion(q))}
 
-              {/* Navigation Buttons */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: 28,
-                paddingTop: 20,
-                borderTop: '1px solid var(--border)',
-              }}>
-                <button
-                  onClick={handlePrev}
-                  disabled={currentSection === 0}
-                  style={{
-                    padding: '10px 24px',
-                    borderRadius: 8,
-                    border: '1px solid var(--border)',
-                    background: '#fff',
-                    color: currentSection === 0 ? 'var(--text-muted)' : 'var(--text)',
-                    cursor: currentSection === 0 ? 'not-allowed' : 'pointer',
-                    fontSize: 14,
-                    fontFamily: 'var(--font-sans)',
-                    fontWeight: 500,
-                    opacity: currentSection === 0 ? 0.5 : 1,
-                  }}
-                >
+              {/* Navigation */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
+                <button onClick={handlePrev} disabled={currentSection === 0}
+                  style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid var(--border)', background: '#fff', color: currentSection === 0 ? 'var(--text-muted)' : 'var(--text)', cursor: currentSection === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontFamily: 'var(--font-sans)', fontWeight: 500, opacity: currentSection === 0 ? 0.5 : 1 }}>
                   Previous
                 </button>
-
                 {currentSection < totalSections - 1 ? (
-                  <button
-                    onClick={handleNext}
-                    className="btn btn-primary"
-                    style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14 }}
-                  >
-                    Next Section
-                  </button>
+                  <button onClick={handleNext} className="btn btn-primary" style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14 }}>Next Section</button>
                 ) : (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting}
-                    className="btn btn-primary"
-                    style={{
-                      padding: '10px 28px',
-                      borderRadius: 8,
-                      fontSize: 14,
-                      background: '#15803d',
-                    }}
-                  >
-                    {submitting ? 'Submitting...' : 'Submit Assessment'}
+                  <button onClick={handleSubmit} disabled={submitting} className="btn btn-primary" style={{ padding: '10px 28px', borderRadius: 8, fontSize: 14, background: '#15803d' }}>
+                    {submitting ? 'Submitting...' : 'Submit Baseline Assessment'}
                   </button>
                 )}
               </div>

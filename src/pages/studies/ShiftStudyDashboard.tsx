@@ -26,13 +26,13 @@ interface Timepoint {
 }
 
 const TIMEPOINTS = [
-  { key: 'baseline', label: 'Baseline Assessment', description: 'Initial assessment before any shift' },
-  { key: 'pre_shift_1', label: 'Pre-Shift 1', description: 'Before first shift cycle' },
-  { key: 'post_shift_1', label: 'Post-Shift 1', description: 'After first shift cycle' },
-  { key: 'pre_shift_2', label: 'Pre-Shift 2', description: 'Before second shift cycle' },
-  { key: 'post_shift_2', label: 'Post-Shift 2', description: 'After second shift cycle' },
-  { key: 'pre_shift_3', label: 'Pre-Shift 3', description: 'Before third shift cycle' },
-  { key: 'post_shift_3', label: 'Post-Shift 3', description: 'After third shift cycle' },
+  { key: 'baseline', label: 'Baseline Assessment', description: 'All 9 questionnaires (Demographics, STOP-BANG, rMEQ, WHO-5, PHQ-9, GAD-7, PSS, CBI, NASA-TLX) — ~25 min' },
+  { key: 'pre_shift_1', label: 'Pre-Shift 1', description: 'Cognitive assessment via TestMyBrain (before shift) — ~15 min' },
+  { key: 'post_shift_1', label: 'Post-Shift 1', description: 'Cognitive assessment + NASA-TLX workload survey (after shift) — ~20 min' },
+  { key: 'pre_shift_2', label: 'Pre-Shift 2', description: 'Cognitive assessment via TestMyBrain (before shift) — ~15 min' },
+  { key: 'post_shift_2', label: 'Post-Shift 2', description: 'Cognitive assessment + NASA-TLX workload survey (after shift) — ~20 min' },
+  { key: 'pre_shift_3', label: 'Pre-Shift 3', description: 'Cognitive assessment via TestMyBrain (before shift) — ~15 min' },
+  { key: 'post_shift_3', label: 'Post-Shift 3', description: 'Cognitive assessment + NASA-TLX workload survey (after shift) — ~20 min' },
 ];
 
 function getTimepointStatus(
