@@ -246,13 +246,6 @@ export default function ShiftStudyLogin() {
                     <option value="">Select specialty...</option>
                     <option value="Internal Medicine">Internal Medicine</option>
                     <option value="Pediatrics">Pediatrics</option>
-                    <option value="Surgery">Surgery</option>
-                    <option value="Emergency Medicine">Emergency Medicine</option>
-                    <option value="Obstetrics & Gynecology">Obstetrics & Gynecology</option>
-                    <option value="Psychiatry">Psychiatry</option>
-                    <option value="Family Medicine">Family Medicine</option>
-                    <option value="Anesthesia">Anesthesia</option>
-                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div style={fieldGroup}>
