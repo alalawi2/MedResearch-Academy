@@ -97,21 +97,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     match = byEmailCI;
   }
 
-  // Fallback 2: if resident just enrolled (within last 30 min) and has no auth_user_id,
-  // link the most recent unlinked participant. This handles the case where the WHOOP
-  // email differs from the login email (e.g. Gmail for WHOOP, OMSB email for login).
-  if (!match) {
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-    const { data: recent } = await supabase
-      .from('burnout_participants')
-      .select('id, study_participant_id')
-      .is('auth_user_id', null)
-      .gte('created_at', thirtyMinAgo)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-    match = recent;
-  }
+  // No more fallback — enrollment token or email match only.
+  // The old 30-min fallback caused cross-linking between residents.
 
   if (!match) return res.status(404).json({ error: 'not_enrolled' });
 
@@ -126,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Failed to link account' });
   }
 
-  const method = match === byEmail ? 'email_exact' : (match && !byEmail ? 'recent_30min' : 'email_ci');
+  const method = match === byEmail ? 'email_exact' : 'email_ci';
   await logLinkEvent(supabase, match.id, match.study_participant_id, user.id, user.email, method);
   return res.json({ profile: match, action: 'linked' });
 }

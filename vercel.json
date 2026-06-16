@@ -15,6 +15,10 @@
     {
       "path": "/api/questionnaire-reminder",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/daily-enrollment-report",
+      "schedule": "0 3 * * *"
     }
   ],
   "functions": {
@@ -23,7 +27,8 @@
     "api/whoop/admin-pull.ts": { "maxDuration": 120 },
     "api/adherence-check.ts": { "maxDuration": 120 },
     "api/anomaly-detect.ts": { "maxDuration": 120 },
-    "api/questionnaire-reminder.ts": { "maxDuration": 120 }
+    "api/questionnaire-reminder.ts": { "maxDuration": 120 },
+    "api/daily-enrollment-report.ts": { "maxDuration": 60 }
   },
   "rewrites": [
     { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
