@@ -534,6 +534,17 @@ create table if not exists whoop_pulls (
   workout_count integer,
   avg_workout_distance_m numeric,
   top_sport_name text,
+  all_sport_names text,
+  -- Per-workout metrics
+  avg_workout_strain numeric,
+  avg_workout_hr_bpm numeric,
+  max_workout_hr_bpm numeric,
+  avg_workout_kj numeric,
+  total_altitude_gain_m numeric,
+  -- Body measurements (from WHOOP profile)
+  whoop_height_m numeric,
+  whoop_weight_kg numeric,
+  whoop_max_hr integer,
   -- Quality
   any_calibrating boolean,
   days_with_data integer,

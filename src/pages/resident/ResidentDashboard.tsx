@@ -62,6 +62,7 @@ export default function ResidentDashboard() {
   const [eventCount, setEventCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [whoopStale, setWhoopStale] = useState(false);
   const [checkins, setCheckins] = useState<WeeklyCheckin[]>([]);
   const [assessments, setAssessments] = useState<BlockAssessment[]>([]);
   const [whoopHistory, setWhoopHistory] = useState<WhoopPullHistory[]>([]);
@@ -105,8 +106,13 @@ export default function ResidentDashboard() {
       setWhoop(wData[0] as WhoopData);
       if (wData.length > 1) setPrevWhoop(wData[1] as WhoopData);
       log.push(`WHOOP: ${wData.length} row(s)`);
+      // Check if last pull is stale (>3 days old) — token may be expired
+      const lastPull = new Date(wData[0].pulled_at);
+      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+      if (lastPull < threeDaysAgo) setWhoopStale(true);
     } else {
       log.push('WHOOP: 0 rows (empty)');
+      setWhoopStale(true); // No data at all
     }
 
     // Block assessments count
@@ -530,6 +536,34 @@ export default function ResidentDashboard() {
           4. <strong>Block assessment</strong> -- opens week 3 of each rotation
         </div>
       </div>
+
+      {/* ============================================================ */}
+      {/*  WHOOP RECONNECT BANNER (shown when token expired)             */}
+      {/* ============================================================ */}
+      {whoopStale && loaded && (
+        <a
+          href="/enroll/whoop"
+          style={{
+            display: 'block',
+            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+            border: '1px solid #f59e0b',
+            borderRadius: 12,
+            padding: '16px 20px',
+            marginBottom: 16,
+            textDecoration: 'none',
+            color: '#92400e',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: 28 }}>&#9888;</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 2 }}>WHOOP Connection Expired</div>
+              <div style={{ fontSize: 13 }}>Your WHOOP data hasn't synced recently. Tap here to reconnect — takes 30 seconds.</div>
+            </div>
+            <span style={{ marginLeft: 'auto', fontSize: 20, color: '#b45309' }}>&rarr;</span>
+          </div>
+        </a>
+      )}
 
       {/* ============================================================ */}
       {/*  ACTION CARDS                                                  */}

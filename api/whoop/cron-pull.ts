@@ -22,8 +22,8 @@ async function refreshAccessToken(token: TokenRow, supabase: any): Promise<strin
   const now = new Date();
   const expires = new Date(token.expires_at);
 
-  // Token still valid
-  if (now.getTime() < expires.getTime() - 60000) return token.access_token;
+  // Proactively refresh if token expires within 12 hours (keeps refresh tokens alive)
+  if (now.getTime() < expires.getTime() - 12 * 60 * 60 * 1000) return token.access_token;
 
   // No refresh token — can't refresh
   if (!token.refresh_token) return null;
@@ -40,7 +40,11 @@ async function refreshAccessToken(token: TokenRow, supabase: any): Promise<strin
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error(`Token refresh failed for ${token.resident_id}: ${res.status} ${errText.substring(0, 200)}`);
+      return null;
+    }
 
     const data = await res.json();
     await supabase
@@ -54,7 +58,8 @@ async function refreshAccessToken(token: TokenRow, supabase: any): Promise<strin
       .eq('id', token.id);
 
     return data.access_token;
-  } catch {
+  } catch (err: any) {
+    console.error(`Token refresh exception for ${token.resident_id}: ${err.message}`);
     return null;
   }
 }
@@ -82,11 +87,12 @@ async function pullResident(token: TokenRow, supabase: any) {
   if (!accessToken) return { resident_id: token.resident_id, status: 'token_failed' };
 
   // Pull all available data (up to 25 records each — most recent first)
-  const [recoveryData, sleepData, cycleData, workoutData] = await Promise.all([
+  const [recoveryData, sleepData, cycleData, workoutData, bodyData] = await Promise.all([
     whoopGet('/recovery?limit=25', accessToken),
     whoopGet('/activity/sleep?limit=25', accessToken),
     whoopGet('/cycle?limit=25', accessToken),
     whoopGet('/activity/workout?limit=25', accessToken),
+    whoopGet('/user/measurement/body', accessToken),
   ]);
 
   const recoveries = (recoveryData?.records || []).filter((r: any) => r.score_state === 'SCORED' && r.score);
@@ -173,12 +179,25 @@ async function pullResident(token: TokenRow, supabase: any) {
     }
   });
 
-  // Workout distance and sport names
+  // Workout distance, sport names, per-workout metrics, altitude
   const distances = workouts.map((w: any) => w.score?.distance_meter).filter((v: any) => v != null && v > 0) as number[];
   const sportNames = workouts.map((w: any) => w.sport_name).filter(Boolean) as string[];
   const topSport = sportNames.length > 0
     ? sportNames.sort((a, b) => sportNames.filter(v => v === b).length - sportNames.filter(v => v === a).length)[0]
     : null;
+
+  // Per-workout strain, HR, altitude
+  const workoutStrains = workouts.map((w: any) => w.score?.strain).filter((v: any) => v != null) as number[];
+  const workoutAvgHRs = workouts.map((w: any) => w.score?.average_heart_rate).filter((v: any) => v != null) as number[];
+  const workoutMaxHRs = workouts.map((w: any) => w.score?.max_heart_rate).filter((v: any) => v != null) as number[];
+  const workoutKJs = workouts.map((w: any) => w.score?.kilojoule).filter((v: any) => v != null) as number[];
+  const altGains = workouts.map((w: any) => w.score?.altitude_gain_meter).filter((v: any) => v != null && v > 0) as number[];
+  const allSportNames = sportNames.join(', ') || null;
+
+  // Body measurements (single object, not paginated)
+  const whoopHeight = bodyData?.height_meter ?? null;
+  const whoopWeight = bodyData?.weight_kilogram ?? null;
+  const whoopMaxHR = bodyData?.max_heart_rate ?? null;
 
   const pullData = {
     study_id: resident?.study_id || null,
@@ -225,6 +244,17 @@ async function pullResident(token: TokenRow, supabase: any) {
     workout_count: workouts.length,
     avg_workout_distance_m: avg(distances),
     top_sport_name: topSport,
+    all_sport_names: allSportNames,
+    // Per-workout metrics
+    avg_workout_strain: avg(workoutStrains),
+    avg_workout_hr_bpm: avg(workoutAvgHRs),
+    max_workout_hr_bpm: workoutMaxHRs.length > 0 ? Math.max(...workoutMaxHRs) : null,
+    avg_workout_kj: avg(workoutKJs),
+    total_altitude_gain_m: altGains.length > 0 ? altGains.reduce((a, b) => a + b, 0) : null,
+    // Body measurements (from WHOOP profile)
+    whoop_height_m: whoopHeight,
+    whoop_weight_kg: whoopWeight,
+    whoop_max_hr: whoopMaxHR,
     // Sleep extended
     avg_awake_time_min: avg(awakeMins),
     avg_no_data_time_min: avg(noDataMins),
