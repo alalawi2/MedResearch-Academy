@@ -68,14 +68,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const whoopIcon = p.whoop_user_id ? '&#9989;' : '&#10060;';
     const isNew = p.enrollment_date === today || p.enrollment_date === yesterday;
     const rowBg = isNew ? 'background:#f0fdf4;' : '';
-    return `<tr style="${rowBg}"><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${i + 1}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;font-weight:600">${p.study_participant_id}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.full_name}${isNew ? ' <span style="color:#16a34a;font-size:10px">NEW</span>' : ''}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.email}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.enrollment_date}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${whoopIcon}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${demoIcon}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${baseIcon}</td></tr>`;
+    // NOTE: Never include study_participant_id alongside names in team emails
+    return `<tr style="${rowBg}"><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${i + 1}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.full_name}${isNew ? ' <span style="color:#16a34a;font-size:10px">NEW</span>' : ''}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.email}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${p.enrollment_date}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${whoopIcon}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${demoIcon}</td><td style="padding:5px 8px;border-bottom:1px solid #eee;text-align:center;font-size:12px">${baseIcon}</td></tr>`;
   }).join('');
 
   const incompleteRows = incomplete.map(p => {
     const missing = [];
     if (!p.demographics_completed) missing.push('Demographics');
     if (!p.baseline_completed) missing.push('Baseline');
-    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px">${p.study_participant_id}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px">${p.full_name}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px;color:#dc2626">${missing.join(', ')}</td></tr>`;
+    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px">${p.full_name}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px;color:#dc2626">${missing.join(', ')}</td></tr>`;
   }).join('');
 
   const html = `<div style="font-family:Arial,sans-serif;max-width:750px;margin:0 auto;color:#333">
@@ -97,14 +98,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
 ${incomplete.length > 0 ? `<h3 style="font-size:13px;color:#dc2626;margin:16px 0 8px">Incomplete Enrollment Forms</h3>
 <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
-<thead><tr style="background:#fef2f2"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">ID</th><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Name</th><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Missing</th></tr></thead>
+<thead><tr style="background:#fef2f2"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Name</th><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Missing</th></tr></thead>
 <tbody>${incompleteRows}</tbody></table>` : ''}
 
 <h3 style="font-size:13px;color:#0f766e;margin:16px 0 8px">All Enrolled Residents (${total})</h3>
 <table style="width:100%;border-collapse:collapse;font-size:12px">
 <thead><tr style="background:#f0fdf4">
   <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">#</th>
-  <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">ID</th>
   <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Name</th>
   <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Email</th>
   <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Enrolled</th>

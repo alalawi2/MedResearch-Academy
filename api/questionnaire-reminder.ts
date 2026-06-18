@@ -196,14 +196,13 @@ function coordinatorEscalationHtml(
   overdue: Array<{ pid: string; name: string; email: string | null; phone: string | null; daysOverdue: number; missing: string[] }>,
   blockNum: number,
 ): string {
+  // NOTE: Never include study_participant_id alongside names — use name + contact only for coordinators
   const rows = overdue.map(r => `
     <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${r.pid}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.name}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${r.name}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.email || '—'}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.phone || '—'}</td>
       <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #dc2626; font-weight: 700;">${r.daysOverdue} days</td>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-size: 12px;">${r.missing.join(', ')}</td>
     </tr>
   `).join('');
 
@@ -216,12 +215,10 @@ function coordinatorEscalationHtml(
   <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
     <thead>
       <tr style="background: #f9fafb;">
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">ID</th>
         <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
         <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Email</th>
         <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Phone</th>
         <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Overdue</th>
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Missing</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
