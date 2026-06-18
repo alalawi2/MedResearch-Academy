@@ -61,6 +61,7 @@ export default function ShiftStudyAssessment() {
   const [existingTimepointId, setExistingTimepointId] = useState<string | null>(null);
   const [cogLinkConfirmed, setCogLinkConfirmed] = useState(false);
   const [config, setConfig] = useState<Record<string, string>>({});
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => {
     const stored = sessionStorage.getItem('shift_study_participant');
@@ -68,31 +69,54 @@ export default function ShiftStudyAssessment() {
     const p = JSON.parse(stored) as Participant;
     setParticipant(p);
     if (!supabaseConfigured || !timepoint) { setLoading(false); return; }
+    setLoadError('');
 
     (async () => {
-      const [sectionsRes, questionsRes, timepointRes] = await Promise.all([
-        supabase.from('survey_sections').select('id,title_en,description_en,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(100),
-        supabase.from('survey_questions').select('id,section_id,question_en,type,options_en,required,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(500),
-        supabase.from('shift_study_timepoints').select('id,answers,completed').eq('participant_id', p.id).eq('timepoint', timepoint).limit(1),
-      ]);
+      try {
+        const [sectionsRes, questionsRes, timepointRes, cfgRes] = await Promise.all([
+          supabase.from('survey_sections').select('id,title_en,description_en,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(100),
+          supabase.from('survey_questions').select('id,section_id,question_en,type,options_en,required,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(500),
+          supabase.from('shift_study_timepoints').select('id,answers,completed').eq('participant_id', p.id).eq('timepoint', timepoint).limit(1),
+          supabase.from('shift_study_config').select('key,value').limit(20),
+        ]);
 
-      if (sectionsRes.data) setSections(sectionsRes.data as Section[]);
-      if (questionsRes.data) setQuestions(questionsRes.data as Question[]);
-      // Load config (instructions + TestMyBrain URL)
-      const cfgRes = await supabase.from('shift_study_config').select('key,value').limit(20);
-      if (cfgRes.data) {
-        const map: Record<string, string> = {};
-        cfgRes.data.forEach((r: any) => { map[r.key] = r.value; });
-        setConfig(map);
-      }
+        if (sectionsRes.error || questionsRes.error) {
+          throw new Error('Failed to load assessment data');
+        }
 
-      if (timepointRes.data && timepointRes.data.length > 0) {
-        const existing = timepointRes.data[0];
-        setExistingTimepointId(existing.id);
-        if (existing.completed) setAlreadyCompleted(true);
-        else if (existing.answers) setAnswers(existing.answers as Answers);
+        const loadedSections = (sectionsRes.data || []) as Section[];
+        const loadedQuestions = (questionsRes.data || []) as Question[];
+        setSections(loadedSections);
+        setQuestions(loadedQuestions);
+
+        if (cfgRes.data) {
+          const map: Record<string, string> = {};
+          cfgRes.data.forEach((r: any) => { map[r.key] = r.value; });
+          setConfig(map);
+        }
+
+        if (timepointRes.data && timepointRes.data.length > 0) {
+          const existing = timepointRes.data[0];
+          setExistingTimepointId(existing.id);
+          if (existing.completed) setAlreadyCompleted(true);
+          else if (existing.answers) {
+            const saved = existing.answers as Answers & { cognitive_link_confirmed?: boolean };
+            setAnswers(saved);
+            setCogLinkConfirmed(Boolean(saved.cognitive_link_confirmed));
+          }
+        }
+
+        // Validate required data loaded
+        if (timepoint === 'baseline' && (loadedSections.length === 0 || loadedQuestions.length === 0)) {
+          setLoadError('The baseline questionnaire could not be loaded. Please contact the study team.');
+        } else if (isPostShift(timepoint) && !loadedSections.some(s => s.order_num === NASA_TLX_SECTION_ORDER)) {
+          setLoadError('The post-shift workload questionnaire is unavailable. Please contact the study team.');
+        }
+      } catch {
+        setLoadError('Unable to load this assessment. Please try again or contact the study team.');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
   }, [navigate, timepoint]);
 
@@ -425,14 +449,25 @@ export default function ShiftStudyAssessment() {
             <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>Loading assessment...</div>
           )}
 
+          {/* ── Load error ── */}
+          {!loading && !alreadyCompleted && loadError && (
+            <div style={{ background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 14, padding: '28px 24px', color: '#9a3412' }}>
+              <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 20, marginBottom: 8 }}>Assessment Unavailable</h2>
+              <p style={{ fontSize: 14, lineHeight: 1.6, marginBottom: 18, fontFamily: 'var(--font-sans)' }}>{loadError}</p>
+              <button onClick={() => navigate('/active-research/cognitive-shifts/dashboard')} className="btn btn-primary" style={{ padding: '10px 24px', borderRadius: 8, fontSize: 14 }}>
+                Return to Dashboard
+              </button>
+            </div>
+          )}
+
           {/* ── PRE-SHIFT: cognitive link only ── */}
-          {!loading && !alreadyCompleted && timepoint && isPreShift(timepoint) && renderPreShift()}
+          {!loading && !alreadyCompleted && !loadError && timepoint && isPreShift(timepoint) && renderPreShift()}
 
           {/* ── POST-SHIFT: cognitive link + NASA-TLX ── */}
-          {!loading && !alreadyCompleted && timepoint && isPostShift(timepoint) && renderPostShift()}
+          {!loading && !alreadyCompleted && !loadError && timepoint && isPostShift(timepoint) && renderPostShift()}
 
-          {/* ── BASELINE: full 9-section questionnaire ── */}
-          {!loading && !alreadyCompleted && timepoint === 'baseline' && filteredSections.length > 0 && (
+          {/* ── BASELINE: sections 1-8 questionnaire ── */}
+          {!loading && !alreadyCompleted && !loadError && timepoint === 'baseline' && filteredSections.length > 0 && (
             <>
               {/* Progress Bar */}
               <div style={{ background: '#fff', borderRadius: 12, border: '1px solid var(--border)', padding: '16px 20px', marginBottom: 24 }}>
