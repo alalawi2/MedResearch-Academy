@@ -252,15 +252,17 @@ export default function ShiftStudyAssessment() {
           {q.question_en}{q.required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
         </p>
         {(q.type === 'radio' || q.type === 'likert') && opts.map((opt, i) => (
-          <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: answers[q.id] === opt ? 'var(--accent-light)' : 'transparent', transition: 'background 0.15s', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
-            <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
+          <label key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 2, background: answers[q.id] === opt ? '#eef2ff' : 'transparent', border: answers[q.id] === opt ? '1px solid #c7d2fe' : '1px solid transparent', transition: 'all 0.15s', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)', lineHeight: 1.4 }}>
+            <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)', flexShrink: 0, marginTop: 2, width: 18, height: 18 }} />
+            <span>{opt}</span>
           </label>
         ))}
         {q.type === 'checkbox' && opts.map((opt, i) => {
           const selected = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).includes(opt) : false;
           return (
-            <label key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 4, background: selected ? 'var(--accent-light)' : 'transparent', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)' }}>
-              <input type="checkbox" checked={selected} onChange={() => toggleCheckbox(q.id, opt)} style={{ accentColor: 'var(--primary)' }} />{opt}
+            <label key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 2, background: selected ? '#eef2ff' : 'transparent', border: selected ? '1px solid #c7d2fe' : '1px solid transparent', transition: 'all 0.15s', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)', lineHeight: 1.4 }}>
+              <input type="checkbox" checked={selected} onChange={() => toggleCheckbox(q.id, opt)} style={{ accentColor: 'var(--primary)', flexShrink: 0, marginTop: 2, width: 18, height: 18 }} />
+              <span>{opt}</span>
             </label>
           );
         })}
