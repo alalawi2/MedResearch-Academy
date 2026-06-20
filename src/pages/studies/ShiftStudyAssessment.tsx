@@ -243,20 +243,55 @@ export default function ShiftStudyAssessment() {
     fontSize: 15, fontFamily: 'var(--font-sans)', color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
   };
 
+  // Use button-style pills for short options (like burnout study), radio list for long options
+  const useButtonStyle = (opts: string[]) => {
+    const maxLen = Math.max(...opts.map(o => o.length));
+    return opts.length <= 6 && maxLen <= 30;
+  };
+
   const renderQuestion = (q: Question) => {
     const hasError = !!errors[q.id];
     const opts: string[] = Array.isArray(q.options_en) ? q.options_en.map(o => typeof o === 'object' && o !== null ? (o as any).label || (o as any).value || String(o) : String(o)) : [];
+    const isButton = (q.type === 'radio' || q.type === 'likert') && useButtonStyle(opts);
+
     return (
-      <div key={q.id} style={{ marginBottom: 24, padding: '18px 20px', borderRadius: 12, border: hasError ? '1px solid #fca5a5' : '1px solid var(--border)', background: hasError ? '#fef2f2' : '#fff' }}>
-        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 15, color: 'var(--text)', marginBottom: 14, fontWeight: 500, lineHeight: 1.5 }}>
+      <div key={q.id} style={{ marginBottom: 16, padding: '16px 18px', borderRadius: 12, border: hasError ? '1px solid #fca5a5' : '1px solid var(--border)', background: hasError ? '#fef2f2' : '#fff' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)', marginBottom: 12, fontWeight: 500, lineHeight: 1.5 }}>
           {q.question_en}{q.required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
         </p>
-        {(q.type === 'radio' || q.type === 'likert') && opts.map((opt, i) => (
+
+        {/* Button-style options (like burnout study) */}
+        {isButton && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {opts.map((opt, i) => {
+              const selected = answers[q.id] === opt;
+              return (
+                <button key={i} type="button" onClick={() => setAnswer(q.id, opt)}
+                  style={{
+                    minHeight: 44, padding: '8px 14px', borderRadius: 8,
+                    border: selected ? '2px solid var(--primary)' : '2px solid var(--border)',
+                    background: selected ? 'var(--primary)' : 'white',
+                    color: selected ? 'white' : 'var(--text)',
+                    fontSize: 13, fontWeight: selected ? 600 : 400,
+                    cursor: 'pointer', transition: 'all 0.15s ease',
+                    flex: '1 1 auto', textAlign: 'center',
+                    fontFamily: 'var(--font-sans)',
+                  }}>
+                  {opt}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Radio list for long options */}
+        {(q.type === 'radio' || q.type === 'likert') && !isButton && opts.map((opt, i) => (
           <label key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 2, background: answers[q.id] === opt ? '#eef2ff' : 'transparent', border: answers[q.id] === opt ? '1px solid #c7d2fe' : '1px solid transparent', transition: 'all 0.15s', fontFamily: 'var(--font-sans)', fontSize: 14, color: 'var(--text)', lineHeight: 1.4 }}>
             <input type="radio" name={q.id} value={opt} checked={answers[q.id] === opt} onChange={() => setAnswer(q.id, opt)} style={{ accentColor: 'var(--primary)', flexShrink: 0, marginTop: 2, width: 18, height: 18 }} />
             <span>{opt}</span>
           </label>
         ))}
+
         {q.type === 'checkbox' && opts.map((opt, i) => {
           const selected = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]).includes(opt) : false;
           return (
