@@ -84,8 +84,9 @@ export default function ShiftStudyLogin() {
     background: '#fff',
     borderRadius: 16,
     border: '1px solid var(--border)',
-    padding: '40px 36px',
+    padding: '28px 20px',
     boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    boxSizing: 'border-box',
   };
 
   const inputStyle: React.CSSProperties = {
@@ -120,8 +121,8 @@ export default function ShiftStudyLogin() {
 
   return (
     <Layout>
-      <section className="section" style={{ minHeight: '70vh' }}>
-        <div className="container">
+      <section className="section" style={{ minHeight: '70vh', padding: '40px 16px' }}>
+        <div className="container" style={{ maxWidth: 520, padding: '0' }}>
           <div style={{ textAlign: 'center', marginBottom: 12 }}>
             <Link
               to="/active-research/cognitive-shifts"
@@ -221,7 +222,7 @@ export default function ShiftStudyLogin() {
                   <label style={labelStyle}>Password</label>
                   <input type="password" value={regPassword} onChange={e => setRegPassword(e.target.value)} style={inputStyle} placeholder="Choose a password" required minLength={6} />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
                   <div style={fieldGroup}>
                     <label style={labelStyle}>Gender</label>
                     <select value={gender} onChange={e => setGender(e.target.value)} style={selectStyle} required>

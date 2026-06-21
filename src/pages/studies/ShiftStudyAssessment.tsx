@@ -453,8 +453,8 @@ export default function ShiftStudyAssessment() {
 
   return (
     <Layout>
-      <section className="section" style={{ minHeight: '70vh' }}>
-        <div className="container" style={{ maxWidth: 760 }}>
+      <section className="section" style={{ minHeight: '70vh', padding: '40px 16px' }}>
+        <div className="container" style={{ maxWidth: 760, padding: 0 }}>
           <div style={{ marginBottom: 16 }}>
             <button onClick={() => navigate('/active-research/cognitive-shifts/dashboard')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', fontSize: 14, fontFamily: 'var(--font-sans)', padding: 0 }}>
               &larr; Back to Dashboard
