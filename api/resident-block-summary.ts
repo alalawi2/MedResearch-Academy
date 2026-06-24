@@ -175,7 +175,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <p style="font-size:13px;color:#333;margin:0 0 8px">Your scores suggest you may be experiencing significant stress. This is common among residents, and support is available:</p>
       <ul style="font-size:13px;line-height:1.8;color:#333;padding-left:20px;margin:0">
         <li><strong>OMSB Counseling Section</strong> — Free, confidential counseling for all OMSB residents. Contact the wellness office directly.</li>
-        <li><strong>Al Aqawya</strong> — If you have concerns, you can discuss them confidentially with the PI, <strong>Dr. Mohamed Al Rawahi</strong> (<a href="mailto:mrawahi@squ.edu.om" style="color:#0f766e">mrawahi@squ.edu.om</a>).</li>
+        <li><strong>Confidential Discussion</strong> — If you have concerns, you can discuss them confidentially with the PI, <strong>Dr. Mohamed Al Rawahi</strong> (<a href="mailto:mrawahi@squ.edu.om" style="color:#0f766e">mrawahi@squ.edu.om</a>).</li>
         <li><strong>Peer Support</strong> — Talking to a trusted colleague or mentor can help. You are not alone.</li>
       </ul>
       <p style="font-size:12px;color:#666;margin:10px 0 0">Seeking help is a sign of strength, not weakness. Your wellbeing matters.</p>
