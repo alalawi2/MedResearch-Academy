@@ -63,6 +63,7 @@ export default function ResidentDashboard() {
   const [loaded, setLoaded] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [whoopStale, setWhoopStale] = useState(false);
+  const [adherenceRank, setAdherenceRank] = useState<{ rank: number; total: number; pct: number } | null>(null);
   const [checkins, setCheckins] = useState<WeeklyCheckin[]>([]);
   const [assessments, setAssessments] = useState<BlockAssessment[]>([]);
   const [whoopHistory, setWhoopHistory] = useState<WhoopPullHistory[]>([]);
@@ -113,6 +114,23 @@ export default function ResidentDashboard() {
     } else {
       log.push('WHOOP: 0 rows (empty)');
       setWhoopStale(true); // No data at all
+    }
+
+    // Adherence rank — compare against all residents (anonymized)
+    const { data: allAdh } = await supabase
+      .from('whoop_pulls')
+      .select('resident_id, pct_recorded')
+      .order('pulled_at', { ascending: false })
+      .limit(500);
+    if (allAdh) {
+      const latestPer = new Map<string, number>();
+      allAdh.forEach((p: any) => { if (!latestPer.has(p.resident_id)) latestPer.set(p.resident_id, p.pct_recorded ?? 0); });
+      const sorted = Array.from(latestPer.entries()).sort((a, b) => b[1] - a[1]);
+      const myIdx = sorted.findIndex(([id]) => id === rid);
+      const myPct = latestPer.get(rid) ?? 0;
+      if (myIdx >= 0) {
+        setAdherenceRank({ rank: myIdx + 1, total: sorted.length, pct: myPct });
+      }
     }
 
     // Block assessments count
@@ -563,6 +581,45 @@ export default function ResidentDashboard() {
             <span style={{ marginLeft: 'auto', fontSize: 20, color: '#b45309' }}>&rarr;</span>
           </div>
         </a>
+      )}
+
+      {/* ============================================================ */}
+      {/*  ADHERENCE RANK                                                */}
+      {/* ============================================================ */}
+      {adherenceRank && loaded && (
+        <div style={{
+          background: adherenceRank.pct >= 80
+            ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)'
+            : adherenceRank.pct >= 60
+            ? 'linear-gradient(135deg, #fffbeb, #fef3c7)'
+            : 'linear-gradient(135deg, #fef2f2, #fecaca)',
+          border: `1px solid ${adherenceRank.pct >= 80 ? '#bbf7d0' : adherenceRank.pct >= 60 ? '#fde68a' : '#fecaca'}`,
+          borderRadius: 12,
+          padding: '14px 18px',
+          marginBottom: 16,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+        }}>
+          <div style={{ textAlign: 'center', minWidth: 60 }}>
+            <div style={{
+              fontSize: 26, fontWeight: 700,
+              color: adherenceRank.pct >= 80 ? '#16a34a' : adherenceRank.pct >= 60 ? '#d97706' : '#dc2626',
+            }}>
+              {Math.round(adherenceRank.pct)}%
+            </div>
+            <div style={{ fontSize: 10, color: '#666' }}>WHOOP</div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#333' }}>
+              {adherenceRank.pct >= 90 ? 'Excellent adherence!' : adherenceRank.pct >= 80 ? 'Great adherence!' : adherenceRank.pct >= 60 ? 'Needs improvement — wear your band 24/7' : 'Low adherence — data at risk'}
+            </div>
+            <div style={{ fontSize: 12, color: '#666' }}>
+              Rank: {adherenceRank.rank}/{adherenceRank.total} participants
+              {adherenceRank.rank <= Math.ceil(adherenceRank.total * 0.25) ? ' · Top 25%' : adherenceRank.rank <= Math.ceil(adherenceRank.total * 0.5) ? ' · Top 50%' : ''}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ============================================================ */}

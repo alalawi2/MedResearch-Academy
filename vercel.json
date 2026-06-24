@@ -27,6 +27,10 @@
     {
       "path": "/api/weekly-shift-email",
       "schedule": "0 2 * * 0"
+    },
+    {
+      "path": "/api/coordinator-adherence-report",
+      "schedule": "0 3 * * 1"
     }
   ],
   "functions": {
@@ -39,7 +43,8 @@
     "api/daily-enrollment-report.ts": { "maxDuration": 60 },
     "api/whoop/daily-pull.ts": { "maxDuration": 300 },
     "api/weekly-shift-email.ts": { "maxDuration": 120 },
-    "api/shift-log.ts": { "maxDuration": 10 }
+    "api/shift-log.ts": { "maxDuration": 10 },
+    "api/coordinator-adherence-report.ts": { "maxDuration": 60 }
   },
   "rewrites": [
     { "source": "/whoop/callback", "destination": "/api/whoop/callback" },

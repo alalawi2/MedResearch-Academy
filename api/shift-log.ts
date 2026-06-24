@@ -21,8 +21,22 @@ const SHIFT_TYPES = [
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-function renderForm(token: string, weekStart: string, existing: Record<string, string | null>, name: string): string {
+function renderForm(token: string, weekStart: string, existing: Record<string, string | null>, name: string, adherencePct: number | null, daysWithData: number | null, rank: number | null, totalRanked: number): string {
   const weekEnd = new Date(new Date(weekStart).getTime() + 6 * 86400000).toISOString().slice(0, 10);
+
+  const adherenceColor = adherencePct == null ? '#64748b' : adherencePct >= 80 ? '#16a34a' : adherencePct >= 60 ? '#f59e0b' : '#dc2626';
+  const adherenceBanner = adherencePct != null ? `
+    <div style="background:${adherencePct >= 80 ? '#f0fdf4' : adherencePct >= 60 ? '#fffbeb' : '#fef2f2'};border:1px solid ${adherencePct >= 80 ? '#bbf7d0' : adherencePct >= 60 ? '#fde68a' : '#fecaca'};border-radius:10px;padding:14px;margin-bottom:16px;display:flex;align-items:center;gap:14px">
+      <div style="text-align:center;min-width:70px">
+        <div style="font-size:28px;font-weight:700;color:${adherenceColor}">${Math.round(adherencePct)}%</div>
+        <div style="font-size:10px;color:#666">WHOOP</div>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:#333">${adherencePct >= 80 ? 'Great adherence!' : adherencePct >= 60 ? 'Your WHOOP adherence needs improvement' : 'Low WHOOP adherence — please wear your band 24/7'}</div>
+        <div style="font-size:12px;color:#666">${daysWithData ?? '?'}/25 days recorded${rank ? ' · Rank: ' + rank + '/' + totalRanked : ''}</div>
+        ${adherencePct < 80 ? '<div style="font-size:11px;color:#9a3412;margin-top:4px">Wear your WHOOP band 24/7 including sleep. Charge while wearing.</div>' : ''}
+      </div>
+    </div>` : '';
 
   const dayRows = DAYS.map((day, i) => {
     const date = new Date(new Date(weekStart).getTime() + i * 86400000);
@@ -58,6 +72,7 @@ function renderForm(token: string, weekStart: string, existing: Record<string, s
     <p style="color:#d1fae5;margin:6px 0 0;font-size:13px">Week of ${weekStart} to ${weekEnd}</p>
   </div>
   <div style="background:white;border:1px solid #e5e7eb;border-top:none;padding:20px;border-radius:0 0 12px 12px">
+    ${adherenceBanner}
     <p style="font-size:14px;color:#333">Dear ${name}, please select your shift type for each day this past week. <strong>One tap per day.</strong></p>
     <form method="POST" action="/api/shift-log?token=${token}">
       <input type="hidden" name="token" value="${token}">
@@ -101,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!entry) return res.status(404).send('Invalid or expired link');
 
-  // Get resident name
+  // Get resident name + WHOOP adherence
   const { data: resident } = await supabase
     .from('burnout_participants')
     .select('full_name')
@@ -111,12 +126,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const name = resident?.full_name?.split(' ')[0] || 'Participant';
 
+  // Get latest WHOOP adherence for this resident
+  const { data: latestPull } = await supabase
+    .from('whoop_pulls')
+    .select('days_with_data, pct_recorded')
+    .eq('resident_id', entry.resident_id)
+    .order('pulled_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  const adherencePct = latestPull?.pct_recorded ?? null;
+  const daysWithData = latestPull?.days_with_data ?? null;
+
+  // Get rank among all residents
+  const { data: allPulls } = await supabase
+    .from('whoop_pulls')
+    .select('resident_id, pct_recorded')
+    .order('pulled_at', { ascending: false })
+    .limit(500);
+
+  const latestPerRes = new Map<string, number>();
+  allPulls?.forEach((p: any) => { if (!latestPerRes.has(p.resident_id)) latestPerRes.set(p.resident_id, p.pct_recorded ?? 0); });
+  const allAdherence = Array.from(latestPerRes.values()).sort((a, b) => b - a);
+  const myRank = adherencePct != null ? allAdherence.findIndex(a => a <= adherencePct) + 1 : null;
+  const totalRanked = allAdherence.length;
+
   if (req.method === 'GET') {
-    // Render the form
+    // Render the form with adherence banner
     const existing: Record<string, string | null> = {};
     DAYS.forEach(d => { existing[d] = (entry as any)[d] || null; });
     res.setHeader('Content-Type', 'text/html');
-    return res.send(renderForm(token, entry.week_start, existing, name));
+    return res.send(renderForm(token, entry.week_start, existing, name, adherencePct, daysWithData, myRank, totalRanked));
   }
 
   if (req.method === 'POST') {
