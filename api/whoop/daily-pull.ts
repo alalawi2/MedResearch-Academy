@@ -22,10 +22,8 @@ interface TokenRow {
 }
 
 async function refreshToken(token: TokenRow, supabase: any): Promise<string | null> {
-  const now = new Date();
-  const expires = new Date(token.expires_at);
-  if (now.getTime() < expires.getTime() - 12 * 60 * 60 * 1000) return token.access_token;
-  if (!token.refresh_token) return null;
+  // Always refresh — keeps tokens alive in DB between cron runs
+  if (!token.refresh_token) return token.access_token;
 
   try {
     const res = await fetch(WHOOP_TOKEN_URL, {
@@ -188,20 +186,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // Support batch param to process subset (0-indexed): ?batch=0&size=20
+  const batchNum = parseInt(String(req.query.batch ?? '0'), 10);
+  const batchSize = parseInt(String(req.query.size ?? '20'), 10);
+
   const { data: tokens } = await supabase
     .from('whoop_tokens')
     .select('id, resident_id, access_token, refresh_token, expires_at')
+    .order('resident_id')
     .limit(1000);
 
   if (!tokens || tokens.length === 0) {
     return res.json({ pulled: 0, message: 'No tokens' });
   }
 
+  const start = batchNum * batchSize;
+  const batch = tokens.slice(start, start + batchSize);
+
+  if (batch.length === 0) {
+    return res.json({ message: 'No tokens in this batch', batch: batchNum, total: tokens.length });
+  }
+
   const results = [];
-  for (const token of tokens) {
+  for (const token of batch) {
     const result = await pullDaily(token, supabase);
     results.push(result);
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 200));
   }
 
   const succeeded = results.filter(r => r.status === 'success').length;
@@ -209,10 +219,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.json({
     pulled_at: new Date().toISOString(),
+    batch: batchNum,
+    batch_size: batchSize,
     total_residents: tokens.length,
+    processed: batch.length,
     succeeded,
     failed: results.filter(r => r.status !== 'success').length,
     total_daily_records: totalDays,
+    has_more: start + batchSize < tokens.length,
     results,
   });
 }

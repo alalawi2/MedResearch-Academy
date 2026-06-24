@@ -19,14 +19,9 @@ interface TokenRow {
 }
 
 async function refreshAccessToken(token: TokenRow, supabase: any): Promise<string | null> {
-  const now = new Date();
-  const expires = new Date(token.expires_at);
-
-  // Proactively refresh if token expires within 12 hours (keeps refresh tokens alive)
-  if (now.getTime() < expires.getTime() - 12 * 60 * 60 * 1000) return token.access_token;
-
-  // No refresh token — can't refresh
-  if (!token.refresh_token) return null;
+  // Always refresh on every cron run — keeps tokens alive in DB
+  // WHOOP access tokens expire in ~1h, so we refresh preemptively every time
+  if (!token.refresh_token) return token.access_token; // No refresh token — use current and hope it works
 
   try {
     const res = await fetch(WHOOP_TOKEN_URL, {
