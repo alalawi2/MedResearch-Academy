@@ -19,15 +19,16 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const CRON_SECRET = process.env.CRON_SECRET || SUPABASE_KEY;
 const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
-// Coordinators who can follow up by phone
-const COORDINATORS = [
-  { name: 'Dr. Tamadhir Al Mahrouqi', email: 'tamadhiralmahrouqi@gmail.com' },
-  { name: 'Aseel Al Toubi', email: 'a.altoubi@squ.edu.om' },
-  { name: 'Dr. Omar Al Taei', email: 'altaeiomar11@gmail.com' },
-  { name: 'Dr. Nuha Al Habsi', email: 'nuhahabsi7@gmail.com' },
+// Coordinators — each has an assigned group of residents
+// Escalation emails go to the resident's assigned coordinator only
+// CC: Tamadhir (psychometrics lead) + PI team
+const COORDINATOR_CC = [
+  'tamadhiralmahrouqi@gmail.com', // Dr. Tamadhir — psychometrics oversight
+  'dr.abdullahalalawi@gmail.com',  // Co-PI
+  'mrawahi@squ.edu.om',           // PI
 ];
 
-// Research team always CC'd on escalations
+// Research team always CC'd on all reminders
 const TEAM_EMAILS = ['dr.abdullahalalawi@gmail.com', 'mrawahi@squ.edu.om'];
 
 // Master block schedule: 13 blocks of ~4 weeks each (OMSB academic year)
@@ -60,6 +61,9 @@ interface Participant {
   phone: string | null;
   demographics_completed: boolean;
   baseline_completed: boolean;
+  coordinator_group: string | null;
+  coordinator_name: string | null;
+  coordinator_email: string | null;
 }
 
 interface ReminderRecord {
@@ -371,7 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get all active participants
   const { data: participants } = await supabase
     .from('burnout_participants')
-    .select('id, study_id, study_participant_id, full_name, email, phone, demographics_completed, baseline_completed')
+    .select('id, study_id, study_participant_id, full_name, email, phone, demographics_completed, baseline_completed, coordinator_group, coordinator_name, coordinator_email')
     .eq('status', 'active')
     .not('email', 'is', null)
     .limit(1000);
@@ -423,6 +427,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     phone: string | null;
     daysOverdue: number;
     missing: string[];
+    coordinatorEmail: string | null;
+    coordinatorName: string | null;
   }> = [];
 
   const loginUrl = `${SITE_URL}/resident/login`;
@@ -488,7 +494,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (level >= 5) {
-      // Collect for coordinator escalation
+      // Collect for coordinator escalation — routes to assigned coordinator
       escalateToCoordinators.push({
         pid: p.study_participant_id,
         name: p.full_name || 'Unknown',
@@ -496,13 +502,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         phone: p.phone,
         daysOverdue: currentBlock.daysOverdue,
         missing,
+        coordinatorEmail: p.coordinator_email,
+        coordinatorName: p.coordinator_name,
       });
     }
   }
 
-  // Send coordinator escalation email (single email with all overdue residents)
+  // Send coordinator escalation — grouped by assigned coordinator
   if (escalateToCoordinators.length > 0) {
-    // Check if we already escalated to coordinators today
     const todayStr = today.toISOString().slice(0, 10);
     const { data: todayEscalations } = await supabase
       .from('questionnaire_reminders')
@@ -513,13 +520,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
 
     if (!todayEscalations || todayEscalations.length === 0) {
-      const coordinatorEmails = COORDINATORS.map(c => c.email);
-      await sendEmail(
-        coordinatorEmails,
-        `[ACTION REQUIRED] ${escalateToCoordinators.length} Residents — Block ${currentBlock.block} Assessment Overdue`,
-        coordinatorEscalationHtml(escalateToCoordinators, currentBlock.block),
-        TEAM_EMAILS,
-      );
+      // Group overdue residents by their assigned coordinator
+      const byCoordinator = new Map<string, typeof escalateToCoordinators>();
+      for (const r of escalateToCoordinators) {
+        const coordEmail = r.coordinatorEmail || 'unassigned';
+        if (!byCoordinator.has(coordEmail)) byCoordinator.set(coordEmail, []);
+        byCoordinator.get(coordEmail)!.push(r);
+      }
+
+      // Send one email per coordinator with only their assigned residents
+      for (const [coordEmail, residents] of Array.from(byCoordinator)) {
+        if (coordEmail === 'unassigned') continue;
+        const coordName = residents[0].coordinatorName || 'Coordinator';
+        await sendEmail(
+          [coordEmail],
+          `[ACTION REQUIRED] ${residents.length} Resident${residents.length > 1 ? 's' : ''} — Block ${currentBlock.block} Assessment Overdue`,
+          coordinatorEscalationHtml(residents, currentBlock.block),
+          COORDINATOR_CC,
+        );
+      }
 
       // Log escalation for each resident
       for (const r of escalateToCoordinators) {
@@ -535,7 +554,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               block_number: currentBlock.block,
               level: 5,
               reminder_type: 'coordinator_escalation',
-              sent_to: [...coordinatorEmails, ...TEAM_EMAILS],
+              sent_to: [r.coordinatorEmail || '', ...COORDINATOR_CC],
               missing_items: r.missing,
             });
         }
@@ -545,7 +564,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         ...escalateToCoordinators.map(r => ({
           pid: r.pid,
           name: r.name,
-          action: 'escalated_to_coordinators',
+          action: 'escalated_to_' + (r.coordinatorName || 'coordinator'),
           level: 5,
         })),
       );
