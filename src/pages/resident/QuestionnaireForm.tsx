@@ -609,64 +609,52 @@ export default function QuestionnaireForm() {
         review_status: 'pending',
       };
 
-      const { error: insertError } = await supabase.from('block_assessments').insert(payload);
+      // Submit via server API (service role bypasses RLS)
+      const session = await supabase.auth.getSession();
+      const token = session.data.session?.access_token;
+      if (!token) { setError('No active session. Please log in again.'); return; }
 
-      // Also save to individual instrument tables
-      const blockRes = await supabase
-        .from('rotation_blocks')
-        .select('id')
-        .eq('resident_id', residentProfile.id)
-        .eq('block_number', blockInfo.block)
-        .limit(1)
-        .single();
-      const blockId = blockRes.data?.id || null;
+      const apiRes = await fetch('/api/submit-block-assessment', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          payload,
+          blockNumber: blockInfo.block,
+          cbiData: {
+            response_date: today,
+            items: cbiItems,
+            personal_score: cbi.personal.score,
+            work_score: cbi.work.score,
+            patient_score: cbi.patient.score,
+            personal_burnout: cbi.personal.burnout,
+            work_burnout: cbi.work.burnout,
+            patient_burnout: cbi.patient.burnout,
+            any_burnout: cbi.anyBurnout,
+          },
+          phq9Data: {
+            response_date: today,
+            items: phq9Items,
+            total_score: phq9.total,
+            severity: phq9.severity.toLowerCase().replace(/ /g, '_'),
+          },
+          gad7Data: {
+            response_date: today,
+            items: gad7Items,
+            total_score: gad7.total,
+            severity: gad7.severity.toLowerCase().replace(/ /g, '_'),
+          },
+          isiData: {
+            response_date: today,
+            items: isiItems,
+            total_score: isi.total,
+            severity: isi.severity.toLowerCase().replace(/ /g, '_').replace(/clinically_significant_/g, ''),
+          },
+        }),
+      });
 
-      await Promise.all([
-        supabase.from('cbi_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          block_id: blockId,
-          response_date: today,
-          items: cbiItems,
-          personal_score: cbi.personal.score,
-          work_score: cbi.work.score,
-          patient_score: cbi.patient.score,
-          personal_burnout: cbi.personal.burnout,
-          work_burnout: cbi.work.burnout,
-          patient_burnout: cbi.patient.burnout,
-          any_burnout: cbi.anyBurnout,
-        }),
-        supabase.from('phq9_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          block_id: blockId,
-          response_date: today,
-          items: phq9Items,
-          total_score: phq9.total,
-          severity: phq9.severity.toLowerCase().replace(/ /g, '_'),
-        }),
-        supabase.from('gad7_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          block_id: blockId,
-          response_date: today,
-          items: gad7Items,
-          total_score: gad7.total,
-          severity: gad7.severity.toLowerCase().replace(/ /g, '_'),
-        }),
-        supabase.from('isi_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          block_id: blockId,
-          response_date: today,
-          items: isiItems,
-          total_score: isi.total,
-          severity: isi.severity.toLowerCase().replace(/ /g, '_').replace(/clinically_significant_/g, ''),
-        }),
-      ]);
-
-      if (insertError) {
-        setError(insertError.message);
+      const result = await apiRes.json();
+      if (!apiRes.ok && apiRes.status !== 207) {
+        setError(result.error || 'Failed to save assessment. Please try again.');
       } else {
         setSubmitted(true);
       }
