@@ -199,6 +199,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({
         from: 'OMSB Burnout Study <info@medresearch-academy.om>',
         to: [p.email],
+        bcc: ['dr.abdullahalalawi@gmail.com'],
         subject: 'Your Personal Wellbeing Summary — OMSB Burnout Study',
         html,
       }),
