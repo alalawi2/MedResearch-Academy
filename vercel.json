@@ -23,6 +23,10 @@
     {
       "path": "/api/whoop/daily-pull",
       "schedule": "30 3 * * *"
+    },
+    {
+      "path": "/api/weekly-shift-email",
+      "schedule": "0 2 * * 0"
     }
   ],
   "functions": {
@@ -33,7 +37,9 @@
     "api/anomaly-detect.ts": { "maxDuration": 120 },
     "api/questionnaire-reminder.ts": { "maxDuration": 120 },
     "api/daily-enrollment-report.ts": { "maxDuration": 60 },
-    "api/whoop/daily-pull.ts": { "maxDuration": 300 }
+    "api/whoop/daily-pull.ts": { "maxDuration": 300 },
+    "api/weekly-shift-email.ts": { "maxDuration": 120 },
+    "api/shift-log.ts": { "maxDuration": 10 }
   },
   "rewrites": [
     { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
