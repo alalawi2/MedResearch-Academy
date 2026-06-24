@@ -27,6 +27,217 @@ import {
 import type { WHO5Result, CBIResult, PHQ9Result, GAD7Result, ISIResult } from '../../lib/scoring';
 
 // ---------------------------------------------------------------------------
+// Rotation dropdown options grouped by program
+const ROTATION_OPTIONS: Record<string, string[]> = {
+  'Internal Medicine': [
+    'General Medicine / CTU',
+    'Cardiology',
+    'Pulmonology / Respiratory',
+    'Gastroenterology / Hepatology',
+    'Nephrology',
+    'Endocrinology',
+    'Rheumatology',
+    'Infectious Disease',
+    'Hematology / Oncology',
+    'Neurology',
+    'Dermatology',
+    'Psychiatry',
+    'ICU / Critical Care',
+    'CCU / Coronary Care',
+    'Emergency Medicine',
+    'Geriatrics',
+    'Palliative Care',
+    'Ambulatory / Outpatient Clinic',
+    'Elective',
+  ],
+  'General Surgery': [
+    'General Surgery',
+    'Vascular Surgery',
+    'Trauma Surgery',
+    'Pediatric Surgery',
+    'Surgical Oncology',
+    'Colorectal Surgery',
+    'Hepatobiliary / HPB',
+    'Endocrine Surgery',
+    'Surgical Endoscopy',
+    'Plastic Surgery',
+    'Urology',
+    'ICU / Critical Care',
+    'Emergency Medicine',
+    'Orthopedic Trauma',
+    'Anesthesia',
+    'Ambulatory / Outpatient Clinic',
+    'Elective',
+  ],
+  'Pediatrics': [
+    'General Pediatrics',
+    'Neonatology / NICU',
+    'Pediatric ICU / PICU',
+    'Pediatric Emergency',
+    'Pediatric Cardiology',
+    'Pediatric Neurology',
+    'Pediatric Nephrology',
+    'Pediatric Gastroenterology',
+    'Pediatric Hematology / Oncology',
+    'Pediatric Endocrinology',
+    'Pediatric Pulmonology',
+    'Pediatric Infectious Disease',
+    'Developmental Pediatrics',
+    'Adolescent Medicine',
+    'Ambulatory / Outpatient Clinic',
+    'Elective',
+  ],
+  'Psychiatry': [
+    'General Adult Psychiatry',
+    'Child & Adolescent Psychiatry',
+    'Geriatric Psychiatry',
+    'Forensic Psychiatry',
+    'Consultation-Liaison Psychiatry',
+    'Addiction / Substance Abuse',
+    'Emergency Psychiatry',
+    'Community Psychiatry',
+    'Internal Medicine',
+    'Neurology',
+    'Elective',
+  ],
+  'ENT': [
+    'General ENT',
+    'Otology',
+    'Rhinology / Sinus Surgery',
+    'Head & Neck Surgery / Oncology',
+    'Laryngology',
+    'Pediatric ENT',
+    'Audiology',
+    'Facial Plastics',
+    'ICU',
+    'Emergency Medicine',
+    'Elective',
+  ],
+  'Emergency Medicine': [
+    'Emergency Department',
+    'Pediatric Emergency',
+    'Trauma',
+    'Toxicology',
+    'Emergency Medical Services / EMS',
+    'ICU / Critical Care',
+    'CCU / Coronary Care',
+    'Anesthesia',
+    'Internal Medicine',
+    'Pediatric ICU',
+    'Obstetrics & Gynecology',
+    'ENT',
+    'Ophthalmology',
+    'Orthopedics',
+    'Neurology',
+    'Radiology',
+    'Psychiatry',
+    'Plastic Surgery',
+    'Elective',
+  ],
+  'Anesthesia': [
+    'General Anesthesia',
+    'Cardiac Anesthesia',
+    'Neuro Anesthesia',
+    'Obstetric Anesthesia',
+    'Pediatric Anesthesia',
+    'Regional Anesthesia / Pain',
+    'ICU / Critical Care',
+    'Trauma Anesthesia',
+    'Day Surgery',
+    'Pre-Anesthesia Clinic',
+    'Emergency Medicine',
+    'Internal Medicine',
+    'Elective',
+  ],
+  'Orthopedics': [
+    'General Orthopedics',
+    'Trauma / Fractures',
+    'Spine Surgery',
+    'Joint Arthroplasty',
+    'Sports Medicine',
+    'Pediatric Orthopedics',
+    'Hand & Upper Limb',
+    'Foot & Ankle',
+    'Orthopedic Oncology',
+    'ICU',
+    'Emergency Medicine',
+    'Elective',
+  ],
+  'Radiology': [
+    'General Radiology',
+    'CT / Cross-Sectional',
+    'MRI',
+    'Ultrasound',
+    'Interventional Radiology',
+    'Neuroradiology',
+    'Musculoskeletal Radiology',
+    'Pediatric Radiology',
+    'Breast Imaging',
+    'Nuclear Medicine',
+    'Emergency Radiology',
+    'Elective',
+  ],
+  'Ophthalmology': [
+    'General Ophthalmology',
+    'Retina / Vitreous',
+    'Glaucoma',
+    'Cornea / External Disease',
+    'Oculoplastics',
+    'Pediatric Ophthalmology / Strabismus',
+    'Neuro-Ophthalmology',
+    'Emergency Ophthalmology',
+    'Elective',
+  ],
+  'Family Medicine': [
+    'Family Medicine Clinic',
+    'Internal Medicine',
+    'Pediatrics',
+    'Obstetrics & Gynecology',
+    'Psychiatry',
+    'Emergency Medicine',
+    'Dermatology',
+    'Orthopedics',
+    'ENT',
+    'Ophthalmology',
+    'Community Medicine',
+    'Elective',
+  ],
+  'Dermatology': [
+    'General Dermatology',
+    'Dermatologic Surgery',
+    'Pediatric Dermatology',
+    'Dermatopathology',
+    'Internal Medicine',
+    'Elective',
+  ],
+  'Neurology': [
+    'General Neurology',
+    'Stroke / Cerebrovascular',
+    'Epilepsy',
+    'Neuromuscular',
+    'Movement Disorders',
+    'Neuro-ICU',
+    'Neuroradiology',
+    'Psychiatry',
+    'Internal Medicine',
+    'Elective',
+  ],
+  'Pathology': [
+    'Anatomical Pathology',
+    'Clinical Pathology',
+    'Hematopathology',
+    'Microbiology',
+    'Chemical Pathology',
+    'Cytopathology',
+    'Forensic Pathology',
+    'Elective',
+  ],
+};
+
+// Flatten all unique rotations for fallback
+const ALL_ROTATIONS = Array.from(new Set(Object.values(ROTATION_OPTIONS).flat())).sort();
+
+// ---------------------------------------------------------------------------
 // Block schedule
 // ---------------------------------------------------------------------------
 
@@ -423,10 +634,17 @@ export default function QuestionnaireForm() {
   // Part completeness
   // ---------------------------------------------------------------------------
 
+  // Clean rotation name: strip __OTHER__: prefix
+  const cleanRotationName = (name: string) => {
+    if (name.startsWith('__OTHER__:')) return name.replace('__OTHER__:', '').trim();
+    if (name === '__OTHER__') return ''; // "Other" selected but nothing typed
+    return name.trim();
+  };
+
   const isRotationComplete = useMemo(() => {
     const r = rotationCtx;
     return (
-      r.rotation_name.trim().length > 0 &&
+      cleanRotationName(r.rotation_name).length > 0 &&
       r.clinical_intensity !== null &&
       r.calls_count !== '' &&
       r.call_types.length > 0 &&
@@ -565,7 +783,7 @@ export default function QuestionnaireForm() {
         assessment_date: today,
 
         // Rotation context
-        rotation_name: rotationCtx.rotation_name.trim(),
+        rotation_name: cleanRotationName(rotationCtx.rotation_name),
         clinical_intensity: rotationCtx.clinical_intensity,
         calls_count: rotationCtx.calls_count,
         call_types: rotationCtx.call_types,
@@ -898,16 +1116,51 @@ export default function QuestionnaireForm() {
       <>
         <div style={styles.sectionHeader}>Rotation Context</div>
 
-        {/* Q1: Rotation name */}
+        {/* Q1: Rotation name — dropdown grouped by program + Other */}
         <div style={styles.card}>
           <div style={styles.questionText}>1. What rotation are you currently doing?</div>
-          <input
-            type="text"
-            value={rotationCtx.rotation_name}
-            onChange={(e) => setRotationCtx((p) => ({ ...p, rotation_name: e.target.value }))}
-            placeholder="e.g. General Medicine, ICU, Cardiology..."
+          <select
+            value={rotationCtx.rotation_name.startsWith('__OTHER__') ? '__OTHER__' : rotationCtx.rotation_name}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === '__OTHER__') {
+                setRotationCtx((p) => ({ ...p, rotation_name: '__OTHER__' }));
+              } else {
+                setRotationCtx((p) => ({ ...p, rotation_name: val }));
+              }
+            }}
             style={styles.input}
-          />
+          >
+            <option value="">-- Select rotation --</option>
+            {residentProfile?.program && ROTATION_OPTIONS[residentProfile.program] ? (
+              <>
+                <optgroup label={residentProfile.program}>
+                  {ROTATION_OPTIONS[residentProfile.program].map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Other Programs">
+                  {ALL_ROTATIONS.filter((r) => !ROTATION_OPTIONS[residentProfile.program!]?.includes(r)).map((r) => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </optgroup>
+              </>
+            ) : (
+              ALL_ROTATIONS.map((r) => (
+                <option key={r} value={r}>{r}</option>
+              ))
+            )}
+            <option value="__OTHER__">Other (specify below)</option>
+          </select>
+          {rotationCtx.rotation_name.startsWith('__OTHER__') && (
+            <input
+              type="text"
+              value={rotationCtx.rotation_name === '__OTHER__' ? '' : rotationCtx.rotation_name.replace('__OTHER__:', '')}
+              onChange={(e) => setRotationCtx((p) => ({ ...p, rotation_name: '__OTHER__:' + e.target.value }))}
+              placeholder="Enter rotation name..."
+              style={{ ...styles.input, marginTop: 8 }}
+            />
+          )}
         </div>
 
         {/* Q2: Clinical intensity */}
