@@ -174,7 +174,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <h3 style="margin:0 0 8px;font-size:14px;color:#991b1b">Support Resources</h3>
       <p style="font-size:13px;color:#333;margin:0 0 8px">Your scores suggest you may be experiencing significant stress. This is common among residents, and support is available:</p>
       <ul style="font-size:13px;line-height:1.8;color:#333;padding-left:20px;margin:0">
-        <li><strong>Aqlawiya</strong> — OMSB's confidential counseling service for residents. Free and accessible to all OMSB trainees.</li>
+        <li><strong>OMSB Resident Counseling</strong> — Free, confidential counseling available to all OMSB trainees.</li>
         <li><strong>Confidential Discussion</strong> — You can also discuss your concerns confidentially with the PI, <strong>Dr. Mohamed Al Rawahi</strong> (<a href="mailto:mrawahi@squ.edu.om" style="color:#0f766e">mrawahi@squ.edu.om</a>).</li>
         <li><strong>Peer Support</strong> — Talking to a trusted colleague or mentor can help. You are not alone.</li>
       </ul>
