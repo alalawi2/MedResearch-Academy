@@ -22,6 +22,7 @@ export default function ShiftStudyLogin() {
   const [specialty, setSpecialty] = useState('');
   const [residencyYear, setResidencyYear] = useState('');
   const [shiftType, setShiftType] = useState('');
+  const [trainingSite, setTrainingSite] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +47,7 @@ export default function ShiftStudyLogin() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !regEmail || !regPassword || !gender || !specialty || !residencyYear || !shiftType) {
+    if (!fullName || !regEmail || !regPassword || !gender || !specialty || !residencyYear || !shiftType || !trainingSite) {
       setError('Please fill in all fields');
       return;
     }
@@ -66,6 +67,7 @@ export default function ShiftStudyLogin() {
           specialty,
           residency_year: residencyYear,
           shift_type: shiftType,
+          training_site: trainingSite,
         }),
       });
       const result = await r.json();
@@ -249,13 +251,23 @@ export default function ShiftStudyLogin() {
                     <option value="Pediatrics">Pediatrics</option>
                   </select>
                 </div>
-                <div style={fieldGroup}>
-                  <label style={labelStyle}>Shift Type</label>
-                  <select value={shiftType} onChange={e => setShiftType(e.target.value)} style={selectStyle} required>
-                    <option value="">Select shift type...</option>
-                    <option value="24-hour on-call">24-hour on-call</option>
-                    <option value="12-hour night shift">12-hour night shift</option>
-                  </select>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 14 }}>
+                  <div style={fieldGroup}>
+                    <label style={labelStyle}>Training Site</label>
+                    <select value={trainingSite} onChange={e => setTrainingSite(e.target.value)} style={selectStyle} required>
+                      <option value="">Select...</option>
+                      <option value="Royal Hospital">Royal Hospital</option>
+                      <option value="SQUH">SQUH</option>
+                    </select>
+                  </div>
+                  <div style={fieldGroup}>
+                    <label style={labelStyle}>Shift Type</label>
+                    <select value={shiftType} onChange={e => setShiftType(e.target.value)} style={selectStyle} required>
+                      <option value="">Select...</option>
+                      <option value="24-hour on-call">24-hour on-call</option>
+                      <option value="12-hour night shift">12-hour night shift</option>
+                    </select>
+                  </div>
                 </div>
                 <button
                   type="submit"

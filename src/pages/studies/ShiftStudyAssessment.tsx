@@ -249,6 +249,28 @@ export default function ShiftStudyAssessment() {
     return opts.length <= 6 && maxLen <= 30;
   };
 
+  // CBI subsection headers — order_num 57=personal start, 63=work start, 70=client start
+  const CBI_SUBSECTIONS: Record<number, string> = {
+    57: 'Personal Burnout',
+    63: 'Work-Related Burnout',
+    70: 'Client-Related Burnout (Patient)',
+  };
+
+  const renderCBIHeader = (orderNum: number) => {
+    const label = CBI_SUBSECTIONS[orderNum];
+    if (!label) return null;
+    return (
+      <div key={`cbi-sub-${orderNum}`} style={{
+        background: '#f0f4f8', borderRadius: 10, padding: '10px 16px',
+        marginBottom: 12, marginTop: orderNum > 57 ? 20 : 0,
+        fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 700,
+        color: 'var(--primary)', borderLeft: '4px solid var(--primary)',
+      }}>
+        {label}
+      </div>
+    );
+  };
+
   const renderQuestion = (q: Question) => {
     const hasError = !!errors[q.id];
     const opts: string[] = Array.isArray(q.options_en) ? q.options_en.map(o => typeof o === 'object' && o !== null ? (o as any).label || (o as any).value || String(o) : String(o)) : [];
@@ -535,7 +557,12 @@ export default function ShiftStudyAssessment() {
                 </div>
               )}
 
-              {sectionQuestions.map(q => renderQuestion(q))}
+              {sectionQuestions.map(q => (
+                <div key={q.id}>
+                  {renderCBIHeader(q.order_num)}
+                  {renderQuestion(q)}
+                </div>
+              ))}
 
               {/* Navigation */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, paddingTop: 20, borderTop: '1px solid var(--border)' }}>

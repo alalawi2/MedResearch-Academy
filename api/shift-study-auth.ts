@@ -42,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const hash = hashPassword(password);
     const { data, error } = await supabase
       .from('shift_study_participants')
-      .select('id,email,full_name,gender,specialty,residency_year,shift_type,participant_id,role,status')
+      .select('id,email,full_name,gender,specialty,residency_year,shift_type,training_site,participant_id,role,status')
       .eq('email', email.toLowerCase().trim())
       .limit(1)
       .single();
@@ -66,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── REGISTER ──
   if (action === 'register') {
-    const { email, password, full_name, gender, specialty, residency_year, shift_type } = req.body;
+    const { email, password, full_name, gender, specialty, residency_year, shift_type, training_site } = req.body;
     if (!email || !password || !full_name) {
       return res.status(400).json({ error: 'Name, email, and password required' });
     }
@@ -112,11 +112,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         specialty,
         residency_year,
         shift_type,
+        training_site: training_site || null,
         participant_id: participantId,
         role: 'participant',
         status: 'active',
       })
-      .select('id,email,full_name,gender,specialty,residency_year,shift_type,participant_id,role,status')
+      .select('id,email,full_name,gender,specialty,residency_year,shift_type,training_site,participant_id,role,status')
       .single();
 
     if (error) return res.status(500).json({ error: error.message });
