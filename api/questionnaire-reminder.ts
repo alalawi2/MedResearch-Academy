@@ -160,20 +160,13 @@ function residentEmailHtml(
 ): string {
   const colors: Record<number, { bg: string; border: string; text: string }> = {
     1: { bg: '#0f766e', border: '#0d9488', text: 'Assessment Window Open' },
-    2: { bg: '#f59e0b', border: '#fbbf24', text: 'Friendly Reminder' },
-    3: { bg: '#ea580c', border: '#f97316', text: 'Action Required' },
-    4: { bg: '#dc2626', border: '#ef4444', text: 'Final Reminder — Coordinator Follow-up Next' },
+    2: { bg: '#0f766e', border: '#0d9488', text: 'Gentle Reminder' },
+    3: { bg: '#0f766e', border: '#0d9488', text: 'Friendly Reminder' },
+    4: { bg: '#0f766e', border: '#0d9488', text: 'Reminder' },
   };
   const style = colors[level] || colors[4];
 
-  const urgencyNote = level >= 3
-    ? `<p style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; color: #991b1b; font-weight: 600;">
-        ${level === 4
-          ? 'This is your final reminder. If not completed within 2 days, your program coordinator will be notified for follow-up.'
-          : `Your assessment is ${daysOverdue} days overdue. Please complete it at your earliest convenience.`
-        }
-      </p>`
-    : '';
+  const urgencyNote = '';
 
   const missingList = missingItems.map(i => `<li>${i}</li>`).join('');
 
@@ -462,10 +455,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         level === 1
           ? `OMSB Burnout Study — Block ${currentBlock.block} Assessment Now Open`
           : level === 2
-          ? `Reminder: Block ${currentBlock.block} Assessment — Please Complete`
+          ? `Gentle Reminder: Block ${currentBlock.block} Assessment`
           : level === 3
-          ? `Action Required: Block ${currentBlock.block} Assessment Overdue`
-          : `FINAL REMINDER: Block ${currentBlock.block} Assessment — Coordinator Follow-up Next`,
+          ? `Friendly Reminder: Block ${currentBlock.block} Assessment — We Need Your Input`
+          : `Reminder: Block ${currentBlock.block} Assessment — Your Input Matters`,
         residentEmailHtml(
           p.full_name || 'Participant',
           level,
