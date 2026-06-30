@@ -32,6 +32,7 @@ export interface ResidentProfile {
   auth_user_id: string | null;
   demographics_completed: boolean | null;
   baseline_completed: boolean | null;
+  phone: string | null;
 }
 
 interface AuthState {
@@ -65,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isResident = userType === 'resident';
 
   async function loadResidentProfile(userId: string, userEmail: string | undefined) {
-    const selectFields = 'id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed, baseline_completed';
+    const selectFields = 'id, study_id, study_participant_id, email, full_name, primary_site, pgy_level, program, enrollment_date, auth_user_id, demographics_completed, baseline_completed, phone';
 
     // First try by auth_user_id
     const { data: byId } = await supabase

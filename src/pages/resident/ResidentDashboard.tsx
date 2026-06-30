@@ -64,6 +64,10 @@ export default function ResidentDashboard() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [whoopStale, setWhoopStale] = useState(false);
   const [adherenceRank, setAdherenceRank] = useState<{ rank: number; total: number; pct: number } | null>(null);
+  const [showPhoneModal, setShowPhoneModal] = useState(false);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
   const [checkins, setCheckins] = useState<WeeklyCheckin[]>([]);
   const [assessments, setAssessments] = useState<BlockAssessment[]>([]);
   const [whoopHistory, setWhoopHistory] = useState<WhoopPullHistory[]>([]);
@@ -74,6 +78,10 @@ export default function ResidentDashboard() {
       return;
     }
     setStatus(`Profile loaded: ${residentProfile.study_participant_id}`);
+    // Check if phone is missing or needs confirmation
+    if (!residentProfile.phone || residentProfile.phone.trim().length < 6) {
+      setShowPhoneModal(true);
+    }
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [residentProfile]);
@@ -476,6 +484,70 @@ export default function ResidentDashboard() {
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
+
+  async function savePhone() {
+    if (!residentProfile) return;
+    const clean = phoneInput.trim().replace(/\s+/g, '');
+    if (clean.length < 8) { setPhoneError('Please enter a valid phone number'); return; }
+    setPhoneSaving(true);
+    setPhoneError('');
+    const { error } = await supabase
+      .from('burnout_participants')
+      .update({ phone: clean })
+      .eq('id', residentProfile.id);
+    setPhoneSaving(false);
+    if (error) { setPhoneError('Failed to save. Please try again.'); return; }
+    setShowPhoneModal(false);
+  }
+
+  // Phone confirmation modal — blocks dashboard until phone is provided
+  if (showPhoneModal) {
+    return (
+      <div style={{ maxWidth: 440, margin: '60px auto', padding: '0 16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+        <div style={{ background: 'white', borderRadius: 16, border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          <div style={{ background: '#0f766e', padding: '24px 20px', textAlign: 'center' }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>📱</div>
+            <h2 style={{ color: 'white', margin: 0, fontSize: 18 }}>Confirm Your Phone Number</h2>
+          </div>
+          <div style={{ padding: '24px 20px' }}>
+            <p style={{ fontSize: 14, color: '#333', lineHeight: 1.6 }}>
+              We need your mobile number so the study coordinators can reach you if needed.
+              This is <strong>confidential</strong> and will only be used by the research team.
+            </p>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#333', marginBottom: 6 }}>
+              Mobile Number
+            </label>
+            <input
+              type="tel"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              placeholder="e.g. 9XXXXXXX"
+              style={{
+                width: '100%', padding: '12px 14px', fontSize: 16, borderRadius: 8,
+                border: '1px solid #d1d5db', outline: 'none', boxSizing: 'border-box',
+              }}
+              autoFocus
+            />
+            {phoneError && <p style={{ color: '#dc2626', fontSize: 13, margin: '8px 0 0' }}>{phoneError}</p>}
+            <button
+              onClick={savePhone}
+              disabled={phoneSaving}
+              style={{
+                width: '100%', marginTop: 16, padding: '14px', fontSize: 16, fontWeight: 600,
+                background: phoneSaving ? '#94a3b8' : '#0f766e', color: 'white',
+                border: 'none', borderRadius: 8, cursor: phoneSaving ? 'wait' : 'pointer',
+              }}
+            >
+              {phoneSaving ? 'Saving...' : 'Confirm & Continue'}
+            </button>
+            <p style={{ fontSize: 11, color: '#999', textAlign: 'center', marginTop: 12 }}>
+              Your phone number is stored securely and used only for study follow-up.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 8px 40px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
