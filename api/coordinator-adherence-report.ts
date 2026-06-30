@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get all active participants with coordinator assignment
   const { data: parts } = await supabase
     .from('burnout_participants')
-    .select('id, full_name, email, coordinator_group, coordinator_name, coordinator_email, demographics_completed, baseline_completed')
+    .select('id, full_name, email, phone, coordinator_group, coordinator_name, coordinator_email, demographics_completed, baseline_completed')
     .eq('status', 'active')
     .neq('study_participant_id', 'RES-TEST')
     .not('coordinator_email', 'is', null)
@@ -67,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const lastPull = pull?.pulled_at ? new Date(pull.pulled_at) : null;
       const stale = !lastPull || (Date.now() - lastPull.getTime()) > 3 * 86400000;
       const formsDone = m.demographics_completed && m.baseline_completed;
-      return { name: m.full_name, email: m.email, pct, days, stale, formsDone };
+      return { name: m.full_name, email: m.email, phone: m.phone, pct, days, stale, formsDone };
     }).sort((a, b) => a.pct - b.pct);
 
     const needsAttention = memberData.filter(m => m.pct < 70 || m.stale || !m.formsDone);
@@ -82,6 +82,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const bgColor = flags.length > 0 ? '#fef2f2' : '';
       return `<tr style="background:${bgColor}">
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.name}</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.phone || '—'}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;color:${pctColor};font-weight:600">${m.pct}%</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.days}/25</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:11px;color:#dc2626">${flags.join(', ') || '-'}</td>
@@ -110,6 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <table style="width:100%;border-collapse:collapse;font-size:12px;margin:12px 0">
     <thead><tr style="background:#f0fdf4">
       <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Name</th>
+      <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Phone</th>
       <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">Adherence</th>
       <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">Days</th>
       <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Flags</th>
