@@ -849,7 +849,7 @@ export default function QuestionnaireForm() {
         major_life_event: rotationCtx.major_life_event === 'Yes',
         annual_leave: rotationCtx.annual_leave,
         sick_leave: rotationCtx.sick_leave,
-        pregnancy_status: rotationCtx.pregnancy_status || null,
+        pregnancy_status: rotationCtx.pregnancy_status === 'Yes' ? true : rotationCtx.pregnancy_status === 'No' ? false : null,
 
         // WHO-5
         who5_items: who5Items,
