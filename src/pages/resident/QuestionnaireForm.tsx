@@ -320,6 +320,38 @@ function getCurrentBlock(): CurrentBlockInfo | null {
   return null;
 }
 
+// Find past blocks since enrollment that the resident can still submit
+function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const enroll = new Date(enrollmentDate);
+  enroll.setHours(0, 0, 0, 0);
+  const currentYear = now.getFullYear();
+  const yearsToTry = [currentYear, currentYear - 1];
+  const results: CurrentBlockInfo[] = [];
+
+  for (const year of yearsToTry) {
+    for (const b of BLOCK_SCHEDULE) {
+      const { start, end } = getBlockDates(b, year);
+      // Block must have ended before today and started after (or during) enrollment
+      if (end < now && end >= enroll) {
+        results.push({
+          block: b.block,
+          label: b.label,
+          startDate: start,
+          endDate: end,
+          canSubmit: true,
+          submissionOpensDate: start,
+          daysUntilOpen: 0,
+        });
+      }
+    }
+  }
+  // Sort by block number
+  results.sort((a, b) => a.block - b.block);
+  return results;
+}
+
 function formatDateShort(d: Date): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
@@ -596,6 +628,10 @@ export default function QuestionnaireForm() {
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
+  // Missed blocks
+  const [missedBlocks, setMissedBlocks] = useState<CurrentBlockInfo[]>([]);
+  const [selectedMissedBlock, setSelectedMissedBlock] = useState<CurrentBlockInfo | null>(null);
+
   // Scores after submission
   const [who5Result, setWho5Result] = useState<WHO5Result | null>(null);
   const [cbiResult, setCbiResult] = useState<CBIResult | null>(null);
@@ -603,32 +639,56 @@ export default function QuestionnaireForm() {
   const [gad7Result, setGad7Result] = useState<GAD7Result | null>(null);
   const [isiResult, setIsiResult] = useState<ISIResult | null>(null);
 
-  const blockInfo = useMemo(() => getCurrentBlock(), []);
+  const currentBlock = useMemo(() => getCurrentBlock(), []);
 
-  // Check if already submitted for this block
+  // The active block: either a selected missed block or the current block
+  const blockInfo = selectedMissedBlock || currentBlock;
+
+  // Find missed blocks and check submission status
   useEffect(() => {
-    if (!residentProfile || !blockInfo) {
+    if (!residentProfile) {
       setCheckingStatus(false);
       return;
     }
 
-    const startISO = blockInfo.startDate.toISOString().slice(0, 10);
-    const endISO = blockInfo.endDate.toISOString().slice(0, 10);
+    async function checkBlocks() {
+      // Get all submitted block numbers for this resident
+      const { data: submitted } = await supabase
+        .from('block_assessments')
+        .select('block_number, assessment_date')
+        .eq('resident_id', residentProfile!.id)
+        .limit(100);
 
-    supabase
-      .from('block_assessments')
-      .select('id')
-      .eq('resident_id', residentProfile.id)
-      .gte('assessment_date', startISO)
-      .lte('assessment_date', endISO)
-      .limit(1)
-      .then(({ data, error: err }) => {
-        if (!err && data && data.length > 0) {
+      const submittedBlockNums = new Set(
+        (submitted ?? []).map(a => a.block_number).filter(Boolean)
+      );
+      // Also track date-range submissions (for baseline with null block_number)
+      const submittedDates = (submitted ?? []).map(a => a.assessment_date);
+
+      // Find missed blocks
+      const enrollDate = residentProfile!.enrollment_date
+        ? new Date(residentProfile!.enrollment_date)
+        : new Date('2026-04-01');
+      const pastBlocks = getPastBlocksSinceEnrollment(enrollDate);
+      const missed = pastBlocks.filter(b => !submittedBlockNums.has(b.block));
+      setMissedBlocks(missed);
+
+      // Check if current block is already submitted
+      if (currentBlock) {
+        const startISO = currentBlock.startDate.toISOString().slice(0, 10);
+        const endISO = currentBlock.endDate.toISOString().slice(0, 10);
+        const currentSubmitted = submittedDates.some(d => d >= startISO && d <= endISO)
+          || submittedBlockNums.has(currentBlock.block);
+        if (currentSubmitted) {
           setAlreadySubmitted(true);
         }
-        setCheckingStatus(false);
-      });
-  }, [residentProfile, blockInfo]);
+      }
+
+      setCheckingStatus(false);
+    }
+
+    checkBlocks();
+  }, [residentProfile, currentBlock]);
 
   // ---------------------------------------------------------------------------
   // Part completeness
@@ -715,16 +775,13 @@ export default function QuestionnaireForm() {
 
     try {
       const today = new Date().toISOString().slice(0, 10);
-      const startISO = blockInfo.startDate.toISOString().slice(0, 10);
-      const endISO = blockInfo.endDate.toISOString().slice(0, 10);
 
-      // Double-check duplicate
+      // Double-check duplicate by block_number (works for both current and missed blocks)
       const { data: existing } = await supabase
         .from('block_assessments')
         .select('id')
         .eq('resident_id', residentProfile.id)
-        .gte('assessment_date', startISO)
-        .lte('assessment_date', endISO)
+        .eq('block_number', blockInfo.block)
         .limit(1);
 
       if (existing && existing.length > 0) {
@@ -903,22 +960,78 @@ export default function QuestionnaireForm() {
     );
   }
 
-  if (!blockInfo) {
+  // Helper: missed blocks banner
+  function renderMissedBlocksBanner() {
+    if (missedBlocks.length === 0) return null;
     return (
-      <div style={styles.page}>
-        <button style={styles.backBtn} onClick={() => navigate('/resident/dashboard')}>
-          &larr; Back to Dashboard
-        </button>
-        <h1 style={styles.heading}>Block Assessment</h1>
-        <div style={styles.alert('info')}>
-          <strong>No active block.</strong> You are currently outside of a scheduled rotation block.
-          Assessments can only be completed during an active block period.
+      <div style={{ background: '#fef3cd', border: '1px solid #ffc107', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
+        <div style={{ fontWeight: 600, color: '#664d03', marginBottom: 8, fontSize: 15 }}>
+          You have {missedBlocks.length} missed block{missedBlocks.length > 1 ? 's' : ''} to complete
+        </div>
+        <p style={{ fontSize: 13, color: '#664d03', marginBottom: 12, lineHeight: 1.6 }}>
+          Please submit your assessment for the following past block{missedBlocks.length > 1 ? 's' : ''}. Your data is important for the study.
+        </p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {missedBlocks.map(mb => (
+            <button
+              key={mb.block}
+              type="button"
+              onClick={() => {
+                setSelectedMissedBlock(mb);
+                setAlreadySubmitted(false);
+                setCurrentPart(1);
+                setResponses({});
+                setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '' });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: selectedMissedBlock?.block === mb.block ? '2px solid #b45309' : '2px solid #ffc107',
+                background: selectedMissedBlock?.block === mb.block ? '#b45309' : 'white',
+                color: selectedMissedBlock?.block === mb.block ? 'white' : '#664d03',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+              }}
+            >
+              Block {mb.block} ({mb.label.split(': ')[1]})
+            </button>
+          ))}
         </div>
       </div>
     );
   }
 
-  if (!blockInfo.canSubmit && !alreadySubmitted) {
+  if (!blockInfo) {
+    // No current block AND no missed blocks
+    if (missedBlocks.length === 0) {
+      return (
+        <div style={styles.page}>
+          <button style={styles.backBtn} onClick={() => navigate('/resident/dashboard')}>
+            &larr; Back to Dashboard
+          </button>
+          <h1 style={styles.heading}>Block Assessment</h1>
+          <div style={styles.alert('info')}>
+            <strong>No active block.</strong> You are currently outside of a scheduled rotation block.
+            Assessments can only be completed during an active block period.
+          </div>
+        </div>
+      );
+    }
+    // Has missed blocks but no current block — let them pick a missed one
+    return (
+      <div style={styles.page}>
+        <button style={styles.backBtn} onClick={() => navigate('/resident/dashboard')}>
+          &larr; Back to Dashboard
+        </button>
+        <h1 style={styles.heading}>Block Assessment</h1>
+        {renderMissedBlocksBanner()}
+      </div>
+    );
+  }
+
+  if (!blockInfo.canSubmit && !alreadySubmitted && !selectedMissedBlock) {
     return (
       <div style={styles.page}>
         <button style={styles.backBtn} onClick={() => navigate('/resident/dashboard')}>
@@ -926,16 +1039,17 @@ export default function QuestionnaireForm() {
         </button>
         <h1 style={styles.heading}>Block Assessment</h1>
         <div style={styles.alert('info')}>
-          <strong>{blockInfo.label}</strong>
+          <strong>{currentBlock?.label}</strong>
           <br />
           The assessment opens from the 3rd week of each block.
-          It will be available on <strong>{formatDateShort(blockInfo.submissionOpensDate)}</strong> ({blockInfo.daysUntilOpen} days from now).
+          It will be available on <strong>{formatDateShort(currentBlock!.submissionOpensDate)}</strong> ({currentBlock!.daysUntilOpen} days from now).
         </div>
+        {renderMissedBlocksBanner()}
       </div>
     );
   }
 
-  if (alreadySubmitted && !submitted) {
+  if (alreadySubmitted && !submitted && !selectedMissedBlock) {
     return (
       <div style={styles.page}>
         <button style={styles.backBtn} onClick={() => navigate('/resident/dashboard')}>
@@ -943,8 +1057,9 @@ export default function QuestionnaireForm() {
         </button>
         <h1 style={styles.heading}>Block Assessment</h1>
         <div style={styles.alert('success')}>
-          <strong>Already completed.</strong> You have already submitted your assessment for {blockInfo.label}.
+          <strong>Already completed.</strong> You have already submitted your assessment for {currentBlock?.label || blockInfo.label}.
         </div>
+        {renderMissedBlocksBanner()}
       </div>
     );
   }
@@ -1442,12 +1557,28 @@ export default function QuestionnaireForm() {
       </button>
 
       {/* Block info */}
-      <div style={{ ...styles.alert('info'), marginBottom: 16 }}>
+      <div style={{ ...styles.alert(selectedMissedBlock ? 'warning' : 'info'), marginBottom: 16 }}>
         <strong>{blockInfo.label}</strong>
+        {selectedMissedBlock && (
+          <span style={{ marginLeft: 8, fontSize: 12, background: '#b45309', color: 'white', padding: '2px 8px', borderRadius: 4 }}>
+            Late Submission
+          </span>
+        )}
         <br />
         <span style={{ fontSize: 13 }}>
           {formatDateShort(blockInfo.startDate)} - {formatDateShort(blockInfo.endDate)} | End-of-Block Assessment
         </span>
+        {selectedMissedBlock && (
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => { setSelectedMissedBlock(null); setAlreadySubmitted(false); setCurrentPart(1); setResponses({}); }}
+              style={{ fontSize: 12, color: '#b45309', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+            >
+              Switch to current block
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Stepper */}
