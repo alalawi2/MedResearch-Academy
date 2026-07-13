@@ -23,9 +23,7 @@ CREATE TABLE IF NOT EXISTS shift_study_timepoints (
   participant_id uuid NOT NULL REFERENCES shift_study_participants(id),
   timepoint text NOT NULL CHECK (timepoint IN (
     'baseline',
-    'pre_shift_1','post_shift_1',
-    'pre_shift_2','post_shift_2',
-    'pre_shift_3','post_shift_3'
+    'pre_shift_1','post_shift_1'
   )),
   answers jsonb DEFAULT '{}',
   completed boolean DEFAULT false,

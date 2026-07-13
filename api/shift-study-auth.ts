@@ -14,8 +14,6 @@ function hashPassword(pw: string): string {
 const VALID_TIMEPOINTS = [
   'baseline',
   'pre_shift_1', 'post_shift_1',
-  'pre_shift_2', 'post_shift_2',
-  'pre_shift_3', 'post_shift_3',
 ];
 
 // Timepoint ordering: each requires its predecessor to be completed
@@ -23,10 +21,6 @@ const TIMEPOINT_PREREQS: Record<string, string | null> = {
   baseline: null,
   pre_shift_1: 'baseline',
   post_shift_1: 'pre_shift_1',
-  pre_shift_2: 'post_shift_1',
-  post_shift_2: 'pre_shift_2',
-  pre_shift_3: 'post_shift_2',
-  post_shift_3: 'pre_shift_3',
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
