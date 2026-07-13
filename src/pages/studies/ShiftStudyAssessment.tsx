@@ -34,12 +34,8 @@ const NASA_TLX_SECTION_ORDER = 9; // Section 9 = NASA-TLX
 
 const TIMEPOINT_LABELS: Record<string, string> = {
   baseline: 'Baseline Assessment',
-  pre_shift_1: 'Pre-Shift Assessment 1',
-  post_shift_1: 'Post-Shift Assessment 1',
-  pre_shift_2: 'Pre-Shift Assessment 2',
-  post_shift_2: 'Post-Shift Assessment 2',
-  pre_shift_3: 'Pre-Shift Assessment 3',
-  post_shift_3: 'Post-Shift Assessment 3',
+  pre_shift_1: 'Pre-Shift Assessment',
+  post_shift_1: 'Post-Shift Assessment',
 };
 
 function isPreShift(tp: string) { return tp.startsWith('pre_shift_'); }
@@ -283,7 +279,90 @@ export default function ShiftStudyAssessment() {
     );
   };
 
+  // Check if a question belongs to the NASA-TLX section
+  const isNasaTlxQuestion = (q: Question) => {
+    return q.section_id === sections.find(s => s.order_num === NASA_TLX_SECTION_ORDER)?.id;
+  };
+
+  // Extract left/right labels from NASA-TLX question text
+  const getNasaTlxLabels = (q: Question): { left: string; right: string } => {
+    // Performance is reversed: 1=Perfect, 21=Failure
+    if (q.question_en.startsWith('Performance:')) return { left: 'Perfect', right: 'Failure' };
+    return { left: 'Very Low', right: 'Very High' };
+  };
+
+  const renderNasaTlxSlider = (q: Question) => {
+    const hasError = !!errors[q.id];
+    const labels = getNasaTlxLabels(q);
+    const currentVal = answers[q.id] !== undefined && answers[q.id] !== '' ? Number(answers[q.id]) : null;
+    // Extract just the dimension name (e.g. "Mental Demand" from "Mental Demand: How mentally...")
+    const dimensionName = q.question_en.split(':')[0];
+    const description = q.question_en.split(':').slice(1).join(':').replace(/\s*\(.*\)\s*$/, '').trim();
+
+    return (
+      <div key={q.id} style={{ marginBottom: 24, padding: '20px 18px', borderRadius: 12, border: hasError ? '1px solid #fca5a5' : '1px solid var(--border)', background: hasError ? '#fef2f2' : '#fff' }}>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 15, color: 'var(--text)', marginBottom: 4, fontWeight: 600, lineHeight: 1.4 }}>
+          {dimensionName}{q.required && <span style={{ color: '#ef4444', marginLeft: 4 }}>*</span>}
+        </p>
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, lineHeight: 1.4 }}>
+          {description}
+        </p>
+
+        {/* Slider container */}
+        <div style={{ position: 'relative', padding: '0 4px' }}>
+          {/* Tick marks */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, padding: '0 6px' }}>
+            {Array.from({ length: 21 }).map((_, i) => (
+              <div key={i} style={{ width: 1, height: i % 5 === 0 ? 12 : 8, background: '#9ca3af' }} />
+            ))}
+          </div>
+
+          {/* Range input */}
+          <input
+            type="range"
+            min={1}
+            max={21}
+            step={1}
+            value={currentVal ?? 11}
+            onChange={e => setAnswer(q.id, Number(e.target.value))}
+            style={{
+              width: '100%',
+              height: 6,
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              background: currentVal !== null
+                ? `linear-gradient(to right, var(--primary) 0%, var(--primary) ${((currentVal - 1) / 20) * 100}%, #e5e7eb ${((currentVal - 1) / 20) * 100}%, #e5e7eb 100%)`
+                : '#e5e7eb',
+              borderRadius: 4,
+              outline: 'none',
+              cursor: 'pointer',
+              opacity: currentVal !== null ? 1 : 0.5,
+            }}
+          />
+
+          {/* Labels */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>{labels.left}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>{labels.right}</span>
+          </div>
+
+          {/* Current value display */}
+          {currentVal !== null && (
+            <div style={{ textAlign: 'center', marginTop: 8 }}>
+              <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600, fontFamily: 'var(--font-sans)' }}>{currentVal}</span>
+            </div>
+          )}
+        </div>
+
+        {hasError && <p style={{ color: '#ef4444', fontSize: 13, marginTop: 8, marginBottom: 0, fontFamily: 'var(--font-sans)' }}>{errors[q.id]}</p>}
+      </div>
+    );
+  };
+
   const renderQuestion = (q: Question) => {
+    // NASA-TLX questions use visual horizontal slider
+    if (isNasaTlxQuestion(q)) return renderNasaTlxSlider(q);
+
     const hasError = !!errors[q.id];
     const opts: string[] = Array.isArray(q.options_en) ? q.options_en.map(o => typeof o === 'object' && o !== null ? (o as any).label || (o as any).value || String(o) : String(o)) : [];
     const isButton = (q.type === 'radio' || q.type === 'likert') && useButtonStyle(opts);

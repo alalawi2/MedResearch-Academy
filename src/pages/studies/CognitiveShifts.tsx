@@ -143,8 +143,10 @@ export default function CognitiveShifts() {
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:20}}>
             {[
               {name:'Dr. Said Al Farsi',role:'Principal Investigator'},
-              {name:'Dr. Siham Al Shimli',role:'Co-Principal Investigator'},
-              {name:'Prof. Samir Al Adawi',role:'Research Supervisor'},
+              {name:'Dr. Ahmed Al Harrasi',role:'Co-Principal Investigator'},
+              {name:'Dr. Siham Al Shmali',role:'Co-Investigator'},
+              {name:'Prof. Samir Al-Adawi',role:'Co-Investigator'},
+              {name:'Dr. Mohammed Al Alawi',role:'Supervisor'},
             ].map(({name,role}) => (
               <div key={name} style={{background:'var(--bg-muted)',borderRadius:12,padding:'24px',border:'1px solid var(--border)',textAlign:'center'}}>
                 <div style={{width:56,height:56,background:'var(--primary)',color:'white',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px',fontSize:20,fontWeight:700}}>

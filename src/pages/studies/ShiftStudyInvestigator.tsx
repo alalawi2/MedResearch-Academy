@@ -24,16 +24,12 @@ interface TimepointRecord {
   completed_at: string | null;
 }
 
-const TIMEPOINTS = ['baseline', 'pre_shift_1', 'post_shift_1', 'pre_shift_2', 'post_shift_2', 'pre_shift_3', 'post_shift_3'];
+const TIMEPOINTS = ['baseline', 'pre_shift_1', 'post_shift_1'];
 
 const TIMEPOINT_LABELS: Record<string, string> = {
   baseline: 'Baseline',
-  pre_shift_1: 'Pre-1',
-  post_shift_1: 'Post-1',
-  pre_shift_2: 'Pre-2',
-  post_shift_2: 'Post-2',
-  pre_shift_3: 'Pre-3',
-  post_shift_3: 'Post-3',
+  pre_shift_1: 'Pre-Shift',
+  post_shift_1: 'Post-Shift',
 };
 
 export default function ShiftStudyInvestigator() {

@@ -29,16 +29,10 @@ const TIMEPOINTS = [
   { key: 'baseline', label: 'Baseline Assessment', description: 'All questionnaires (Demographics, STOP-BANG, rMEQ, WHO-5, PHQ-9, GAD-7, PSS, CBI) — ~20 min' },
   { key: 'pre_shift_1', label: 'Pre-Shift', description: 'Cognitive assessment via TestMyBrain — ~15 min' },
   { key: 'post_shift_1', label: 'Post-Shift', description: 'Nap/sleep questions + NASA-TLX workload survey — ~10 min' },
-  { key: 'pre_shift_2', label: 'Pre-Shift', description: 'Cognitive assessment via TestMyBrain — ~15 min' },
-  { key: 'post_shift_2', label: 'Post-Shift', description: 'Nap/sleep questions + NASA-TLX workload survey — ~10 min' },
-  { key: 'pre_shift_3', label: 'Pre-Shift', description: 'Cognitive assessment via TestMyBrain — ~15 min' },
-  { key: 'post_shift_3', label: 'Post-Shift', description: 'Nap/sleep questions + NASA-TLX workload survey — ~10 min' },
 ];
 
 const CYCLES = [
   { num: 1, pre: 'pre_shift_1', post: 'post_shift_1' },
-  { num: 2, pre: 'pre_shift_2', post: 'post_shift_2' },
-  { num: 3, pre: 'pre_shift_3', post: 'post_shift_3' },
 ];
 
 function getTimepointStatus(
@@ -56,10 +50,6 @@ const PREREQS: Record<string, string | null> = {
   baseline: null,
   pre_shift_1: 'baseline',
   post_shift_1: 'pre_shift_1',
-  pre_shift_2: 'post_shift_1',
-  post_shift_2: 'pre_shift_2',
-  pre_shift_3: 'post_shift_2',
-  post_shift_3: 'pre_shift_3',
 };
 
 function isTimepointLocked(key: string, timepointData: Timepoint[]): boolean {
@@ -246,7 +236,7 @@ export default function ShiftStudyDashboard() {
                 return (
                   <div key={cycle.num} style={{ marginBottom: 28, opacity: cycleLocked ? 0.5 : 1, transition: 'opacity 0.2s' }}>
                     <h3 style={{ fontFamily: 'var(--font-serif)', color: 'var(--primary)', fontSize: 16, marginBottom: 12, paddingBottom: 8, borderBottom: '2px solid var(--border)' }}>
-                      Shift Cycle {cycle.num}
+                      Shift Cycle
                     </h3>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                       {/* Step 2: Pre-Shift */}
