@@ -83,16 +83,16 @@ export default function ShiftStudyDashboard() {
     const p = JSON.parse(stored) as Participant;
     setParticipant(p);
 
-    if (!supabaseConfigured) { setLoading(false); return; }
-
     (async () => {
-      const { data } = await supabase
-        .from('shift_study_timepoints')
-        .select('id,participant_id,timepoint,completed,started_at,completed_at')
-        .eq('participant_id', p.id)
-        .limit(20);
-
-      if (data) setTimepointData(data as Timepoint[]);
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_my_timepoints', participant_id: p.id }),
+      });
+      if (r.ok) {
+        const result = await r.json();
+        if (result.timepoints) setTimepointData(result.timepoints as Timepoint[]);
+      }
       setLoading(false);
     })();
   }, [navigate]);

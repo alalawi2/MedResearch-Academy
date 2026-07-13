@@ -64,66 +64,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ participant: data });
   }
 
-  // ── REGISTER ──
-  if (action === 'register') {
-    const { email, password, full_name, gender, specialty, residency_year, shift_type, training_site } = req.body;
-    if (!email || !password || !full_name) {
-      return res.status(400).json({ error: 'Name, email, and password required' });
-    }
-
-    // Check if email already exists
-    const { data: existing } = await supabase
-      .from('shift_study_participants')
-      .select('id')
-      .eq('email', email.toLowerCase().trim())
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
-    // Generate participant ID
-    const { data: allIds } = await supabase
-      .from('shift_study_participants')
-      .select('participant_id')
-      .like('participant_id', 'CS-%')
-      .limit(1000);
-
-    let nextNum = 1;
-    if (allIds) {
-      for (const row of allIds) {
-        const match = row.participant_id?.match(/CS-(\d+)$/);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num >= nextNum) nextNum = num + 1;
-        }
-      }
-    }
-    const participantId = `CS-${String(nextNum).padStart(3, '0')}`;
-
-    const hash = hashPassword(password);
-    const { data, error } = await supabase
-      .from('shift_study_participants')
-      .insert({
-        email: email.toLowerCase().trim(),
-        password_hash: hash,
-        full_name,
-        gender,
-        specialty,
-        residency_year,
-        shift_type,
-        training_site: training_site || null,
-        participant_id: participantId,
-        role: 'participant',
-        status: 'active',
-      })
-      .select('id,email,full_name,gender,specialty,residency_year,shift_type,training_site,participant_id,role,status')
-      .single();
-
-    if (error) return res.status(500).json({ error: error.message });
-    return res.json({ participant: data });
-  }
-
   // ── VALIDATE TIMEPOINT (before saving assessment) ──
   if (action === 'validate_timepoint') {
     const { participant_id, timepoint } = req.body;
@@ -216,6 +156,104 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (error) return res.status(500).json({ error: error.message });
       return res.json({ id: data?.id });
     }
+  }
+
+  // ── GET CONFIG (authenticated participants) ──
+  if (action === 'get_config') {
+    const { participant_id } = req.body;
+    if (!participant_id) return res.status(400).json({ error: 'participant_id required' });
+
+    // Verify participant exists
+    const { data: caller } = await supabase
+      .from('shift_study_participants')
+      .select('id')
+      .eq('id', participant_id)
+      .single();
+    if (!caller) return res.status(403).json({ error: 'Invalid participant' });
+
+    const { data, error } = await supabase.from('shift_study_config').select('key,value').limit(50);
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ config: data });
+  }
+
+  // ── GET INVESTIGATOR DATA (investigator only) ──
+  if (action === 'get_investigator_data') {
+    const { participant_id } = req.body;
+    if (!participant_id) return res.status(400).json({ error: 'participant_id required' });
+
+    const { data: caller } = await supabase
+      .from('shift_study_participants')
+      .select('role')
+      .eq('id', participant_id)
+      .single();
+    if (!caller || caller.role !== 'investigator') {
+      return res.status(403).json({ error: 'Only investigators can access this data' });
+    }
+
+    const [participantsRes, timepointsRes] = await Promise.all([
+      supabase
+        .from('shift_study_participants')
+        .select('id,email,full_name,participant_id,role,specialty,residency_year,shift_type,created_at')
+        .order('created_at', { ascending: true })
+        .limit(500),
+      supabase
+        .from('shift_study_timepoints')
+        .select('id,participant_id,timepoint,completed,completed_at')
+        .limit(5000),
+    ]);
+
+    return res.json({
+      participants: participantsRes.data || [],
+      timepoints: timepointsRes.data || [],
+    });
+  }
+
+  // ── GET PARTICIPANT ANSWERS (investigator only) ──
+  if (action === 'get_participant_answers') {
+    const { participant_id, target_participant_id } = req.body;
+    if (!participant_id || !target_participant_id) {
+      return res.status(400).json({ error: 'participant_id and target_participant_id required' });
+    }
+
+    const { data: caller } = await supabase
+      .from('shift_study_participants')
+      .select('role')
+      .eq('id', participant_id)
+      .single();
+    if (!caller || caller.role !== 'investigator') {
+      return res.status(403).json({ error: 'Only investigators can access this data' });
+    }
+
+    const { data, error } = await supabase
+      .from('shift_study_timepoints')
+      .select('id,timepoint,answers,completed,completed_at')
+      .eq('participant_id', target_participant_id)
+      .limit(20);
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ timepoints: data || [] });
+  }
+
+  // ── GET OWN TIMEPOINTS (participant) ──
+  if (action === 'get_my_timepoints') {
+    const { participant_id } = req.body;
+    if (!participant_id) return res.status(400).json({ error: 'participant_id required' });
+
+    const { data: caller } = await supabase
+      .from('shift_study_participants')
+      .select('id')
+      .eq('id', participant_id)
+      .single();
+    if (!caller) return res.status(403).json({ error: 'Invalid participant' });
+
+    const { data, error } = await supabase
+      .from('shift_study_timepoints')
+      .select('id,participant_id,timepoint,answers,completed,started_at,completed_at')
+      .eq('participant_id', participant_id)
+      .limit(20);
+
+    if (error) return res.status(500).json({ error: error.message });
+    return res.json({ timepoints: data || [] });
   }
 
   // ── UPDATE CONFIG (investigator only) ──

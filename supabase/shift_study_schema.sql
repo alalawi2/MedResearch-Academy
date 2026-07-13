@@ -43,9 +43,7 @@ ALTER TABLE shift_study_timepoints ENABLE ROW LEVEL SECURITY;
 CREATE POLICY srv_ssp ON shift_study_participants FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE POLICY srv_sst ON shift_study_timepoints FOR ALL TO service_role USING (true) WITH CHECK (true);
 
--- Anon: read-only on all tables. All writes go through /api/shift-study-auth (service_role).
-CREATE POLICY anon_sel_ssp ON shift_study_participants FOR SELECT TO anon USING (true);
-CREATE POLICY anon_sel_sst ON shift_study_timepoints FOR SELECT TO anon USING (true);
+-- No anon access. All reads/writes go through /api/shift-study-auth (service_role).
 
 -- ── Config table (editable by investigator) ──
 CREATE TABLE IF NOT EXISTS shift_study_config (
@@ -56,5 +54,4 @@ CREATE TABLE IF NOT EXISTS shift_study_config (
 
 ALTER TABLE shift_study_config ENABLE ROW LEVEL SECURITY;
 CREATE POLICY srv_cfg ON shift_study_config FOR ALL TO service_role USING (true) WITH CHECK (true);
-CREATE POLICY anon_sel_cfg ON shift_study_config FOR SELECT TO anon USING (true);
--- Config writes go through /api/shift-study-auth (verifies investigator role)
+-- No anon access to config. All reads/writes go through /api/shift-study-auth.

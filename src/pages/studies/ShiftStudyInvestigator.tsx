@@ -38,7 +38,7 @@ const TIMEPOINT_LABELS: Record<string, string> = {
 
 export default function ShiftStudyInvestigator() {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<{ role: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; role: string } | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [timepoints, setTimepoints] = useState<TimepointRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,20 +62,16 @@ export default function ShiftStudyInvestigator() {
     if (!supabaseConfigured) { setLoading(false); return; }
 
     (async () => {
-      const [participantsRes, timepointsRes] = await Promise.all([
-        supabase
-          .from('shift_study_participants')
-          .select('id,email,full_name,participant_id,role,specialty,residency_year,shift_type,created_at')
-          .order('created_at', { ascending: true })
-          .limit(500),
-        supabase
-          .from('shift_study_timepoints')
-          .select('id,participant_id,timepoint,completed,completed_at')
-          .limit(5000),
-      ]);
-
-      if (participantsRes.data) setParticipants(participantsRes.data as Participant[]);
-      if (timepointsRes.data) setTimepoints(timepointsRes.data as TimepointRecord[]);
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_investigator_data', participant_id: p.id }),
+      });
+      if (r.ok) {
+        const result = await r.json();
+        setParticipants(result.participants as Participant[]);
+        setTimepoints(result.timepoints as TimepointRecord[]);
+      }
       setLoading(false);
     })();
   }, [navigate]);
@@ -101,15 +97,16 @@ export default function ShiftStudyInvestigator() {
     setExpandedId(participantId);
     setLoadingAnswers(true);
 
-    const { data } = await supabase
-      .from('shift_study_timepoints')
-      .select('id,timepoint,answers,completed,completed_at')
-      .eq('participant_id', participantId)
-      .limit(20);
+    const r = await fetch('/api/shift-study-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get_participant_answers', participant_id: currentUser?.id, target_participant_id: participantId }),
+    });
+    const result = r.ok ? await r.json() : { timepoints: [] };
 
     const answersMap: Record<string, unknown> = {};
-    if (data) {
-      for (const row of data) {
+    if (result.timepoints) {
+      for (const row of result.timepoints) {
         answersMap[row.timepoint] = {
           completed: row.completed,
           completed_at: row.completed_at,

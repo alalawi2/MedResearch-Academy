@@ -28,14 +28,20 @@ export default function ShiftStudyEditor() {
     if (p.role !== 'investigator') { navigate('/active-research/cognitive-shifts/dashboard'); return; }
     setParticipant(p);
 
-    if (!supabaseConfigured) { setLoading(false); return; }
     (async () => {
-      const { data } = await supabase.from('shift_study_config').select('key,value').limit(20);
-      if (data) {
-        const map: Record<string, string> = {};
-        (data as ConfigRow[]).forEach(r => { map[r.key] = r.value; });
-        setValues(map);
-        setOriginal(map);
+      const r = await fetch('/api/shift-study-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_config', participant_id: p.id }),
+      });
+      if (r.ok) {
+        const result = await r.json();
+        if (result.config) {
+          const map: Record<string, string> = {};
+          (result.config as ConfigRow[]).forEach(row => { map[row.key] = row.value; });
+          setValues(map);
+          setOriginal(map);
+        }
       }
       setLoading(false);
     })();

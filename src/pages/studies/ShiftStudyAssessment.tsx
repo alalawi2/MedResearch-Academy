@@ -73,11 +73,18 @@ export default function ShiftStudyAssessment() {
 
     (async () => {
       try {
-        const [sectionsRes, questionsRes, timepointRes, cfgRes] = await Promise.all([
+        // Survey structure (public) + shift study data (via API)
+        const [sectionsRes, questionsRes, timepointApiRes, cfgApiRes] = await Promise.all([
           supabase.from('survey_sections').select('id,title_en,description_en,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(100),
           supabase.from('survey_questions').select('id,section_id,question_en,type,options_en,required,order_num').eq('survey_id', SURVEY_ID).order('order_num').limit(500),
-          supabase.from('shift_study_timepoints').select('id,answers,completed').eq('participant_id', p.id).eq('timepoint', timepoint).limit(1),
-          supabase.from('shift_study_config').select('key,value').limit(20),
+          fetch('/api/shift-study-auth', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'get_my_timepoints', participant_id: p.id }),
+          }),
+          fetch('/api/shift-study-auth', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'get_config', participant_id: p.id }),
+          }),
         ]);
 
         if (sectionsRes.error || questionsRes.error) {
@@ -89,14 +96,19 @@ export default function ShiftStudyAssessment() {
         setSections(loadedSections);
         setQuestions(loadedQuestions);
 
-        if (cfgRes.data) {
-          const map: Record<string, string> = {};
-          cfgRes.data.forEach((r: any) => { map[r.key] = r.value; });
-          setConfig(map);
+        if (cfgApiRes.ok) {
+          const cfgResult = await cfgApiRes.json();
+          if (cfgResult.config) {
+            const map: Record<string, string> = {};
+            cfgResult.config.forEach((r: any) => { map[r.key] = r.value; });
+            setConfig(map);
+          }
         }
 
-        if (timepointRes.data && timepointRes.data.length > 0) {
-          const existing = timepointRes.data[0];
+        const timepointResult = timepointApiRes.ok ? await timepointApiRes.json() : { timepoints: [] };
+        const matchingTp = (timepointResult.timepoints || []).find((t: any) => t.timepoint === timepoint);
+        if (matchingTp) {
+          const existing = matchingTp;
           setExistingTimepointId(existing.id);
           if (existing.completed) setAlreadyCompleted(true);
           else if (existing.answers) {
