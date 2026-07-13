@@ -2,15 +2,22 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
 // ============================================================================
-// Questionnaire Escalation System
+// Unified Study Reminder & Report System
 // Schedule: Daily at 05:00 UTC (09:00 Oman time)
 //
-// 4-level escalation for overdue block assessments:
-//   Level 1 (Day 1):   Assessment window opens → invitation email
-//   Level 2 (Day 4):   Gentle reminder
-//   Level 3 (Day 8):   Firm reminder
-//   Level 4 (Day 12):  Final warning — next step is coordinator call
-//   Level 5 (Day 14+): Escalate to coordinators (Tamdaher, Aseel, Omar, Nuha)
+// Combines three former endpoints:
+//   1. Enrollment reminders (demographics + baseline)
+//   2. Current block assessment escalation (5-level)
+//   3. Missed past block reminders + coordinator/team reports
+//
+// Resident reminders:
+//   Enrollment: Day 3 gentle, Day 7 urgent
+//   Current block: 5-level escalation (Day 0→1→2→3→4→coordinator)
+//   Missed blocks: reminder with list of missed blocks
+//
+// Team reports:
+//   Daily enrollment summary (replaces daily-enrollment-report)
+//   Coordinator reports for missed blocks (grouped by coordinator)
 // ============================================================================
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
@@ -19,27 +26,35 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const CRON_SECRET = process.env.CRON_SECRET || SUPABASE_KEY;
 const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
-// Coordinators — each has an assigned group of residents
-// Escalation emails go to the resident's assigned coordinator only
-// CC: Tamadhir (psychometrics lead) + PI team
-const COORDINATOR_CC = [
-  'tamadhiralmahrouqi@gmail.com', // Dr. Tamadhir — psychometrics oversight
-  'dr.abdullahalalawi@gmail.com',  // Co-PI
-  'mrawahi@squ.edu.om',           // PI
+const TEAM_EMAILS = [
+  'dr.abdullahalalawi@gmail.com',
+  'mrawahi@squ.edu.om',
+  'masoud.kashoob@gmail.com',
+  'salim.sas1992@gmail.com',
+  'jhsm41191@gmail.com',
+  'dradil@squ.edu.om',
+  'tamadhiralmahrouqi@gmail.com',
+  'a.altoubi@squ.edu.om',
+  'nuhahabsi7@gmail.com',
+  'altaeiomar11@gmail.com',
+  'd.alaamri@squ.edu.om',
 ];
 
-// Research team always CC'd on all reminders
-const TEAM_EMAILS = ['dr.abdullahalalawi@gmail.com', 'mrawahi@squ.edu.om'];
+const PI_EMAILS = ['dr.abdullahalalawi@gmail.com', 'mrawahi@squ.edu.om'];
 
-// Master block schedule: 13 blocks of ~4 weeks each (OMSB academic year)
-// Assessment window opens week 3 (day 15). Coordinator escalation by week 4 (day 22).
-// MM-DD format; Block 5 crosses year boundary (Dec→Jan).
+const COORDINATOR_CC = [
+  'tamadhiralmahrouqi@gmail.com',
+  'dr.abdullahalalawi@gmail.com',
+  'mrawahi@squ.edu.om',
+];
+
+// Block schedule: 13 blocks of ~4 weeks each (OMSB academic year Sep-Aug)
 const BLOCK_DEFS = [
   { block: 1,  startMD: '09-01', endMD: '09-27' },
   { block: 2,  startMD: '09-28', endMD: '10-25' },
   { block: 3,  startMD: '10-27', endMD: '11-22' },
   { block: 4,  startMD: '11-23', endMD: '12-20' },
-  { block: 5,  startMD: '12-21', endMD: '01-17' }, // crosses year
+  { block: 5,  startMD: '12-21', endMD: '01-17' },
   { block: 6,  startMD: '01-18', endMD: '02-14' },
   { block: 7,  startMD: '02-15', endMD: '03-14' },
   { block: 8,  startMD: '03-15', endMD: '04-11' },
@@ -50,7 +65,11 @@ const BLOCK_DEFS = [
   { block: 13, startMD: '08-02', endMD: '08-31' },
 ];
 
-const ASSESSMENT_WINDOW_DAY = 15; // Window opens on day 15 of each block (week 3)
+const ASSESSMENT_WINDOW_DAY = 15;
+
+// ============================================================================
+// Types
+// ============================================================================
 
 interface Participant {
   id: string;
@@ -59,77 +78,81 @@ interface Participant {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  enrollment_date: string | null;
+  created_at: string;
   demographics_completed: boolean;
   baseline_completed: boolean;
+  whoop_user_id: string | null;
+  auth_user_id: string | null;
   coordinator_group: string | null;
   coordinator_name: string | null;
   coordinator_email: string | null;
 }
 
-interface ReminderRecord {
-  resident_id: string;
-  level: number;
-  created_at: string;
+interface BlockDates {
+  block: number;
+  start: Date;
+  end: Date;
+  label: string;
 }
 
-function getCurrentBlock(today: Date): { block: number; start: Date; end: Date; windowOpened: Date; daysOverdue: number } | null {
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1; // 1-12
+interface CurrentBlock extends BlockDates {
+  windowOpened: Date;
+  daysOverdue: number;
+}
 
-  // Determine the academic year: Sep-Aug cycle
-  // If we're in Jan-Aug, the academic year started the previous Sep
+// ============================================================================
+// Block helpers
+// ============================================================================
+
+function resolveAllBlocks(today: Date): BlockDates[] {
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
   const academicStartYear = month >= 9 ? year : year - 1;
+  const results: BlockDates[] = [];
 
   for (const b of BLOCK_DEFS) {
     const [sm, sd] = b.startMD.split('-').map(Number);
     const [em, ed] = b.endMD.split('-').map(Number);
-
-    // Resolve actual years for start and end
     let startYear = sm >= 9 ? academicStartYear : academicStartYear + 1;
     let endYear = em >= 9 ? academicStartYear : academicStartYear + 1;
-
-    // Block 5 special: Dec→Jan crosses year
-    if (sm === 12 && em === 1) {
-      startYear = academicStartYear;
-      endYear = academicStartYear + 1;
-    }
+    if (sm === 12 && em === 1) { startYear = academicStartYear; endYear = academicStartYear + 1; }
 
     const start = new Date(Date.UTC(startYear, sm - 1, sd));
     const end = new Date(Date.UTC(endYear, em - 1, ed));
-    const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+    const sl = start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    const el = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+    results.push({ block: b.block, start, end, label: `Block ${b.block}: ${sl} - ${el}` });
+  }
+  return results;
+}
 
-    if (todayUTC >= start && todayUTC <= end) {
-      const windowOpened = new Date(start);
+function getCurrentBlock(today: Date, allBlocks: BlockDates[]): CurrentBlock | null {
+  const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+
+  for (const b of allBlocks) {
+    if (todayUTC >= b.start && todayUTC <= b.end) {
+      const windowOpened = new Date(b.start);
       windowOpened.setUTCDate(windowOpened.getUTCDate() + ASSESSMENT_WINDOW_DAY);
-
       const daysOverdue = Math.floor((todayUTC.getTime() - windowOpened.getTime()) / (1000 * 60 * 60 * 24));
-
-      return {
-        block: b.block,
-        start,
-        end,
-        windowOpened,
-        daysOverdue,
-      };
+      return { ...b, windowOpened, daysOverdue };
     }
   }
   return null;
 }
 
-// Tighter timeline for 4-week blocks:
-// Day 0 (week 3 start): Window opens → invitation
-// Day 2: Gentle reminder
-// Day 4: Firm reminder + CC team
-// Day 6: Final warning — "coordinator will call you"
-// Day 7+ (week 4): Escalate to coordinators (Omar, Aseel, etc.)
 function getEscalationLevel(daysOverdue: number): number {
-  if (daysOverdue >= 7) return 5;  // Coordinator escalation (week 4)
-  if (daysOverdue >= 6) return 4;  // Final warning
-  if (daysOverdue >= 4) return 3;  // Firm reminder + CC team
-  if (daysOverdue >= 2) return 2;  // Gentle reminder
-  if (daysOverdue >= 0) return 1;  // Initial invitation
-  return 0; // Window not open yet
+  if (daysOverdue >= 7) return 5;
+  if (daysOverdue >= 6) return 4;
+  if (daysOverdue >= 4) return 3;
+  if (daysOverdue >= 2) return 2;
+  if (daysOverdue >= 0) return 1;
+  return 0;
 }
+
+// ============================================================================
+// Email sender
+// ============================================================================
 
 async function sendEmail(to: string[], subject: string, html: string, cc?: string[]) {
   const body: Record<string, unknown> = {
@@ -150,81 +173,9 @@ async function sendEmail(to: string[], subject: string, html: string, cc?: strin
   });
 }
 
-function residentEmailHtml(
-  name: string,
-  level: number,
-  blockNum: number,
-  daysOverdue: number,
-  loginUrl: string,
-  missingItems: string[],
-): string {
-  const colors: Record<number, { bg: string; border: string; text: string }> = {
-    1: { bg: '#0f766e', border: '#0d9488', text: 'Assessment Window Open' },
-    2: { bg: '#0f766e', border: '#0d9488', text: 'Gentle Reminder' },
-    3: { bg: '#0f766e', border: '#0d9488', text: 'Friendly Reminder' },
-    4: { bg: '#0f766e', border: '#0d9488', text: 'Reminder' },
-  };
-  const style = colors[level] || colors[4];
-
-  const urgencyNote = '';
-
-  const missingList = missingItems.map(i => `<li>${i}</li>`).join('');
-
-  return `<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
-<div style="background: ${style.bg}; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
-  <h1 style="color: white; margin: 0; font-size: 18px;">Block ${blockNum} — ${style.text}</h1>
-</div>
-<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
-  <p>Dear ${name},</p>
-  <p>The assessment window for <strong>Block ${blockNum}</strong> of the OMSB Resident Burnout Study is now open. We need your input to correlate with your WHOOP biophysical data.</p>
-  ${urgencyNote}
-  <p><strong>Outstanding items:</strong></p>
-  <ul style="line-height: 1.8;">${missingList}</ul>
-  <div style="text-align: center; margin: 24px 0;">
-    <a href="${loginUrl}" style="display: inline-block; background: ${style.bg}; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Complete Assessment</a>
-  </div>
-  <p style="font-size: 13px; color: #666;">Estimated time: 8-10 minutes. Your responses are confidential and used only for research purposes.</p>
-  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
-  <p style="font-size: 13px; color: #666;">OMSB Burnout Study Team — <a href="mailto:info@medresearch-academy.om" style="color: #0f766e;">info@medresearch-academy.om</a></p>
-</div></div>`;
-}
-
-function coordinatorEscalationHtml(
-  overdue: Array<{ pid: string; name: string; email: string | null; phone: string | null; daysOverdue: number; missing: string[] }>,
-  blockNum: number,
-): string {
-  // NOTE: Never include study_participant_id alongside names — use name + contact only for coordinators
-  const rows = overdue.map(r => `
-    <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${r.name}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.email || '—'}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.phone || '—'}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #dc2626; font-weight: 700;">${r.daysOverdue} days</td>
-    </tr>
-  `).join('');
-
-  return `<div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; color: #333;">
-<div style="background: #dc2626; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
-  <h1 style="color: white; margin: 0; font-size: 18px;">Questionnaire Escalation — Block ${blockNum}</h1>
-</div>
-<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
-  <p>The following residents have <strong>not completed</strong> their Block ${blockNum} assessment despite 3 email reminders. Please follow up with them directly (phone call or in-person).</p>
-  <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin: 16px 0;">
-    <thead>
-      <tr style="background: #f9fafb;">
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Email</th>
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Phone</th>
-        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Overdue</th>
-      </tr>
-    </thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <p style="font-size: 13px; color: #666;">Once the resident completes the assessment, they will automatically be removed from future reminders for this block.</p>
-  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
-  <p style="font-size: 13px; color: #666;">OMSB Burnout Study — Automated Escalation System</p>
-</div></div>`;
-}
+// ============================================================================
+// Email templates
+// ============================================================================
 
 function enrollmentReminderHtml(name: string, missing: string[], loginUrl: string, daysSinceEnrollment: number): string {
   const isUrgent = daysSinceEnrollment >= 7;
@@ -241,94 +192,204 @@ function enrollmentReminderHtml(name: string, missing: string[], loginUrl: strin
     <a href="${loginUrl}" style="display: inline-block; background: #0f766e; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Complete Setup</a>
   </div>
   <p style="font-size: 13px; color: #666;">Takes about 5 minutes. Your data is confidential.</p>
-  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
-  <p style="font-size: 13px; color: #666;">OMSB Burnout Study Team — <a href="mailto:info@medresearch-academy.om" style="color: #0f766e;">info@medresearch-academy.om</a></p>
 </div></div>`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function handleEnrollmentReminders(
-  supabase: any,
-  today: Date,
-): Promise<{ sent: number; skipped: number; details: Array<{ pid: string; action: string }> }> {
-  const loginUrl = `${SITE_URL}/resident/login`;
-  const details: Array<{ pid: string; action: string }> = [];
-  let sent = 0;
-
-  // Find participants with incomplete enrollment (demographics or baseline not done)
-  const { data: incomplete } = await supabase
-    .from('burnout_participants')
-    .select('id, study_id, study_participant_id, full_name, email, demographics_completed, baseline_completed, enrollment_date')
-    .eq('status', 'active')
-    .not('email', 'is', null)
-    .limit(1000);
-
-  if (!incomplete) return { sent: 0, skipped: 0, details };
-
-  for (const p of incomplete) {
-    if (p.demographics_completed && p.baseline_completed) continue; // All done
-
-    const enrollDate = p.enrollment_date ? new Date(p.enrollment_date) : new Date(p.created_at);
-    const daysSinceEnrollment = Math.floor((today.getTime() - enrollDate.getTime()) / (1000 * 60 * 60 * 24));
-
-    // Only send at day 3 and day 7 after enrollment
-    const shouldSendDay3 = daysSinceEnrollment >= 3 && daysSinceEnrollment < 7;
-    const shouldSendDay7 = daysSinceEnrollment >= 7;
-    if (!shouldSendDay3 && !shouldSendDay7) {
-      details.push({ pid: p.study_participant_id, action: 'too_early' });
-      continue;
-    }
-
-    const targetLevel = shouldSendDay7 ? 2 : 1;
-
-    // Check if we already sent this level for enrollment (block_number = 0 = enrollment)
-    const { data: existing } = await supabase
-      .from('questionnaire_reminders')
-      .select('id')
-      .eq('resident_id', p.id)
-      .eq('block_number', 0) // 0 = enrollment reminder
-      .eq('level', targetLevel)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      details.push({ pid: p.study_participant_id, action: 'already_sent' });
-      continue;
-    }
-
-    const missing: string[] = [];
-    if (!p.demographics_completed) missing.push('Demographics form (personal info, medical history, lifestyle)');
-    if (!p.baseline_completed) missing.push('Baseline assessment (WHO-5, CBI, PHQ-9, GAD-7, ISI)');
-
-    await sendEmail(
-      [p.email],
-      shouldSendDay7
-        ? 'OMSB Burnout Study — Please Complete Your Enrollment Forms'
-        : 'OMSB Burnout Study — Enrollment Setup Reminder',
-      enrollmentReminderHtml(p.full_name || 'Participant', missing, loginUrl, daysSinceEnrollment),
-      shouldSendDay7 ? TEAM_EMAILS : undefined,
-    );
-
-    await supabase
-      .from('questionnaire_reminders')
-      .insert({
-        study_id: p.study_id,
-        resident_id: p.id,
-        block_number: 0, // 0 = enrollment
-        level: targetLevel,
-        reminder_type: shouldSendDay7 ? 'enrollment_urgent' : 'enrollment_gentle',
-        sent_to: [p.email, ...(shouldSendDay7 ? TEAM_EMAILS : [])],
-        missing_items: missing,
-      });
-
-    sent++;
-    details.push({ pid: p.study_participant_id, action: `enrollment_level_${targetLevel}_sent` });
-  }
-
-  return { sent, skipped: details.filter(d => d.action === 'already_sent').length, details };
+function blockReminderHtml(name: string, level: number, blockNum: number, loginUrl: string, missingItems: string[]): string {
+  const style = { bg: '#0f766e', text: level === 1 ? 'Assessment Window Open' : level === 2 ? 'Gentle Reminder' : level === 3 ? 'Friendly Reminder' : 'Reminder' };
+  const missingList = missingItems.map(i => `<li>${i}</li>`).join('');
+  return `<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
+<div style="background: ${style.bg}; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+  <h1 style="color: white; margin: 0; font-size: 18px;">Block ${blockNum} — ${style.text}</h1>
+</div>
+<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
+  <p>Dear ${name},</p>
+  <p>The assessment window for <strong>Block ${blockNum}</strong> of the OMSB Resident Burnout Study is now open. We need your input to correlate with your WHOOP biophysical data.</p>
+  <p><strong>Outstanding items:</strong></p>
+  <ul style="line-height: 1.8;">${missingList}</ul>
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="${loginUrl}" style="display: inline-block; background: ${style.bg}; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Complete Assessment</a>
+  </div>
+  <p style="font-size: 13px; color: #666;">Estimated time: 8-10 minutes. Your responses are confidential and used only for research purposes.</p>
+</div></div>`;
 }
 
+function missedBlockReminderHtml(name: string, missedBlocks: BlockDates[], loginUrl: string): string {
+  const blockList = missedBlocks.map(b => `<li style="margin-bottom: 4px;"><strong>${b.label}</strong></li>`).join('');
+  return `<div style="font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; color: #333;">
+<div style="background: #b45309; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+  <h1 style="color: white; margin: 0; font-size: 18px;">Missed Block Assessment${missedBlocks.length > 1 ? 's' : ''}</h1>
+</div>
+<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
+  <p>Dear ${name},</p>
+  <p>You have not yet completed your end-of-block assessment for:</p>
+  <ul style="line-height: 1.8; color: #b45309;">${blockList}</ul>
+  <p>Your assessment data is essential for correlating with your WHOOP biophysical measurements. <strong>Late submissions are now enabled</strong> — please reflect on your experience during that rotation period when answering.</p>
+  <div style="text-align: center; margin: 24px 0;">
+    <a href="${loginUrl}" style="display: inline-block; background: #b45309; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Complete Assessment</a>
+  </div>
+  <p style="font-size: 13px; color: #666;">Estimated time: 8-10 minutes per block. Your responses are confidential.</p>
+</div></div>`;
+}
+
+function coordinatorEscalationHtml(
+  coordName: string,
+  currentBlockOverdue: Array<{ name: string; email: string | null; phone: string | null; daysOverdue: number }>,
+  missedBlockResidents: Array<{ name: string; phone: string | null; missedBlocks: string[] }>,
+  currentBlockNum: number | null,
+): string {
+  let sections = '';
+
+  if (currentBlockOverdue.length > 0 && currentBlockNum) {
+    const rows = currentBlockOverdue.map(r => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${r.name}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.phone || '-'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #dc2626; font-weight: 700;">${r.daysOverdue} days</td>
+      </tr>`).join('');
+
+    sections += `<h3 style="color: #dc2626; margin: 16px 0 8px;">Current Block ${currentBlockNum} — Overdue</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 16px;">
+      <thead><tr style="background: #f9fafb;">
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Phone</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Overdue</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  if (missedBlockResidents.length > 0) {
+    const rows = missedBlockResidents.map(r => `
+      <tr>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${r.name}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${r.phone || '-'}</td>
+        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; color: #b45309;">${r.missedBlocks.join(', ')}</td>
+      </tr>`).join('');
+
+    sections += `<h3 style="color: #b45309; margin: 16px 0 8px;">Missed Past Blocks</h3>
+    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+      <thead><tr style="background: #f9fafb;">
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Name</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Phone</th>
+        <th style="padding: 8px; text-align: left; border-bottom: 2px solid #e5e7eb;">Missed</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+
+  return `<div style="font-family: Arial, sans-serif; max-width: 700px; margin: 0 auto; color: #333;">
+<div style="background: #dc2626; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+  <h1 style="color: white; margin: 0; font-size: 18px;">Your Residents — Action Required</h1>
+</div>
+<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
+  <p>Dear ${coordName},</p>
+  <p>The following residents assigned to you need follow-up. Please contact them directly (phone or in-person).</p>
+  ${sections}
+  <p style="font-size: 13px; color: #666;">Once a resident completes their assessment, they are automatically removed from future reports.</p>
+</div></div>`;
+}
+
+function dailyTeamReportHtml(
+  today: string,
+  participants: Participant[],
+  submittedByResident: Map<string, Set<number>>,
+  allBlocks: BlockDates[],
+  currentBlock: CurrentBlock | null,
+): string {
+  const real = participants.filter(p => p.study_participant_id !== 'RES-TEST');
+  const total = real.length;
+  const whoopLinked = real.filter(p => p.whoop_user_id).length;
+  const demoComplete = real.filter(p => p.demographics_completed).length;
+  const baselineComplete = real.filter(p => p.baseline_completed).length;
+  const formsComplete = real.filter(p => p.demographics_completed && p.baseline_completed).length;
+  const incomplete = real.filter(p => !p.demographics_completed || !p.baseline_completed);
+
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const newToday = real.filter(p => p.enrollment_date === today);
+  const newYesterday = real.filter(p => p.enrollment_date === yesterday);
+
+  // Block completion summary
+  const todayUTC = new Date(today + 'T00:00:00Z');
+  const pastBlocks = allBlocks.filter(b => b.end < todayUTC);
+  let blockSummaryRows = '';
+  for (const b of pastBlocks) {
+    const eligible = real.filter(p => {
+      const enroll = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
+      return b.end >= enroll;
+    });
+    if (eligible.length === 0) continue;
+    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(b.block)).length;
+    const rate = Math.round((completed / eligible.length) * 100);
+    const color = rate >= 80 ? '#16a34a' : rate >= 50 ? '#d97706' : '#dc2626';
+    blockSummaryRows += `<tr>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${b.label}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;text-align:center;color:${color};font-weight:700">${completed}/${eligible.length} (${rate}%)</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;text-align:center;color:${eligible.length - completed > 0 ? '#dc2626' : '#16a34a'}">${eligible.length - completed}</td>
+    </tr>`;
+  }
+
+  if (currentBlock) {
+    const eligible = real.filter(p => {
+      const enroll = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
+      return currentBlock.start >= enroll || currentBlock.end >= enroll;
+    });
+    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(currentBlock.block)).length;
+    const rate = eligible.length > 0 ? Math.round((completed / eligible.length) * 100) : 0;
+    const windowOpen = currentBlock.daysOverdue >= 0;
+    blockSummaryRows += `<tr style="background:#f0f9ff;">
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;font-weight:600">${currentBlock.label} (current${windowOpen ? '' : ' — not yet open'})</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;text-align:center;font-weight:600">${completed}/${eligible.length} (${rate}%)</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;text-align:center">${eligible.length - completed}</td>
+    </tr>`;
+  }
+
+  // Incomplete enrollment list
+  const incompleteRows = incomplete.map(p => {
+    const missing = [];
+    if (!p.demographics_completed) missing.push('Demographics');
+    if (!p.baseline_completed) missing.push('Baseline');
+    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px">${p.full_name}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px">${p.phone || '-'}</td><td style="padding:4px 8px;border-bottom:1px solid #eee;font-size:12px;color:#dc2626">${missing.join(', ')}</td></tr>`;
+  }).join('');
+
+  return `<div style="font-family:Arial,sans-serif;max-width:750px;margin:0 auto;color:#333">
+<div style="background:#1e3a5f;padding:20px;border-radius:12px 12px 0 0;text-align:center">
+  <h1 style="color:white;margin:0;font-size:18px">Daily Study Report</h1>
+  <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:13px">OMSB Resident Burnout Study — ${today}</p>
+</div>
+<div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 12px 12px">
+
+<table style="width:100%;font-size:14px;margin-bottom:20px;border-collapse:collapse">
+  <tr>
+    <td style="padding:8px;background:#f0fdf4;border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:#0f766e">${total}</strong><br><span style="font-size:11px;color:#666">Enrolled</span></td>
+    <td style="padding:8px;background:#f0fdf4;border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:#0f766e">${whoopLinked}</strong><br><span style="font-size:11px;color:#666">WHOOP</span></td>
+    <td style="padding:8px;background:#f0fdf4;border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:#0f766e">${demoComplete}</strong><br><span style="font-size:11px;color:#666">Demo</span></td>
+    <td style="padding:8px;background:#f0fdf4;border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:#0f766e">${baselineComplete}</strong><br><span style="font-size:11px;color:#666">Baseline</span></td>
+    <td style="padding:8px;background:${incomplete.length > 0 ? '#fef2f2' : '#f0fdf4'};border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:${incomplete.length > 0 ? '#dc2626' : '#0f766e'}">${incomplete.length}</strong><br><span style="font-size:11px;color:#666">Incomplete</span></td>
+    <td style="padding:8px;background:${newToday.length > 0 ? '#fffbeb' : '#f0fdf4'};border-radius:8px;text-align:center;width:16%"><strong style="font-size:24px;color:#f59e0b">${newToday.length + newYesterday.length}</strong><br><span style="font-size:11px;color:#666">New (48h)</span></td>
+  </tr>
+</table>
+
+${blockSummaryRows ? `<h3 style="font-size:13px;color:#1e3a5f;margin:16px 0 8px">Block Assessment Completion</h3>
+<table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+<thead><tr style="background:#f0f9ff"><th style="padding:5px 8px;text-align:left;border-bottom:2px solid #bfdbfe;font-size:12px">Block</th><th style="padding:5px 8px;text-align:center;border-bottom:2px solid #bfdbfe;font-size:12px">Completed</th><th style="padding:5px 8px;text-align:center;border-bottom:2px solid #bfdbfe;font-size:12px">Missing</th></tr></thead>
+<tbody>${blockSummaryRows}</tbody></table>` : ''}
+
+${incomplete.length > 0 ? `<h3 style="font-size:13px;color:#dc2626;margin:16px 0 8px">Incomplete Enrollment (${incomplete.length})</h3>
+<table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+<thead><tr style="background:#fef2f2"><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Name</th><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Phone</th><th style="padding:5px 8px;text-align:left;border-bottom:1px solid #fecaca;font-size:12px">Missing</th></tr></thead>
+<tbody>${incompleteRows}</tbody></table>` : ''}
+
+<hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/>
+<p style="font-size:11px;color:#888">Automated daily report — OMSB Resident Burnout Study Platform</p>
+</div></div>`;
+}
+
+// ============================================================================
+// Handler
+// ============================================================================
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Auth
   const authHeader = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'];
   if (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY) {
     return res.status(401).json({ error: 'Unauthorized' });
@@ -339,246 +400,218 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   const today = new Date();
-  const currentBlock = getCurrentBlock(today);
-
-  // ── PART 1: Enrollment reminders (demographics + baseline) ──
-  // These are independent of block schedule. Remind 3 days and 7 days after enrollment.
-  const enrollmentResults = await handleEnrollmentReminders(supabase, today);
-
-  // ── PART 2: Block assessment reminders ──
-  if (!currentBlock) {
-    return res.json({
-      message: 'No active block — between rotation periods',
-      today: today.toISOString(),
-      enrollment_reminders: enrollmentResults,
-    });
-  }
-
-  if (currentBlock.daysOverdue < 0) {
-    return res.json({
-      message: `Block ${currentBlock.block} active but assessment window not yet open`,
-      windowOpens: currentBlock.windowOpened.toISOString().slice(0, 10),
-      daysUntilWindow: Math.abs(currentBlock.daysOverdue),
-      enrollment_reminders: enrollmentResults,
-    });
-  }
-
-  const level = getEscalationLevel(currentBlock.daysOverdue);
+  const todayStr = today.toISOString().slice(0, 10);
+  const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const allBlocks = resolveAllBlocks(today);
+  const currentBlock = getCurrentBlock(today, allBlocks);
+  const loginUrl = `${SITE_URL}/resident/login`;
 
   // Get all active participants
   const { data: participants } = await supabase
     .from('burnout_participants')
-    .select('id, study_id, study_participant_id, full_name, email, phone, demographics_completed, baseline_completed, coordinator_group, coordinator_name, coordinator_email')
+    .select('id, study_id, study_participant_id, full_name, email, phone, enrollment_date, created_at, demographics_completed, baseline_completed, whoop_user_id, auth_user_id, coordinator_group, coordinator_name, coordinator_email')
     .eq('status', 'active')
-    .not('email', 'is', null)
-    .limit(1000);
+    .limit(500);
 
   if (!participants || participants.length === 0) {
-    return res.json({ message: 'No active participants found' });
+    return res.json({ message: 'No active participants' });
   }
 
-  // Check who has already submitted block assessment for this block
-  const blockStart = currentBlock.start.toISOString().slice(0, 10);
-  const blockEnd = currentBlock.end.toISOString().slice(0, 10);
-
-  const { data: completedAssessments } = await supabase
+  // Get all submitted block assessments
+  const { data: allAssessments } = await supabase
     .from('block_assessments')
-    .select('resident_id')
-    .gte('assessment_date', blockStart)
-    .lte('assessment_date', blockEnd)
-    .limit(1000);
+    .select('resident_id, block_number')
+    .limit(5000);
 
-  const completedSet = new Set((completedAssessments ?? []).map(a => a.resident_id));
+  const submittedByResident = new Map<string, Set<number>>();
+  for (const a of (allAssessments ?? [])) {
+    if (a.block_number == null) continue;
+    if (!submittedByResident.has(a.resident_id)) submittedByResident.set(a.resident_id, new Set());
+    submittedByResident.get(a.resident_id)!.add(a.block_number);
+  }
 
-  // Check who has completed demographics & baseline
-  // (These are one-time, but if not done, we include them in missing items)
-
-  // Get existing reminders for this block to track escalation level already sent
+  // Get existing reminders to track escalation
   const { data: existingReminders } = await supabase
     .from('questionnaire_reminders')
-    .select('resident_id, level, created_at')
-    .eq('block_number', currentBlock.block)
-    .limit(1000);
+    .select('resident_id, block_number, level')
+    .limit(5000);
 
-  const maxLevelSent = new Map<string, number>();
-  for (const r of (existingReminders ?? []) as ReminderRecord[]) {
-    const current = maxLevelSent.get(r.resident_id) || 0;
-    if (r.level > current) maxLevelSent.set(r.resident_id, r.level);
-  }
-
-  const results: Array<{
-    pid: string;
-    name: string | null;
-    action: string;
-    level: number;
-  }> = [];
-
-  const escalateToCoordinators: Array<{
-    pid: string;
-    name: string;
-    email: string | null;
-    phone: string | null;
-    daysOverdue: number;
-    missing: string[];
-    coordinatorEmail: string | null;
-    coordinatorName: string | null;
-  }> = [];
-
-  const loginUrl = `${SITE_URL}/resident/login`;
-
-  for (const p of participants as Participant[]) {
-    // Skip if assessment already completed for this block
-    if (completedSet.has(p.id)) {
-      results.push({ pid: p.study_participant_id, name: p.full_name, action: 'completed', level: 0 });
-      continue;
-    }
-
-    // Determine what's missing
-    const missing: string[] = [];
-    if (!p.demographics_completed) missing.push('Demographics form');
-    if (!p.baseline_completed) missing.push('Baseline assessment');
-    missing.push(`Block ${currentBlock.block} questionnaire (CBI, PHQ-9, GAD-7, ISI, WHO-5)`);
-
-    // Check what level we already sent
-    const previousLevel = maxLevelSent.get(p.id) || 0;
-
-    // Only send if current escalation level > what we already sent
-    if (level <= previousLevel) {
-      results.push({ pid: p.study_participant_id, name: p.full_name, action: 'already_notified_this_level', level: previousLevel });
-      continue;
-    }
-
-    if (level <= 4 && p.email) {
-      // Send reminder email to resident
-      await sendEmail(
-        [p.email],
-        level === 1
-          ? `OMSB Burnout Study — Block ${currentBlock.block} Assessment Now Open`
-          : level === 2
-          ? `Gentle Reminder: Block ${currentBlock.block} Assessment`
-          : level === 3
-          ? `Friendly Reminder: Block ${currentBlock.block} Assessment — We Need Your Input`
-          : `Reminder: Block ${currentBlock.block} Assessment — Your Input Matters`,
-        residentEmailHtml(
-          p.full_name || 'Participant',
-          level,
-          currentBlock.block,
-          currentBlock.daysOverdue,
-          loginUrl,
-          missing,
-        ),
-        TEAM_EMAILS, // Always CC PI team on all reminders
-      );
-
-      // Log the reminder
-      await supabase
-        .from('questionnaire_reminders')
-        .insert({
-          study_id: p.study_id,
-          resident_id: p.id,
-          block_number: currentBlock.block,
-          level,
-          reminder_type: level <= 2 ? 'email_gentle' : level === 3 ? 'email_firm' : 'email_final',
-          sent_to: [p.email, ...TEAM_EMAILS],
-          missing_items: missing,
-        });
-
-      results.push({ pid: p.study_participant_id, name: p.full_name, action: `level_${level}_sent`, level });
-    }
-
-    if (level >= 5) {
-      // Collect for coordinator escalation — routes to assigned coordinator
-      escalateToCoordinators.push({
-        pid: p.study_participant_id,
-        name: p.full_name || 'Unknown',
-        email: p.email,
-        phone: p.phone,
-        daysOverdue: currentBlock.daysOverdue,
-        missing,
-        coordinatorEmail: p.coordinator_email,
-        coordinatorName: p.coordinator_name,
-      });
-    }
-  }
-
-  // Send coordinator escalation — grouped by assigned coordinator
-  if (escalateToCoordinators.length > 0) {
-    const todayStr = today.toISOString().slice(0, 10);
-    const { data: todayEscalations } = await supabase
-      .from('questionnaire_reminders')
-      .select('id')
-      .eq('block_number', currentBlock.block)
-      .eq('level', 5)
-      .gte('created_at', `${todayStr}T00:00:00Z`)
-      .limit(1);
-
-    if (!todayEscalations || todayEscalations.length === 0) {
-      // Group overdue residents by their assigned coordinator
-      const byCoordinator = new Map<string, typeof escalateToCoordinators>();
-      for (const r of escalateToCoordinators) {
-        const coordEmail = r.coordinatorEmail || 'unassigned';
-        if (!byCoordinator.has(coordEmail)) byCoordinator.set(coordEmail, []);
-        byCoordinator.get(coordEmail)!.push(r);
-      }
-
-      // Send one email per coordinator with only their assigned residents
-      for (const [coordEmail, residents] of Array.from(byCoordinator)) {
-        if (coordEmail === 'unassigned') continue;
-        const coordName = residents[0].coordinatorName || 'Coordinator';
-        await sendEmail(
-          [coordEmail],
-          `[ACTION REQUIRED] ${residents.length} Resident${residents.length > 1 ? 's' : ''} — Block ${currentBlock.block} Assessment Overdue`,
-          coordinatorEscalationHtml(residents, currentBlock.block),
-          COORDINATOR_CC,
-        );
-      }
-
-      // Log escalation for each resident
-      for (const r of escalateToCoordinators) {
-        const participant = participants.find(
-          (p: Participant) => p.study_participant_id === r.pid
-        ) as Participant | undefined;
-        if (participant) {
-          await supabase
-            .from('questionnaire_reminders')
-            .insert({
-              study_id: participant.study_id,
-              resident_id: participant.id,
-              block_number: currentBlock.block,
-              level: 5,
-              reminder_type: 'coordinator_escalation',
-              sent_to: [r.coordinatorEmail || '', ...COORDINATOR_CC],
-              missing_items: r.missing,
-            });
-        }
-      }
-
-      results.push(
-        ...escalateToCoordinators.map(r => ({
-          pid: r.pid,
-          name: r.name,
-          action: 'escalated_to_' + (r.coordinatorName || 'coordinator'),
-          level: 5,
-        })),
-      );
-    }
+  const maxLevelByResidentBlock = new Map<string, number>();
+  for (const r of (existingReminders ?? [])) {
+    const key = `${r.resident_id}:${r.block_number}`;
+    const current = maxLevelByResidentBlock.get(key) || 0;
+    if (r.level > current) maxLevelByResidentBlock.set(key, r.level);
   }
 
   const summary = {
-    checked_at: today.toISOString(),
-    enrollment_reminders: enrollmentResults,
-    block_assessment: {
-      block: currentBlock.block,
-      days_since_window_opened: currentBlock.daysOverdue,
-      escalation_level: level,
-      total_participants: participants.length,
-      completed: results.filter(r => r.action === 'completed').length,
-      reminders_sent: results.filter(r => r.action.startsWith('level_')).length,
-      already_notified: results.filter(r => r.action === 'already_notified_this_level').length,
-      escalated: results.filter(r => r.action === 'escalated_to_coordinators').length,
-      results,
-    },
+    date: todayStr,
+    enrollment_reminders: 0,
+    current_block_reminders: 0,
+    missed_block_reminders: 0,
+    coordinator_reports: 0,
   };
 
-  return res.json(summary);
+  // Per-coordinator data for combined report
+  const coordCurrentOverdue = new Map<string, Array<{ name: string; email: string | null; phone: string | null; daysOverdue: number }>>();
+  const coordMissedBlocks = new Map<string, Array<{ name: string; phone: string | null; missedBlocks: string[] }>>();
+  const coordNames = new Map<string, string>();
+
+  const pastBlocks = allBlocks.filter(b => b.end < todayUTC);
+
+  for (const p of participants as Participant[]) {
+    if (p.study_participant_id === 'RES-TEST') continue;
+    if (!p.email) continue;
+
+    const submitted = submittedByResident.get(p.id) || new Set();
+    const enrollDate = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
+
+    // ── PART 1: Enrollment reminders ──
+    if (!p.demographics_completed || !p.baseline_completed) {
+      const daysSinceEnrollment = Math.floor((today.getTime() - enrollDate.getTime()) / (1000 * 60 * 60 * 24));
+      const shouldSendDay3 = daysSinceEnrollment >= 3 && daysSinceEnrollment < 7;
+      const shouldSendDay7 = daysSinceEnrollment >= 7;
+
+      if (shouldSendDay3 || shouldSendDay7) {
+        const targetLevel = shouldSendDay7 ? 2 : 1;
+        const prevLevel = maxLevelByResidentBlock.get(`${p.id}:0`) || 0;
+
+        if (targetLevel > prevLevel) {
+          const missing: string[] = [];
+          if (!p.demographics_completed) missing.push('Demographics form (personal info, medical history, lifestyle)');
+          if (!p.baseline_completed) missing.push('Baseline assessment (WHO-5, CBI, PHQ-9, GAD-7, ISI)');
+
+          await sendEmail(
+            [p.email],
+            shouldSendDay7 ? 'OMSB Burnout Study — Please Complete Your Enrollment Forms' : 'OMSB Burnout Study — Enrollment Setup Reminder',
+            enrollmentReminderHtml(p.full_name || 'Participant', missing, loginUrl, daysSinceEnrollment),
+            shouldSendDay7 ? PI_EMAILS : undefined,
+          );
+
+          await supabase.from('questionnaire_reminders').insert({
+            study_id: p.study_id, resident_id: p.id, block_number: 0, level: targetLevel,
+            reminder_type: shouldSendDay7 ? 'enrollment_urgent' : 'enrollment_gentle',
+            sent_to: [p.email], missing_items: missing,
+          });
+          summary.enrollment_reminders++;
+        }
+      }
+    }
+
+    // ── PART 2: Current block assessment reminders ──
+    if (currentBlock && currentBlock.daysOverdue >= 0 && !submitted.has(currentBlock.block)) {
+      const level = getEscalationLevel(currentBlock.daysOverdue);
+      const prevLevel = maxLevelByResidentBlock.get(`${p.id}:${currentBlock.block}`) || 0;
+
+      if (level > prevLevel) {
+        const missing: string[] = [];
+        if (!p.demographics_completed) missing.push('Demographics form');
+        if (!p.baseline_completed) missing.push('Baseline assessment');
+        missing.push(`Block ${currentBlock.block} questionnaire (CBI, PHQ-9, GAD-7, ISI, WHO-5)`);
+
+        if (level <= 4) {
+          await sendEmail(
+            [p.email],
+            level === 1 ? `OMSB Burnout Study — Block ${currentBlock.block} Assessment Now Open`
+              : level === 2 ? `Gentle Reminder: Block ${currentBlock.block} Assessment`
+              : level === 3 ? `Friendly Reminder: Block ${currentBlock.block} Assessment — We Need Your Input`
+              : `Reminder: Block ${currentBlock.block} Assessment — Your Input Matters`,
+            blockReminderHtml(p.full_name || 'Participant', level, currentBlock.block, loginUrl, missing),
+            PI_EMAILS,
+          );
+          summary.current_block_reminders++;
+        }
+
+        if (level >= 5 && p.coordinator_email) {
+          const ce = p.coordinator_email;
+          if (!coordCurrentOverdue.has(ce)) coordCurrentOverdue.set(ce, []);
+          coordNames.set(ce, p.coordinator_name || 'Coordinator');
+          coordCurrentOverdue.get(ce)!.push({ name: p.full_name || 'Unknown', email: p.email, phone: p.phone, daysOverdue: currentBlock.daysOverdue });
+        }
+
+        await supabase.from('questionnaire_reminders').insert({
+          study_id: p.study_id, resident_id: p.id, block_number: currentBlock.block, level,
+          reminder_type: level <= 2 ? 'email_gentle' : level <= 4 ? 'email_firm' : 'coordinator_escalation',
+          sent_to: [p.email], missing_items: missing,
+        });
+      }
+    }
+
+    // ── PART 3: Missed past block reminders ──
+    const missedPast: BlockDates[] = [];
+    for (const b of pastBlocks) {
+      if (b.end >= enrollDate && !submitted.has(b.block)) {
+        missedPast.push(b);
+      }
+    }
+
+    if (missedPast.length > 0) {
+      // Only send missed block reminder once per day (check if we sent level 10 today)
+      const missedKey = `${p.id}:missed`;
+      const { data: todayMissed } = await supabase
+        .from('questionnaire_reminders')
+        .select('id')
+        .eq('resident_id', p.id)
+        .eq('reminder_type', 'missed_block')
+        .gte('created_at', `${todayStr}T00:00:00Z`)
+        .limit(1);
+
+      if (!todayMissed || todayMissed.length === 0) {
+        await sendEmail(
+          [p.email],
+          missedPast.length === 1
+            ? `OMSB Burnout Study — Please Complete Your ${missedPast[0].label} Assessment`
+            : `OMSB Burnout Study — You Have ${missedPast.length} Missed Block Assessments`,
+          missedBlockReminderHtml(p.full_name || 'Participant', missedPast, loginUrl),
+        );
+
+        await supabase.from('questionnaire_reminders').insert({
+          study_id: p.study_id, resident_id: p.id, block_number: missedPast[0].block, level: 10,
+          reminder_type: 'missed_block',
+          sent_to: [p.email], missing_items: missedPast.map(b => b.label),
+        });
+        summary.missed_block_reminders++;
+      }
+
+      // Collect for coordinator report
+      if (p.coordinator_email) {
+        const ce = p.coordinator_email;
+        if (!coordMissedBlocks.has(ce)) coordMissedBlocks.set(ce, []);
+        coordNames.set(ce, p.coordinator_name || 'Coordinator');
+        coordMissedBlocks.get(ce)!.push({
+          name: p.full_name || 'Unknown', phone: p.phone,
+          missedBlocks: missedPast.map(b => `Block ${b.block}`),
+        });
+      }
+    }
+  }
+
+  // ── Send coordinator reports ──
+  const allCoordEmails = new Set([...Array.from(coordCurrentOverdue.keys()), ...Array.from(coordMissedBlocks.keys())]);
+  for (const ce of Array.from(allCoordEmails)) {
+    const currentOverdue = coordCurrentOverdue.get(ce) || [];
+    const missed = coordMissedBlocks.get(ce) || [];
+    const coordName = coordNames.get(ce) || 'Coordinator';
+    const totalResidents = currentOverdue.length + missed.length;
+
+    await sendEmail(
+      [ce],
+      `[ACTION REQUIRED] ${totalResidents} Resident${totalResidents > 1 ? 's' : ''} — Outstanding Assessments`,
+      coordinatorEscalationHtml(coordName, currentOverdue, missed, currentBlock?.block || null),
+      COORDINATOR_CC,
+    );
+    summary.coordinator_reports++;
+  }
+
+  // ── Send daily team report ──
+  await sendEmail(
+    TEAM_EMAILS,
+    `Burnout Study — Daily Report (${todayStr})`,
+    dailyTeamReportHtml(todayStr, participants as Participant[], submittedByResident, allBlocks, currentBlock),
+  );
+
+  return res.json({
+    success: true,
+    ...summary,
+    current_block: currentBlock ? { block: currentBlock.block, daysOverdue: currentBlock.daysOverdue } : null,
+  });
 }

@@ -17,10 +17,6 @@
       "schedule": "0 5 * * *"
     },
     {
-      "path": "/api/daily-enrollment-report",
-      "schedule": "0 3 * * *"
-    },
-    {
       "path": "/api/whoop/daily-pull",
       "schedule": "30 3 * * *"
     },
@@ -31,10 +27,6 @@
     {
       "path": "/api/coordinator-adherence-report",
       "schedule": "0 3 * * 1"
-    },
-    {
-      "path": "/api/missed-block-reminder",
-      "schedule": "0 6 * * 0,3"
     }
   ],
   "functions": {
@@ -43,13 +35,11 @@
     "api/whoop/admin-pull.ts": { "maxDuration": 120 },
     "api/adherence-check.ts": { "maxDuration": 120 },
     "api/anomaly-detect.ts": { "maxDuration": 120 },
-    "api/questionnaire-reminder.ts": { "maxDuration": 120 },
-    "api/daily-enrollment-report.ts": { "maxDuration": 60 },
+    "api/questionnaire-reminder.ts": { "maxDuration": 300 },
     "api/whoop/daily-pull.ts": { "maxDuration": 300 },
     "api/weekly-shift-email.ts": { "maxDuration": 120 },
     "api/shift-log.ts": { "maxDuration": 10 },
     "api/coordinator-adherence-report.ts": { "maxDuration": 60 },
-    "api/missed-block-reminder.ts": { "maxDuration": 120 },
     "api/resident-block-summary.ts": { "maxDuration": 300 }
   },
   "rewrites": [
