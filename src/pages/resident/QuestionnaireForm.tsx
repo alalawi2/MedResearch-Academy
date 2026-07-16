@@ -1187,6 +1187,49 @@ export default function QuestionnaireForm() {
         <div style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 8 }}>
           Submitted on {new Date().toISOString().slice(0, 10)} | {residentProfile.study_participant_id} | {blockInfo.label}
         </div>
+
+        {/* Show remaining missed blocks so resident can continue */}
+        {missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 0 && (
+          <div style={{ background: '#fef3cd', border: '1px solid #ffc107', borderRadius: 12, padding: '16px 20px', marginTop: 24 }}>
+            <div style={{ fontWeight: 600, color: '#664d03', marginBottom: 8, fontSize: 15 }}>
+              You still have {missedBlocks.filter(mb => mb.block !== blockInfo.block).length} more missed block{missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 1 ? 's' : ''} to complete
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {missedBlocks.filter(mb => mb.block !== blockInfo.block).map(mb => (
+                <button
+                  key={mb.block}
+                  type="button"
+                  onClick={() => {
+                    setSelectedMissedBlock(mb);
+                    setSubmitted(false);
+                    setAlreadySubmitted(false);
+                    setCurrentPart(1);
+                    setResponses({});
+                    setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '' });
+                    setWho5Result(null);
+                    setCbiResult(null);
+                    setPhq9Result(null);
+                    setGad7Result(null);
+                    setIsiResult(null);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: 8,
+                    border: '2px solid #b45309',
+                    background: '#b45309',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Complete Block {mb.block} ({mb.label.split(': ')[1]}) →
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
