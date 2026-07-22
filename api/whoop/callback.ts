@@ -110,7 +110,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('burnout_participants')
         .select('id, study_participant_id')
         .eq('study_id', study.id)
-        .eq('email', whoopEmail)
+        .ilike('email', whoopEmail)
         .limit(1)
         .single();
       existing = existingByEmail;

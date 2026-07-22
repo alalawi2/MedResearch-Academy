@@ -106,11 +106,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       authUserId = authUser.user.id;
     }
 
-    // Check if participant already exists by email
+    // Check if participant already exists by email (case-insensitive)
     const { data: existing } = await supabase
       .from('burnout_participants')
       .select('id, study_participant_id')
-      .eq('email', email.trim().toLowerCase())
+      .ilike('email', email.trim())
       .limit(1)
       .single();
 

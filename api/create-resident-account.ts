@@ -51,7 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { data: byEmail } = await supabase
       .from('burnout_participants')
       .select('id, auth_user_id')
-      .eq('email', normalizedEmail)
+      .ilike('email', normalizedEmail)
       .limit(1)
       .single();
     participant = byEmail;
