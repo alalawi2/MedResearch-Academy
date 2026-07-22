@@ -966,10 +966,10 @@ export default function QuestionnaireForm() {
     return (
       <div style={{ background: '#fef3cd', border: '1px solid #ffc107', borderRadius: 12, padding: '16px 20px', marginBottom: 20 }}>
         <div style={{ fontWeight: 600, color: '#664d03', marginBottom: 8, fontSize: 15 }}>
-          You have {missedBlocks.length} missed block{missedBlocks.length > 1 ? 's' : ''} to complete
+          You have {missedBlocks.length} previous block{missedBlocks.length > 1 ? 's' : ''} to complete
         </div>
         <p style={{ fontSize: 13, color: '#664d03', marginBottom: 12, lineHeight: 1.6 }}>
-          Please submit your assessment for the following past block{missedBlocks.length > 1 ? 's' : ''}. Your data is important for the study.
+          Please submit your assessment for the following block{missedBlocks.length > 1 ? 's' : ''}. Your data is important for the study.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {missedBlocks.map(mb => (
@@ -1192,7 +1192,7 @@ export default function QuestionnaireForm() {
         {missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 0 && (
           <div style={{ background: '#fef3cd', border: '1px solid #ffc107', borderRadius: 12, padding: '16px 20px', marginTop: 24 }}>
             <div style={{ fontWeight: 600, color: '#664d03', marginBottom: 8, fontSize: 15 }}>
-              You still have {missedBlocks.filter(mb => mb.block !== blockInfo.block).length} more missed block{missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 1 ? 's' : ''} to complete
+              You still have {missedBlocks.filter(mb => mb.block !== blockInfo.block).length} more previous block{missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 1 ? 's' : ''} to complete
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {missedBlocks.filter(mb => mb.block !== blockInfo.block).map(mb => (
@@ -1600,11 +1600,11 @@ export default function QuestionnaireForm() {
       </button>
 
       {/* Block info */}
-      <div style={{ ...styles.alert(selectedMissedBlock ? 'warning' : 'info'), marginBottom: 16 }}>
+      <div style={{ ...styles.alert('info'), marginBottom: 16 }}>
         <strong>{blockInfo.label}</strong>
         {selectedMissedBlock && (
-          <span style={{ marginLeft: 8, fontSize: 12, background: '#b45309', color: 'white', padding: '2px 8px', borderRadius: 4 }}>
-            Late Submission
+          <span style={{ marginLeft: 8, fontSize: 12, background: '#0f766e', color: 'white', padding: '2px 8px', borderRadius: 4 }}>
+            Previous Block
           </span>
         )}
         <br />
