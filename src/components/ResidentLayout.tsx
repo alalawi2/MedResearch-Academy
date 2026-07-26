@@ -341,6 +341,11 @@ export default function ResidentLayout() {
     );
   }
 
+  // Staff members who land on resident pages → redirect to admin dashboard
+  if (!residentProfile && staff) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (!residentProfile) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-muted)', padding: 24 }}>
