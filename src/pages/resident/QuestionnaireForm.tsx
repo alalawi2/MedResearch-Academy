@@ -885,9 +885,18 @@ export default function QuestionnaireForm() {
       };
 
       // Submit via server API (service role bypasses RLS)
-      const session = await supabase.auth.getSession();
+      // Try to refresh session if expired
+      let session = await supabase.auth.getSession();
+      if (!session.data.session?.access_token) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        session = { data: { session: refreshed.session } } as typeof session;
+      }
       const token = session.data.session?.access_token;
-      if (!token) { setError('No active session. Please log in again.'); return; }
+      if (!token) {
+        setError('Your session has expired. Please log out and log in again, then re-submit.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
 
       const apiRes = await fetch('/api/submit-block-assessment', {
         method: 'POST',
@@ -929,12 +938,20 @@ export default function QuestionnaireForm() {
 
       const result = await apiRes.json();
       if (!apiRes.ok && apiRes.status !== 207) {
-        setError(result.error || 'Failed to save assessment. Please try again.');
+        const msg = result.error || 'Failed to save assessment. Please try again.';
+        setError(msg);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Also alert on mobile so they can't miss it
+        alert('Submission failed: ' + msg);
       } else {
         setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'An unexpected error occurred.');
+      const msg = e instanceof Error ? e.message : 'An unexpected error occurred.';
+      setError(msg);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      alert('Submission failed: ' + msg);
     } finally {
       setSubmitting(false);
     }
@@ -1644,10 +1661,23 @@ export default function QuestionnaireForm() {
         {currentPartDef.icon} {currentPartDef.title}
       </h1>
 
-      {/* Error */}
+      {/* Error — sticky banner so it's visible on mobile */}
       {error && (
-        <div style={styles.alert('warning')}>
-          <strong>Error:</strong> {error}
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 100,
+          background: '#dc2626', color: 'white', padding: '14px 20px',
+          borderRadius: 12, marginBottom: 16, fontSize: 15, lineHeight: 1.5,
+          boxShadow: '0 4px 12px rgba(220,38,38,0.3)',
+        }}>
+          <strong>Submission Failed</strong>
+          <div style={{ fontSize: 13, marginTop: 4 }}>{error}</div>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            style={{ position: 'absolute', top: 8, right: 12, background: 'none', border: 'none', color: 'white', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}
+          >
+            &times;
+          </button>
         </div>
       )}
 
