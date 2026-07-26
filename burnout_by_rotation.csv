@@ -1,0 +1,60 @@
+participant_id,name,sex,pgy_level,program,block,rotation,calls_count,weekly_hours,clinical_intensity,cbi_personal,cbi_work,cbi_patient,phq9,gad7,isi,who5_raw,major_life_event
+RES-003,Maryam Araimi,Female,R2,Internal Medicine,11,Internal Medicine,7,40-60hrs,3,20.8,46.4,25,4,1,1,20,true
+RES-002,Yasser Al Khabori,Male,R2,General Surgery,11,Pediatric Surgery,5,60-80hrs,8,50,32.1,4.2,4,1,12,13,true
+RES-001,Omar  Al taei,Male,R1,Internal Medicine,11,Internal Medicine,7,40-60hrs,9,45.8,39.3,25,3,2,12,17,false
+RES-011,Nasra Al Jahwari,Female,R4,Psychiatry,11,General Adult Psychiatry,4,40-60hrs,6,66.7,75,62.5,13,9,15,8,true
+RES-010,Noor Al Badi,Female,R2,General Surgery,11,General Surgery,4,60-80hrs,6,70.8,64.3,25,15,11,15,6,true
+RES-031,Abdulrahman  Almirza,Male,R2,Emergency Medicine,11,Emergency Department,0,40-60hrs,7,37.5,25,16.7,1,1,9,14,false
+RES-016,Zainab AlBalushi,Female,R3,ENT,11,Otology,6,60-80hrs,3,58.3,50,45.8,6,5,10,10,false
+RES-029,Said Al Farsi,Male,R3,Psychiatry,11,Child & Adolescent Psychiatry,2,<40hrs,4,45.8,32.1,37.5,4,0,1,11,false
+RES-043,Mohammed AlHashmi,Male,R1,Radiology,11,Radiology,4,40-60hrs,6,33.3,42.9,50,3,5,12,15,false
+RES-052,Zahra Alrashdy,Female,R2,Anesthesia,11,Anesthesia,3,40-60hrs,4,75,71.4,62.5,16,11,14,7,false
+RES-039,Tariq Ali,Male,R1,Radiology,11,General Radiology,4,40-60hrs,7,25,25,0,2,0,11,11,false
+RES-028,Saniha  Malik ,Female,R3,Family Medicine,11,ICU / Critical Care,4,40-60hrs,8,29.2,46.4,20.8,4,3,9,13,true
+RES-018,Ibrahim  Al Abri ,Male,R1,Internal Medicine,11,General Medicine / CTU,8,40-60hrs,8,54.2,50,41.7,5,5,6,10,false
+RES-033,Buthaina -,Female,R2,Internal Medicine,11,Acute medicine,5,60-80hrs,10,62.5,78.6,54.2,7,18,18,10,true
+RES-037,Yaqeen Albusaidi,Female,R1,Internal Medicine,11,ICU / Critical Care,5,40-60hrs,5,37.5,39.3,62.5,5,5,10,17,false
+RES-026,Laila  Khalifa,Female,R3,Internal Medicine,11,Research,0,<40hrs,1,25,32.1,0,4,5,7,22,false
+RES-004,Marwa Al Mirza,Female,R2,General Surgery,11,Radiology,0,<40hrs,1,0,21.4,0,27,21,15,11,false
+RES-047,Noor Alkaabi,Female,R2,Internal Medicine,11,Research block,0,<40hrs,1,25,14.3,25,3,1,5,16,false
+RES-019,Mohammed Alabri,Male,R1,Internal Medicine,11,Emergency Medicine,0,<40hrs,6,62.5,50,62.5,7,7,11,14,false
+RES-023,Zainab Zeedi,Female,R3,Psychiatry,11,Geriatric Psychiatry,3,40-60hrs,7,58.3,57.1,58.3,8,13,15,12,false
+RES-015,Mohammed Al Lawati,Male,R3,Pediatrics,11,Pediatrics,5,60-80hrs,6,66.7,57.1,4.2,7,10,10,5,true
+RES-059,Taif Saud ,Female,R2,Internal Medicine,11,Internal Medicine,8,40-60hrs,8,75,57.1,33.3,13,19,13,8,true
+RES-055,Maiyan  Al Hinai,Female,R1,General Surgery,11,Vascular Surgery,6,60-80hrs,7,41.7,28.6,25,2,2,3,13,false
+RES-027,Nouf Alkharusi,Female,R1,ENT,11,ICU / Critical Care,3,<40hrs,3,20.8,14.3,25,1,0,1,19,false
+RES-035,Fatema Al,Female,R1,Internal Medicine,11,General Medicine / CTU,8,<40hrs,7,25,25,0,7,0,9,14,false
+RES-034,Asmaa Almamari,Female,R1,Emergency Medicine,11,Emergency Department,0,40-60hrs,8,66.7,46.4,50,8,5,11,8,true
+RES-063,Kawther Al Rashdi ,Female,R3,Anesthesia,11,Anesthesia,2,40-60hrs,7,50,60.7,41.7,9,11,13,16,false
+RES-017,Ahmed Al-Kalbani,Male,R1,General Surgery,11,Vascular Surgery,4,60-80hrs,6,58.3,50,41.7,3,5,8,9,false
+RES-014,Tuqa  Al Shidhani ,Female,R1,Neurology,11,Neurology boot camp,0,<40hrs,5,12.5,14.3,16.7,7,3,10,14,false
+RES-030,Anan AlJabri,Female,R4,Internal Medicine,11,Rheumatology,2,<40hrs,5,45.8,42.9,12.5,4,4,7,12,false
+RES-025,Zahra  Albaluhsi ,Female,R3,Internal Medicine,11,CCU / Coronary Care,4,<40hrs,5,37.5,3.6,4.2,7,14,14,17,false
+RES-013,Noor Al Wahaibi,Female,R4,Internal Medicine,11,Internal Medicine,4,40-60hrs,7,37.5,28.6,37.5,4,1,1,19,false
+RES-060,Maitham Al Lawati,Male,R1,Pediatrics,11,General Pediatrics,4,40-60hrs,7,41.7,28.6,16.7,1,5,5,18,false
+RES-046,Dana B,Female,R1,General Surgery,11,General Surgery,5,60-80hrs,8,29.2,42.9,25,3,4,4,11,false
+RES-024,Abdulrahim Al Breiki,Male,R1,Orthopedics,11,ICU / Critical Care,3,<40hrs,7,8.3,10.7,37.5,2,0,5,15,false
+RES-056,Amal Al-makhmari,Female,R1,Emergency Medicine,11,Emergency Department,0,40-60hrs,10,29.2,21.4,16.7,4,0,2,20,false
+RES-040,Muzna AlHinai,Female,R1,ENT,11,Infectious Disease,4,40-60hrs,8,33.3,53.6,8.3,2,15,6,7,false
+RES-032,Safiya Al Kharusi,Female,R5,General Surgery,11,General Surgery,5,40-60hrs,7,50,53.6,54.2,3,5,11,11,true
+RES-020,Abdallah Al -Jabri,Male,R1,Internal Medicine,11,General Medicine / CTU,4,40-60hrs,7,66.7,57.1,29.2,5,5,9,17,false
+RES-048,Almohanad Aljulandani,Male,R2,Emergency Medicine,11,Emergency Department,0,<40hrs,5,50,50,50,5,6,14,15,false
+RES-008,Awab Alnaabi,Male,R1,Internal Medicine,10,General Medicine / CTU,7,40-60hrs,7,45.8,53.6,33.3,5,2,7,10,false
+RES-068,Shihab  Al-Kindi,Male,R3,Internal Medicine,11,Internal Medicine,7,40-60hrs,7,50,57.1,45.8,10,7,13,11,false
+RES-067,Nooh  Albakri ,Male,R1,Internal Medicine,11,General Medicine / CTU,7,40-60hrs,4,45.8,46.4,41.7,1,0,8,20,true
+RES-051,Majan Al Siyabi,Female,R4,Pediatrics,11,On leave,0,<40hrs,1,50,60.7,75,6,5,5,19,true
+RES-007,Al-Salt Al kharusi,Male,R4,General Surgery,11,Trauma Surgery,6,60-80hrs,10,75,57.1,41.7,12,13,22,11,false
+RES-049,Adnan Al Baloshi,Male,R2,ENT,11,ENT,5,60-80hrs,8,8.3,25,25,26,14,3,15,false
+RES-038,Malak Almusalhi,Female,R2,Ophthalmology,11,Anterior segment,2,40-60hrs,8,29.2,17.9,20.8,1,4,1,15,true
+RES-036,Safa Al Abadi,Female,R1,Pediatrics,11,Ophthalmology,0,<40hrs,2,12.5,10.7,0,2,0,4,20,false
+RES-065,Hajar Al Balushi,Female,R4,Internal Medicine,11,Annual Leave,0,<40hrs,1,87.5,39.3,0,7,7,12,4,true
+RES-053,Sheikha Alwardi,Female,R2,General Surgery,11,General Surgery,4,40-60hrs,5,58.3,39.3,29.2,15,8,10,9,false
+RES-044,Fatma Alkamshaki,Female,R3,Internal Medicine,11,Nephrology,4,40-60hrs,5,33.3,35.7,12.5,4,7,13,16,false
+RES-022,Ali  Al Ajmi,Male,R3,Pediatrics,11,Pediatric Cardiology,5,40-60hrs,6,62.5,64.3,50,8,9,19,17,true
+RES-008,Awab Alnaabi,Male,R1,Internal Medicine,11,General Medicine / CTU,7,40-60hrs,7,37.5,64.3,45.8,6,5,6,12,false
+RES-066,Aiman Al Fulaiti,Male,R1,Internal Medicine,11,General Medicine / CTU,3,40-60hrs,6,41.7,21.4,33.3,2,3,3,17,false
+RES-041,Fatma Taqi,Female,R1,ENT,11,General Surgery,4,40-60hrs,7,41.7,42.9,66.7,11,14,10,10,false
+RES-045,Hamdan Al-Fazari,Male,R1,Orthopedics,11,Orthopedics,4,60-80hrs,8,33.3,39.3,20.8,0,1,3,19,false
+RES-012,Azzam Al Marbouai,Male,R1,Dermatology,12,Dermatology,2,<40hrs,5,45.8,3.6,0,17,11,14,15,false
+RES-011,Nasra Al Jahwari,Female,R4,Psychiatry,12,General Adult Psychiatry,5,40-60hrs,9,54.2,75,50,12,9,16,10,false
+RES-057,Fakhra Alrawahi,Female,R2,Anesthesia,12,General Anesthesia,3,40-60hrs,7,37.5,42.9,12.5,3,4,6,19,true

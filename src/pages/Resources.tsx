@@ -98,6 +98,90 @@ export default function Resources() {
             </div>
           </div>
 
+          {/* PreOp App */}
+          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #0B1120 0%, #162350 50%, #1a4ff5 100%)',borderRadius:16,overflow:'hidden',color:'white'}}>
+            <div className="resource-body" style={{padding:32}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+                <div style={{width:48,height:48,borderRadius:12,background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{fontSize:24,fontWeight:800}}>P</span>
+                </div>
+                <div>
+                  <span style={{fontSize:'1.5rem',fontWeight:800}}>PreOp</span>
+                  <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.6)',letterSpacing:1.5}}>PERIOPERATIVE MEDICINE</div>
+                </div>
+                <span className="badge" style={{background:'rgba(255,255,255,0.15)',color:'white',marginLeft:12}}>Free App</span>
+              </div>
+              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'white'}}>Perioperative Medicine — At Your Fingertips</h2>
+              <p style={{color:'rgba(255,255,255,0.7)',marginBottom:24,lineHeight:1.8}}>
+                Comprehensive perioperative medicine reference app for anesthesiologists, surgeons, and internists. 18 clinical tools built on ACC/AHA 2024, ESC 2022, ASRA 2025, and ADA 2026 guidelines. Works fully offline. No account required.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
+                {[
+                  ['14 Calculators','RCRI, STOP-BANG, Caprini, CHA₂DS₂-VASc, MELD, SOFA, APACHE II'],
+                  ['39 Medications','Hold, resume, bridge timing for anticoagulants, diabetes, cardiac meds'],
+                  ['Neuraxial Timing','ASRA 2025 5th Edition anticoagulant intervals'],
+                  ['Airway Assessment','Composite difficult airway prediction scoring'],
+                  ['Consult Notes','One-tap structured perioperative consultation'],
+                  ['Post-Op & Handoff','VTE prophylaxis, monitoring, SBAR templates'],
+                ].map(([title, desc]) => (
+                  <div key={title} style={{background:'rgba(255,255,255,0.08)',borderRadius:10,padding:16,border:'1px solid rgba(255,255,255,0.1)'}}>
+                    <div style={{fontWeight:700,fontSize:13,color:'white',marginBottom:6}}>{title}</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+                <a href="https://apps.apple.com/app/id6789968249" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'white',color:'#0B1120',border:'none',fontWeight:700}}>Download for iPhone</a>
+                <a href="https://play.google.com/store/apps/details?id=com.bayanai.preop" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'white',color:'#0B1120',border:'none',fontWeight:700}}>Get it on Google Play</a>
+                <a href="https://www.bayan.edu.om/preop" target="_blank" rel="noopener noreferrer" style={{color:'rgba(255,255,255,0.7)',fontSize:13,marginLeft:8}}>Learn more →</a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bayan Mobile App */}
+          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #060A14 0%, #0C1530 100%)',borderRadius:16,overflow:'hidden',color:'white',border:'2px solid #151F35'}}>
+            <div className="resource-body" style={{padding:32}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+                <div style={{width:48,height:48,borderRadius:12,background:'#1a4ff5',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                  <span style={{fontSize:22,fontWeight:800,color:'white'}}>B</span>
+                </div>
+                <div>
+                  <span style={{fontSize:'1.5rem',fontWeight:800}}>Bayan Mobile</span>
+                  <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.5)',letterSpacing:1.5}}>MEDICAL QUESTION BANK</div>
+                </div>
+                <span className="badge" style={{background:'rgba(26,79,245,0.2)',color:'#6B8AFF',marginLeft:12}}>Beta</span>
+              </div>
+              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'white'}}>5,000+ Medical Questions — Practice Anywhere</h2>
+              <p style={{color:'rgba(255,255,255,0.6)',marginBottom:24,lineHeight:1.8}}>
+                The Bayan question bank on your phone. Practice for OMSB, Arab Board, MRCP, USMLE, SCFHS, OEN, and NCLEX with adaptive question selection, detailed explanations with PubMed references, clinical images, and offline mode.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
+                {[
+                  ['Question Bank','5,000+ physician-reviewed clinical vignettes by specialty'],
+                  ['Smart Review','Review wrong answers with full explanations and references'],
+                  ['Flashcards','Quick concept recall with topic-based cards'],
+                ].map(([title, desc]) => (
+                  <div key={title} style={{background:'rgba(255,255,255,0.05)',borderRadius:10,padding:16,border:'1px solid rgba(255,255,255,0.08)'}}>
+                    <div style={{fontWeight:700,fontSize:13,color:'white',marginBottom:6}}>{title}</div>
+                    <div style={{fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.5}}>{desc}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:20}}>
+                {[['5,000+','Questions'],['14','Specialties'],['3','Tracks'],['Free','For Oman']].map(([num, label]) => (
+                  <div key={label} style={{textAlign:'center'}}>
+                    <div style={{fontSize:'1.6rem',fontWeight:800,color:'#1a4ff5'}}>{num}</div>
+                    <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:600,letterSpacing:0.5}}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+                <a href="https://testflight.apple.com/join/bayan" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a4ff5',color:'white',border:'none',fontWeight:700}}>Join TestFlight (iOS)</a>
+                <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg" style={{color:'rgba(255,255,255,0.7)',borderColor:'rgba(255,255,255,0.2)'}}>Use Web Version →</a>
+              </div>
+            </div>
+          </div>
+
           {/* JournalReady */}
           <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #f7f8fa 0%, #eef1f6 100%)',border:'2px solid #e2e5ea',borderRadius:16,overflow:'hidden'}}>
             <div className="resource-body" style={{padding:32}}>
