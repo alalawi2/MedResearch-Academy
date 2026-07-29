@@ -673,15 +673,9 @@ export default function QuestionnaireForm() {
       const missed = pastBlocks.filter(b => !submittedBlockNums.has(b.block));
       setMissedBlocks(missed);
 
-      // Check if current block is already submitted
-      if (currentBlock) {
-        const startISO = currentBlock.startDate.toISOString().slice(0, 10);
-        const endISO = currentBlock.endDate.toISOString().slice(0, 10);
-        const currentSubmitted = submittedDates.some(d => d >= startISO && d <= endISO)
-          || submittedBlockNums.has(currentBlock.block);
-        if (currentSubmitted) {
-          setAlreadySubmitted(true);
-        }
+      // Check if current block is already submitted (by block_number only)
+      if (currentBlock && submittedBlockNums.has(currentBlock.block)) {
+        setAlreadySubmitted(true);
       }
 
       setCheckingStatus(false);
