@@ -141,12 +141,22 @@ function getCurrentBlock(today: Date, allBlocks: BlockDates[]): CurrentBlock | n
   return null;
 }
 
-function getEscalationLevel(daysOverdue: number): number {
-  if (daysOverdue >= 7) return 5;
-  if (daysOverdue >= 6) return 4;
-  if (daysOverdue >= 4) return 3;
-  if (daysOverdue >= 2) return 2;
-  if (daysOverdue >= 0) return 1;
+// Escalation is now relative to block END, not window open.
+// daysUntilEnd = negative means block hasn't ended, positive means overdue.
+// Window opens day 15, block ends ~day 28.
+//   Window open:       "Assessment available" (level 1)
+//   4 days before end: "Friendly reminder" (level 2)
+//   1 day before end:  "Due tomorrow" (level 3)
+//   3 days after end:  "Overdue" (level 4)
+//   7 days after end:  Coordinator escalation (level 5)
+function getEscalationLevel(daysOverdue: number, blockEndDate: Date, todayUTC: Date): number {
+  const daysAfterEnd = Math.floor((todayUTC.getTime() - blockEndDate.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (daysAfterEnd >= 7) return 5;   // Coordinator escalation — 7 days AFTER block ended
+  if (daysAfterEnd >= 3) return 4;   // Overdue — 3 days after block ended
+  if (daysAfterEnd >= -1) return 3;  // Due soon — last day of block or 1 day after
+  if (daysAfterEnd >= -4) return 2;  // Friendly reminder — 4 days before end
+  if (daysOverdue >= 0) return 1;    // Assessment available — window just opened
   return 0;
 }
 
@@ -499,7 +509,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── PART 2: Current block assessment reminders ──
     if (currentBlock && currentBlock.daysOverdue >= 0 && !submitted.has(currentBlock.block)) {
-      const level = getEscalationLevel(currentBlock.daysOverdue);
+      const level = getEscalationLevel(currentBlock.daysOverdue, currentBlock.end, todayUTC);
       const prevLevel = maxLevelByResidentBlock.get(`${p.id}:${currentBlock.block}`) || 0;
 
       if (level > prevLevel) {
@@ -512,9 +522,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           await sendEmail(
             [p.email],
             level === 1 ? `OMSB Burnout Study — Block ${currentBlock.block} Assessment Now Open`
-              : level === 2 ? `Gentle Reminder: Block ${currentBlock.block} Assessment`
-              : level === 3 ? `Friendly Reminder: Block ${currentBlock.block} Assessment — We Need Your Input`
-              : `Reminder: Block ${currentBlock.block} Assessment — Your Input Matters`,
+              : level === 2 ? `Reminder: Block ${currentBlock.block} Assessment — Due Soon`
+              : level === 3 ? `Reminder: Block ${currentBlock.block} Assessment — Due Tomorrow`
+              : `Block ${currentBlock.block} Assessment Overdue — Please Submit`,
             blockReminderHtml(p.full_name || 'Participant', level, currentBlock.block, loginUrl, missing),
             PI_EMAILS,
           );
