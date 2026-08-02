@@ -547,25 +547,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ── PART 3: Missed past block reminders ──
+    // Grace period: only remind about blocks that ended 3+ days ago
+    const MISSED_BLOCK_GRACE_DAYS = 3;
     const missedPast: BlockDates[] = [];
     for (const b of pastBlocks) {
       if (b.end >= enrollDate && !submitted.has(b.block)) {
-        missedPast.push(b);
+        const daysSinceEnd = Math.floor((todayUTC.getTime() - b.end.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceEnd >= MISSED_BLOCK_GRACE_DAYS) {
+          missedPast.push(b);
+        }
       }
     }
 
     if (missedPast.length > 0) {
-      // Only send missed block reminder once per day (check if we sent level 10 today)
-      const missedKey = `${p.id}:missed`;
-      const { data: todayMissed } = await supabase
+      // Only send missed block reminder once per week per resident (not daily)
+      const { data: recentMissed } = await supabase
         .from('questionnaire_reminders')
         .select('id')
         .eq('resident_id', p.id)
         .eq('reminder_type', 'missed_block')
-        .gte('created_at', `${todayStr}T00:00:00Z`)
+        .gte('created_at', new Date(todayUTC.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
         .limit(1);
 
-      if (!todayMissed || todayMissed.length === 0) {
+      if (!recentMissed || recentMissed.length === 0) {
         await sendEmail(
           [p.email],
           missedPast.length === 1

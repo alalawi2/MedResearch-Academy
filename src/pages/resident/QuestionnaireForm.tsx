@@ -887,8 +887,10 @@ export default function QuestionnaireForm() {
       }
       const token = session.data.session?.access_token;
       if (!token) {
-        setError('Your session has expired. Please log out and log in again, then re-submit.');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Session expired beyond recovery — force re-login
+        alert('Your session has expired. You will be redirected to log in again. Your answers have NOT been lost — after logging in, return to Block Assessment to re-submit.');
+        await supabase.auth.signOut();
+        window.location.href = '/resident/login';
         return;
       }
 
