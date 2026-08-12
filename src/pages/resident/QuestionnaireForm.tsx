@@ -384,6 +384,9 @@ interface RotationContext {
   annual_leave: string;
   sick_leave: string;
   pregnancy_status: string;
+  on_extended_leave: boolean;
+  extended_leave_type: string;
+  extended_leave_end_block: string;
 }
 
 const CALL_TYPE_OPTIONS = ['24-hour shift', '12-hour shift', 'Home calls', 'No calls'];
@@ -620,6 +623,9 @@ export default function QuestionnaireForm() {
     annual_leave: '',
     sick_leave: '',
     pregnancy_status: '',
+    on_extended_leave: false,
+    extended_leave_type: '',
+    extended_leave_end_block: '',
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -697,6 +703,10 @@ export default function QuestionnaireForm() {
 
   const isRotationComplete = useMemo(() => {
     const r = rotationCtx;
+    // Extended leave: only need leave type and end block
+    if (r.on_extended_leave) {
+      return r.extended_leave_type !== '' && r.extended_leave_end_block !== '';
+    }
     return (
       cleanRotationName(r.rotation_name).length > 0 &&
       r.clinical_intensity !== null &&
@@ -841,9 +851,12 @@ export default function QuestionnaireForm() {
         rotation_types: rotationCtx.rotation_types,
         weekly_hours: rotationCtx.weekly_hours,
         major_life_event: rotationCtx.major_life_event === 'Yes',
-        annual_leave: rotationCtx.annual_leave,
-        sick_leave: rotationCtx.sick_leave,
+        annual_leave: rotationCtx.on_extended_leave ? null : rotationCtx.annual_leave,
+        sick_leave: rotationCtx.on_extended_leave ? null : rotationCtx.sick_leave,
         pregnancy_status: rotationCtx.pregnancy_status === 'Yes' ? true : rotationCtx.pregnancy_status === 'No' ? false : null,
+        maternity_expected: rotationCtx.on_extended_leave && rotationCtx.extended_leave_type === 'Maternity leave',
+        maternity_start_block: rotationCtx.on_extended_leave ? blockInfo.block : null,
+        maternity_end_block: rotationCtx.on_extended_leave && rotationCtx.extended_leave_end_block ? parseInt(rotationCtx.extended_leave_end_block, 10) : null,
 
         // WHO-5
         who5_items: who5Items,
@@ -994,7 +1007,7 @@ export default function QuestionnaireForm() {
                 setAlreadySubmitted(false);
                 setCurrentPart(1);
                 setResponses({});
-                setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '' });
+                setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '', on_extended_leave: false, extended_leave_type: '', extended_leave_end_block: '' });
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               style={{
@@ -1218,7 +1231,7 @@ export default function QuestionnaireForm() {
                     setAlreadySubmitted(false);
                     setCurrentPart(1);
                     setResponses({});
-                    setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '' });
+                    setRotationCtx({ rotation_name: '', clinical_intensity: null, calls_count: '', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: '', annual_leave: '', sick_leave: '', pregnancy_status: '', on_extended_leave: false, extended_leave_type: '', extended_leave_end_block: '' });
                     setWho5Result(null);
                     setCbiResult(null);
                     setPhq9Result(null);
@@ -1286,6 +1299,69 @@ export default function QuestionnaireForm() {
     return (
       <>
         <div style={styles.sectionHeader}>Rotation Context</div>
+
+        {/* Extended leave toggle */}
+        <div style={styles.card}>
+          <div style={styles.questionText}>Were you on extended leave during this block?</div>
+          <div style={styles.optionsRow}>
+            {['No', 'Yes'].map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                style={styles.optionBtn(rotationCtx.on_extended_leave === (opt === 'Yes'))}
+                onClick={() => setRotationCtx((p) => ({
+                  ...p,
+                  on_extended_leave: opt === 'Yes',
+                  // Reset rotation fields when switching
+                  ...(opt === 'Yes' ? { rotation_name: 'Extended Leave', clinical_intensity: 0, calls_count: '0', call_types: ['No calls'], rotation_types: ['Outpatient based'], weekly_hours: '<40hrs', annual_leave: 'No', sick_leave: 'No' } : {}),
+                  ...(opt === 'No' ? { extended_leave_type: '', extended_leave_end_block: '', rotation_name: '' } : {}),
+                }))}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {rotationCtx.on_extended_leave ? (
+          <>
+            <div style={styles.card}>
+              <div style={styles.questionText}>Type of leave</div>
+              <div style={styles.optionsRow}>
+                {['Maternity leave', 'Medical leave', 'Personal leave', 'Other'].map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    style={styles.optionBtn(rotationCtx.extended_leave_type === opt)}
+                    onClick={() => setRotationCtx((p) => ({ ...p, extended_leave_type: opt }))}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={styles.card}>
+              <div style={styles.questionText}>Expected return block</div>
+              <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '0 0 10px' }}>
+                Which block do you expect to return? This helps us pause reminders during your leave.
+              </p>
+              <div style={styles.optionsRow}>
+                {Array.from({ length: 13 }, (_, i) => String(i + 1)).map((bn) => (
+                  <button
+                    key={bn}
+                    type="button"
+                    style={styles.optionBtn(rotationCtx.extended_leave_end_block === bn)}
+                    onClick={() => setRotationCtx((p) => ({ ...p, extended_leave_end_block: bn }))}
+                  >
+                    Block {bn}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+        <>
 
         {/* Q1: Rotation name — dropdown grouped by program + Other */}
         <div style={styles.card}>
@@ -1492,6 +1568,8 @@ export default function QuestionnaireForm() {
             ))}
           </div>
         </div>
+        </>
+        )}
       </>
     );
   }
