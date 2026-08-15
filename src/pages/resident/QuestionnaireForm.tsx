@@ -844,13 +844,13 @@ export default function QuestionnaireForm() {
         assessment_date: today,
 
         // Rotation context
-        rotation_name: cleanRotationName(rotationCtx.rotation_name),
-        clinical_intensity: rotationCtx.clinical_intensity,
-        calls_count: rotationCtx.calls_count,
-        call_types: rotationCtx.call_types,
-        rotation_types: rotationCtx.rotation_types,
-        weekly_hours: rotationCtx.weekly_hours,
-        major_life_event: rotationCtx.major_life_event === 'Yes',
+        rotation_name: rotationCtx.on_extended_leave ? 'Extended Leave' : cleanRotationName(rotationCtx.rotation_name),
+        clinical_intensity: rotationCtx.on_extended_leave ? null : rotationCtx.clinical_intensity,
+        calls_count: rotationCtx.on_extended_leave ? null : rotationCtx.calls_count,
+        call_types: rotationCtx.on_extended_leave ? [] : rotationCtx.call_types,
+        rotation_types: rotationCtx.on_extended_leave ? [] : rotationCtx.rotation_types,
+        weekly_hours: rotationCtx.on_extended_leave ? null : rotationCtx.weekly_hours,
+        major_life_event: rotationCtx.on_extended_leave ? null : rotationCtx.major_life_event === 'Yes',
         annual_leave: rotationCtx.on_extended_leave ? null : rotationCtx.annual_leave,
         sick_leave: rotationCtx.on_extended_leave ? null : rotationCtx.sick_leave,
         pregnancy_status: rotationCtx.pregnancy_status === 'Yes' ? true : rotationCtx.pregnancy_status === 'No' ? false : null,
@@ -1316,7 +1316,7 @@ export default function QuestionnaireForm() {
                   ...p,
                   on_extended_leave: opt === 'Yes',
                   // Reset rotation fields when switching
-                  ...(opt === 'Yes' ? { rotation_name: 'Extended Leave', clinical_intensity: 0, calls_count: '0', call_types: ['No calls'], rotation_types: ['Outpatient based'], weekly_hours: '<40hrs', annual_leave: 'No', sick_leave: 'No' } : {}),
+                  ...(opt === 'Yes' ? { rotation_name: 'Extended Leave', clinical_intensity: null, calls_count: '0', call_types: [], rotation_types: [], weekly_hours: '', major_life_event: 'No', annual_leave: '', sick_leave: '' } : {}),
                   ...(opt === 'No' ? { extended_leave_type: '', extended_leave_end_block: '', rotation_name: '' } : {}),
                 }))}
               >

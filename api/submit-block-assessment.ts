@@ -16,7 +16,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Verify JWT → get user
   const { data: { user }, error: authErr } = await supabase.auth.getUser(authHeader);
-  if (authErr || !user) return res.status(401).json({ error: 'Invalid token' });
+  if (authErr || !user) {
+    await supabase.from('submission_error_log').insert({
+      error_message: authErr?.message || 'No user from token',
+      error_source: 'auth_failure',
+      payload_summary: { has_token: !!authHeader },
+    }).catch(() => {});
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 
   // Get resident profile
   const { data: resident } = await supabase
@@ -59,6 +66,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (baError) {
     console.error('Block assessment insert error:', baError);
+    await supabase.from('submission_error_log').insert({
+      resident_id: resident.id,
+      block_number: blockNumber || null,
+      error_message: baError.message,
+      error_source: 'block_assessment_insert',
+      payload_summary: { rotation_name: payload.rotation_name, on_extended_leave: payload.on_extended_leave, block_number: payload.block_number },
+    }).catch(() => {});
     return res.status(500).json({ error: 'Failed to save assessment: ' + baError.message });
   }
 
@@ -99,6 +113,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (errors.length > 0) {
     console.error('Instrument insert errors:', errors);
+    await supabase.from('submission_error_log').insert({
+      resident_id: resident.id,
+      block_number: blockNumber || null,
+      error_message: errors.join('; '),
+      error_source: 'instrument_insert',
+      payload_summary: { rotation_name: payload.rotation_name, block_number: payload.block_number },
+    }).catch(() => {});
     return res.status(207).json({ saved: true, warnings: errors });
   }
 
