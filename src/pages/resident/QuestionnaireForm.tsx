@@ -389,8 +389,8 @@ interface RotationContext {
   extended_leave_end_block: string;
 }
 
-const CALL_TYPE_OPTIONS = ['24-hour shift', '12-hour shift', 'Home calls', 'No calls'];
-const ROTATION_TYPE_OPTIONS = ['Outpatient based', 'Acute inpatient service', 'Both outpatient and inpatient', 'Surgical/Procedural', 'Laboratory settings'];
+const CALL_TYPE_OPTIONS = ['24-hour on-call', '12-hour shift', '8-hour shift', 'Home calls', 'Shift-based (EM/ICU)', 'No calls'];
+const ROTATION_TYPE_OPTIONS = ['Outpatient based', 'Acute inpatient service', 'Both outpatient and inpatient', 'Surgical/Procedural', 'Emergency Department', 'ICU/Critical Care', 'Laboratory settings'];
 const WEEKLY_HOURS_OPTIONS = ['0hrs (on leave)', '<40hrs', '40-60hrs', '60-80hrs', '>80hrs'];
 const LEAVE_OPTIONS = ['No', '1-3 days', '4-7 days', '>7 days'];
 
@@ -1435,7 +1435,7 @@ export default function QuestionnaireForm() {
 
         {/* Q3: Number of calls */}
         <div style={styles.card}>
-          <div style={styles.questionText}>3. Number of calls in last block</div>
+          <div style={styles.questionText}>3. Number of calls/shifts in last block</div>
           <div style={styles.optionsRow}>
             {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((n) => (
               <button
@@ -1452,7 +1452,7 @@ export default function QuestionnaireForm() {
 
         {/* Q4: Type of calls */}
         <div style={styles.card}>
-          <div style={styles.questionText}>4. Type of calls</div>
+          <div style={styles.questionText}>4. Type of calls/shifts</div>
           <div style={styles.checkboxRow}>
             {CALL_TYPE_OPTIONS.map((opt) => (
               <button
