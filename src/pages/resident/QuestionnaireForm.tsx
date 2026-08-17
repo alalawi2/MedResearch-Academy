@@ -391,7 +391,7 @@ interface RotationContext {
 
 const CALL_TYPE_OPTIONS = ['24-hour shift', '12-hour shift', 'Home calls', 'No calls'];
 const ROTATION_TYPE_OPTIONS = ['Outpatient based', 'Acute inpatient service', 'Both outpatient and inpatient', 'Surgical/Procedural', 'Laboratory settings'];
-const WEEKLY_HOURS_OPTIONS = ['<40hrs', '40-60hrs', '60-80hrs', '>80hrs'];
+const WEEKLY_HOURS_OPTIONS = ['0hrs (on leave)', '<40hrs', '40-60hrs', '60-80hrs', '>80hrs'];
 const LEAVE_OPTIONS = ['No', '1-3 days', '4-7 days', '>7 days'];
 
 // ---------------------------------------------------------------------------
