@@ -18,6 +18,7 @@ const NAV_ITEMS: NavItem[] = [
 const THAL_NAV_ITEMS: NavItem[] = [
   { path: '/dashboard/thalassemia', label: 'Thalassemia Overview', icon: '🫀', studySlug: 'thalassemia-cardiac' },
   { path: '/dashboard/thalassemia/patients', label: 'Thalassemia Patients', icon: '🩸', studySlug: 'thalassemia-cardiac' },
+  { path: '/dashboard/thalassemia/export', label: 'Thalassemia Export', icon: '📦', studySlug: 'thalassemia-cardiac' },
 ];
 
 export default function DashboardLayout() {
