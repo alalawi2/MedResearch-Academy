@@ -22,6 +22,7 @@ import ThalassemiaOverview from './pages/dashboard/thalassemia/Overview';
 import ThalassemiaPatientList from './pages/dashboard/thalassemia/PatientList';
 import ThalassemiaPatientNew from './pages/dashboard/thalassemia/PatientNew';
 import ThalassemiaPatientDetail from './pages/dashboard/thalassemia/PatientDetail';
+import ThalassemiaForm from './pages/dashboard/thalassemia/ThalassemiaForm';
 import Contact from './pages/Contact';
 import Surveys from './pages/Surveys';
 import SurveyTake from './pages/SurveyTake';
@@ -112,6 +113,8 @@ export default function App() {
             <Route path="thalassemia/patients" element={<ThalassemiaPatientList />} />
             <Route path="thalassemia/patients/new" element={<ThalassemiaPatientNew />} />
             <Route path="thalassemia/patients/:id" element={<ThalassemiaPatientDetail />} />
+            <Route path="thalassemia/patients/:id/:modality/new" element={<ThalassemiaForm />} />
+            <Route path="thalassemia/patients/:id/:modality/:rowId" element={<ThalassemiaForm />} />
           </Route>
 
           {/* ── Resident Portal ── */}

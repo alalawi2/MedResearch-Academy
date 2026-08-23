@@ -119,22 +119,27 @@ export default function ThalassemiaPatientDetail() {
       </div>
 
       {/* Panels */}
-      {tab === 'checklist' && <ChecklistPanel cells={checklist} visits={visits} />}
+      {tab === 'checklist' && <ChecklistPanel cells={checklist} visits={visits} patientId={id} />}
       {tab === 'demographics' && <DemographicsPanel patient={patient} ident={ident} />}
-      {tab === 'lab' && <ModalityListPanel title="Lab Biomarkers" rows={lab} columns={LAB_COLS} dateCol="assessment_date" />}
-      {tab === 'ecg' && <ModalityListPanel title="ECG" rows={ecg} columns={ECG_COLS} dateCol="assessment_date" />}
-      {tab === 'echo' && <ModalityListPanel title="Echocardiography" rows={echoRows} columns={ECHO_COLS} dateCol="assessment_date" />}
-      {tab === 't2mri' && <ModalityListPanel title="Cardiac T2* MRI" rows={t2mri} columns={T2MRI_COLS} dateCol="assessment_date" />}
-      {tab === 'polysomnography' && <ModalityListPanel title="Polysomnography" rows={psg} columns={PSG_COLS} dateCol="study_date" />}
-      {tab === 'scg' && <ModalityListPanel title="Seismocardiography" rows={scg} columns={SCG_COLS} dateCol="assessment_date" />}
-      {tab === 'transfusions' && <ModalityListPanel title="Transfusion Log" rows={tx} columns={TX_COLS} dateCol="transfusion_date" />}
-      {tab === 'ae' && <AdverseEventsPanel rows={ae} />}
+      {tab === 'lab' && <ModalityListPanel title="Lab Biomarkers" rows={lab} columns={LAB_COLS} dateCol="assessment_date" patientId={id} modality="lab" />}
+      {tab === 'ecg' && <ModalityListPanel title="ECG" rows={ecg} columns={ECG_COLS} dateCol="assessment_date" patientId={id} modality="ecg" />}
+      {tab === 'echo' && <ModalityListPanel title="Echocardiography" rows={echoRows} columns={ECHO_COLS} dateCol="assessment_date" patientId={id} modality="echo" />}
+      {tab === 't2mri' && <ModalityListPanel title="Cardiac T2* MRI" rows={t2mri} columns={T2MRI_COLS} dateCol="assessment_date" patientId={id} modality="t2mri" />}
+      {tab === 'polysomnography' && <ModalityListPanel title="Polysomnography" rows={psg} columns={PSG_COLS} dateCol="study_date" patientId={id} modality="polysomnography" />}
+      {tab === 'scg' && <ModalityListPanel title="Seismocardiography" rows={scg} columns={SCG_COLS} dateCol="assessment_date" patientId={id} modality="scg" />}
+      {tab === 'transfusions' && <ModalityListPanel title="Transfusion Log" rows={tx} columns={TX_COLS} dateCol="transfusion_date" patientId={id} modality="transfusions" />}
+      {tab === 'ae' && <AdverseEventsPanel rows={ae} patientId={id} />}
     </div>
   );
 }
 
 // ── Checklist matrix ─────────────────────────────────────────────────────────
-function ChecklistPanel({ cells, visits }: { cells: ChecklistCell[]; visits: VisitScheduleRow[] }) {
+const INV_TO_MODALITY: Record<string, string | null> = {
+  demographics: null, lab: 'lab', ecg: 'ecg', echo: 'echo',
+  t2mri: 't2mri', polysomnography: 'polysomnography', scg: 'scg',
+};
+
+function ChecklistPanel({ cells, visits, patientId }: { cells: ChecklistCell[]; visits: VisitScheduleRow[]; patientId: string }) {
   const investigations = Array.from(new Set(cells.map(c => c.investigation)));
   const timepoints: Timepoint[] = ['baseline', '6mo', '12mo'];
   const cell = (inv: string, tp: Timepoint) => cells.find(c => c.investigation === inv && c.timepoint === tp);
@@ -179,16 +184,20 @@ function ChecklistPanel({ cells, visits }: { cells: ChecklistCell[]; visits: Vis
                     </td>
                   );
                 }
+                const modality = INV_TO_MODALITY[inv];
+                const addLink = modality ? `/dashboard/thalassemia/patients/${patientId}/${modality}/new` : null;
                 if (c.overdue) {
                   return (
                     <td key={tp} style={{padding:'14px 20px'}}>
                       <span style={{background:'rgba(239,68,68,0.12)',color:'#dc2626',padding:'2px 8px',borderRadius:4,fontSize:12,fontWeight:600}}>⚠ Overdue</span>
+                      {addLink && <div><Link to={addLink} style={{fontSize:12,color:'var(--primary)'}}>+ Enter now</Link></div>}
                     </td>
                   );
                 }
                 return (
                   <td key={tp} style={{padding:'14px 20px'}}>
                     <span style={{color:'var(--text-muted)'}}>□ Not entered</span>
+                    {addLink && <div><Link to={addLink} style={{fontSize:12,color:'var(--primary)'}}>+ Enter</Link></div>}
                   </td>
                 );
               })}
@@ -249,14 +258,16 @@ function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: Th
 }
 
 // ── Reusable modality list ───────────────────────────────────────────────────
-function ModalityListPanel({ title, rows, columns, dateCol }: {
+function ModalityListPanel({ title, rows, columns, dateCol, patientId, modality }: {
   title: string; rows: any[]; columns: { key: string; label: string }[]; dateCol: string;
+  patientId: string; modality: string;
 }) {
+  const hasTimepoint = modality !== 'polysomnography' && modality !== 'transfusions';
   return (
     <div style={{background:'white',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
       <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <h2 style={{margin:0,fontSize:'1.1rem',color:'var(--primary)'}}>{title}</h2>
-        <button className="btn btn-outline" disabled title="Data-entry forms in next commit">+ Add (soon)</button>
+        <Link to={`/dashboard/thalassemia/patients/${patientId}/${modality}/new`} className="btn btn-primary">+ Add {title}</Link>
       </div>
       {rows.length === 0 ? (
         <div style={{padding:40,textAlign:'center',color:'var(--text-muted)'}}>No {title.toLowerCase()} entries yet.</div>
@@ -265,16 +276,20 @@ function ModalityListPanel({ title, rows, columns, dateCol }: {
           <thead>
             <tr style={{background:'var(--bg-muted)',borderBottom:'1px solid var(--border)'}}>
               <th style={thSt}>Date</th>
-              <th style={thSt}>Timepoint</th>
+              {hasTimepoint && <th style={thSt}>Timepoint</th>}
               {columns.map(c => <th key={c.key} style={thSt}>{c.label}</th>)}
+              <th style={thSt}></th>
             </tr>
           </thead>
           <tbody>
             {rows.map(r => (
               <tr key={r.id} style={{borderBottom:'1px solid var(--border)'}}>
                 <td style={tdSt}>{r[dateCol] ?? '—'}</td>
-                <td style={tdSt}>{r.timepoint ?? '—'}</td>
-                {columns.map(c => <td key={c.key} style={tdSt}>{r[c.key] == null ? '—' : String(r[c.key])}</td>)}
+                {hasTimepoint && <td style={tdSt}>{r.timepoint ?? '—'}</td>}
+                {columns.map(c => <td key={c.key} style={tdSt}>{formatCell(r[c.key])}</td>)}
+                <td style={tdSt}>
+                  <Link to={`/dashboard/thalassemia/patients/${patientId}/${modality}/${r.id}`} style={{fontSize:12}}>Edit</Link>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -282,6 +297,12 @@ function ModalityListPanel({ title, rows, columns, dateCol }: {
       )}
     </div>
   );
+}
+
+function formatCell(v: any) {
+  if (v == null || v === '') return '—';
+  if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+  return String(v);
 }
 
 const thSt: React.CSSProperties = { textAlign:'left',padding:'10px 14px',fontSize:11,fontWeight:600,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em' };
@@ -296,12 +317,12 @@ const SCG_COLS   = [ {key:'ejection_fraction_pct',label:'EF %'}, {key:'cardiac_o
 const TX_COLS    = [ {key:'volume_ml',label:'Volume (ml)'}, {key:'pre_transfusion_hb',label:'Pre-tx Hb'}, {key:'chelation_at_visit',label:'Chelation'} ];
 
 // ── Adverse events ───────────────────────────────────────────────────────────
-function AdverseEventsPanel({ rows }: { rows: AdverseEventRow[] }) {
+function AdverseEventsPanel({ rows, patientId }: { rows: AdverseEventRow[]; patientId: string }) {
   return (
     <div style={{background:'white',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
       <div style={{padding:'16px 20px',borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <h2 style={{margin:0,fontSize:'1.1rem',color:'var(--primary)'}}>Adverse Events</h2>
-        <button className="btn btn-outline" disabled title="AE form in next commit">+ Report AE (soon)</button>
+        <Link to={`/dashboard/thalassemia/patients/${patientId}/ae/new`} className="btn btn-primary">+ Report AE</Link>
       </div>
       {rows.length === 0 ? (
         <div style={{padding:40,textAlign:'center',color:'var(--text-muted)'}}>No adverse events reported. Good news.</div>
@@ -309,7 +330,7 @@ function AdverseEventsPanel({ rows }: { rows: AdverseEventRow[] }) {
         <table style={{width:'100%',borderCollapse:'collapse',fontSize:13}}>
           <thead>
             <tr style={{background:'var(--bg-muted)'}}>
-              <th style={thSt}>Date</th><th style={thSt}>Description</th><th style={thSt}>Severity</th><th style={thSt}>Related to</th><th style={thSt}>Serious</th><th style={thSt}>Resolved</th>
+              <th style={thSt}>Date</th><th style={thSt}>Description</th><th style={thSt}>Severity</th><th style={thSt}>Related to</th><th style={thSt}>Serious</th><th style={thSt}>Resolved</th><th style={thSt}></th>
             </tr>
           </thead>
           <tbody>
@@ -321,6 +342,7 @@ function AdverseEventsPanel({ rows }: { rows: AdverseEventRow[] }) {
                 <td style={tdSt}>{r.procedure_related ?? '—'}</td>
                 <td style={tdSt}>{r.serious ? <span style={{color:'#dc2626',fontWeight:600}}>Yes</span> : 'No'}</td>
                 <td style={tdSt}>{r.resolved_date ?? 'Ongoing'}</td>
+                <td style={tdSt}><Link to={`/dashboard/thalassemia/patients/${patientId}/ae/${r.id}`} style={{fontSize:12}}>Edit</Link></td>
               </tr>
             ))}
           </tbody>
