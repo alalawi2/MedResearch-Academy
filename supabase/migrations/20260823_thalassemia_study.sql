@@ -489,7 +489,7 @@ begin
   for team in
     select * from (values
       ('mrawahi@squ.edu.om',      'Dr. Mohammed Al Rawahi',    'Principal Investigator',   'research_admin'),
-      ('alalawi2@squ.edu.om',     'Dr. Abdullah M. Al Alawi',  'Research Lead',            'research_admin'),
+      ('alalawi2@squ.edu.om',     'Dr. Abdullah M. Al Alawi',  'Research Lead',            'super_admin'),
       ('Nuhahabsi7@gmail.com',    'Nuha Al Habsi',             'Research Team',            'research_assistant'),
       ('abubakr@squ.edu.om',      'Abubakr El''Tigani',        'Research Team',            'research_assistant'),
       ('Malakalkulibi@gmail.com', 'Malak Amur Alkulaibi',      'Research Team',            'research_assistant'),
