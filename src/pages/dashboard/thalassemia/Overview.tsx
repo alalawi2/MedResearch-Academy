@@ -20,20 +20,24 @@ export default function ThalassemiaOverview() {
 
   useEffect(() => {
     (async () => {
-      const [p, v, ae] = await Promise.all([
-        supabase.from('thalassemia_patients').select('id, status, enrollment_date'),
-        supabase.from('thalassemia_visit_schedule').select('status'),
+      // Codex fix: query views for status/baseline (computed at read time)
+      // and derive completion from actual investigation rows, not enrollment.
+      const [p, v, baseline, ae] = await Promise.all([
+        supabase.from('thalassemia_patients').select('id, status'),
+        supabase.from('thalassemia_visit_schedule_v').select('computed_status'),
+        supabase.from('thalassemia_baseline_status_v').select('patient_id, baseline_complete'),
         supabase.from('thalassemia_adverse_events').select('id, serious, resolved_date'),
       ]);
       const patients = p.data ?? [];
       const visits = v.data ?? [];
+      const baselines = baseline.data ?? [];
       const aes = ae.data ?? [];
       setKpi({
         total_patients: patients.length,
         active: patients.filter(x => x.status === 'active').length,
-        baseline_complete: patients.filter(x => x.enrollment_date).length,
-        visits_open: visits.filter(x => x.status === 'window_open').length,
-        visits_overdue: visits.filter(x => x.status === 'overdue').length,
+        baseline_complete: baselines.filter(x => x.baseline_complete).length,
+        visits_open: visits.filter(x => x.computed_status === 'window_open').length,
+        visits_overdue: visits.filter(x => x.computed_status === 'overdue').length,
         serious_ae_open: aes.filter(x => x.serious && !x.resolved_date).length,
       });
       setLoading(false);

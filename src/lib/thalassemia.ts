@@ -51,6 +51,8 @@ export interface ThalIdentifiers {
   contact_email: string | null;
 }
 
+// Row shape from view `thalassemia_visit_schedule_v` — `computed_status`
+// is derived at read time from window vs current_date (Codex fix).
 export interface VisitScheduleRow {
   id: string;
   patient_id: string;
@@ -59,7 +61,7 @@ export interface VisitScheduleRow {
   window_start: string;
   window_end: string;
   actual_date: string | null;
-  status: VisitStatus;
+  computed_status: VisitStatus;
   notes: string | null;
 }
 
@@ -265,13 +267,22 @@ export async function fetchIdentifiers(patientId: string) {
 }
 
 export async function fetchVisitSchedule(patientId: string) {
+  // Query the view — status is computed at read time, always fresh.
   const { data, error } = await supabase
-    .from('thalassemia_visit_schedule')
+    .from('thalassemia_visit_schedule_v')
     .select('*')
     .eq('patient_id', patientId)
     .order('expected_date');
   if (error) throw error;
   return (data ?? []) as VisitScheduleRow[];
+}
+
+export async function fetchBaselineStatus(patientIds?: string[]) {
+  let q = supabase.from('thalassemia_baseline_status_v').select('*');
+  if (patientIds && patientIds.length > 0) q = q.in('patient_id', patientIds);
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as { patient_id: string; baseline_complete: boolean }[];
 }
 
 export async function fetchModalityRows<T>(
@@ -313,8 +324,9 @@ export function buildChecklist(
   for (const tp of timepoints) {
     const required = REQUIRED_INVESTIGATIONS[tp] as readonly string[];
     const visit = visits.find(v => v.timepoint === tp);
-    const windowEnd = visit?.window_end ?? null;
-    const overdueTp = windowEnd !== null && today > windowEnd && !visit?.actual_date;
+    // Use view's computed_status when available; fall back to date math.
+    const overdueTp = visit?.computed_status === 'overdue'
+      || (visit?.window_end != null && today > visit.window_end && !visit.actual_date);
 
     for (const inv of required) {
       let done = false;
@@ -352,8 +364,16 @@ export function generateVisitSchedule(enrollmentDate: string) {
   const addDays = (d: Date, days: number) => {
     const c = new Date(d); c.setDate(c.getDate() + days); return c.toISOString().slice(0, 10);
   };
+  // Codex fix: clamp to end-of-month. Native setMonth rolls Aug-31 + 6mo into
+  // Mar 3, not end-of-Feb. Clamp the day to the last valid day of the target
+  // month so month-end enrollments produce clinically sensible visit dates.
   const addMonths = (d: Date, months: number) => {
-    const c = new Date(d); c.setMonth(c.getMonth() + months); return c;
+    const originalDay = d.getDate();
+    const targetYear = d.getFullYear();
+    const targetMonth = d.getMonth() + months;
+    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const day = Math.min(originalDay, lastDayOfTargetMonth);
+    return new Date(targetYear, targetMonth, day);
   };
   const rows: { timepoint: Timepoint; expected_date: string; window_start: string; window_end: string }[] = [];
   const gracePost = 30;

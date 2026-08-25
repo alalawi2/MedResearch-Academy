@@ -115,6 +115,9 @@ create index if not exists idx_thal_ident_study on thalassemia_patient_identifie
 create index if not exists idx_thal_ident_mrn on thalassemia_patient_identifiers (mrn);
 
 -- ── VISIT SCHEDULE — drives the checklist matrix ─────────────────────────────
+-- Codex fix: status column removed; status is computed on read via view
+-- thalassemia_visit_schedule_v (defined below). This eliminates the need
+-- for a scheduled refresh and prevents stale KPIs.
 create table if not exists thalassemia_visit_schedule (
   id uuid primary key default gen_random_uuid(),
   patient_id uuid not null references thalassemia_patients(id) on delete cascade,
@@ -124,7 +127,6 @@ create table if not exists thalassemia_visit_schedule (
   window_start date not null,           -- expected_date - grace
   window_end date not null,             -- expected_date + grace
   actual_date date,
-  status thal_visit_status not null default 'scheduled',
   notes text,
   entered_by uuid references staff(id),
   entered_at timestamptz not null default now(),
@@ -133,7 +135,6 @@ create table if not exists thalassemia_visit_schedule (
   unique (patient_id, timepoint)
 );
 create index if not exists idx_thal_visit_patient on thalassemia_visit_schedule (patient_id);
-create index if not exists idx_thal_visit_status on thalassemia_visit_schedule (status);
 
 -- ── TRANSFUSIONS (context for ad-hoc ECG) ────────────────────────────────────
 create table if not exists thalassemia_transfusions (
@@ -186,6 +187,11 @@ create table if not exists thalassemia_lab (
 );
 create index if not exists idx_thal_lab_patient on thalassemia_lab (patient_id);
 create index if not exists idx_thal_lab_date on thalassemia_lab (assessment_date);
+-- Codex fix: prevent duplicate scheduled-timepoint rows per patient. Ad-hoc
+-- unscheduled entries stay unrestricted so multiple can be logged freely.
+create unique index if not exists uniq_thal_lab_patient_tp
+  on thalassemia_lab (patient_id, timepoint)
+  where timepoint <> 'unscheduled';
 
 -- ── ECG (baseline + 12mo + ad-hoc at each transfusion) ───────────────────────
 create table if not exists thalassemia_ecg (
@@ -212,6 +218,9 @@ create table if not exists thalassemia_ecg (
 );
 create index if not exists idx_thal_ecg_patient on thalassemia_ecg (patient_id);
 create index if not exists idx_thal_ecg_date on thalassemia_ecg (assessment_date);
+create unique index if not exists uniq_thal_ecg_patient_tp
+  on thalassemia_ecg (patient_id, timepoint)
+  where timepoint <> 'unscheduled';
 
 -- ── ECHO (baseline + 12mo) ───────────────────────────────────────────────────
 create table if not exists thalassemia_echo (
@@ -251,6 +260,9 @@ create table if not exists thalassemia_echo (
 );
 create index if not exists idx_thal_echo_patient on thalassemia_echo (patient_id);
 create index if not exists idx_thal_echo_date on thalassemia_echo (assessment_date);
+create unique index if not exists uniq_thal_echo_patient_tp
+  on thalassemia_echo (patient_id, timepoint)
+  where timepoint <> 'unscheduled';
 
 -- ── CARDIAC T2* MRI (baseline + 12mo) ────────────────────────────────────────
 create table if not exists thalassemia_t2mri (
@@ -268,6 +280,9 @@ create table if not exists thalassemia_t2mri (
   updated_at timestamptz not null default now()
 );
 create index if not exists idx_thal_mri_patient on thalassemia_t2mri (patient_id);
+create unique index if not exists uniq_thal_mri_patient_tp
+  on thalassemia_t2mri (patient_id, timepoint)
+  where timepoint <> 'unscheduled';
 
 -- ── POLYSOMNOGRAPHY (one-time OSA screening) ─────────────────────────────────
 create table if not exists thalassemia_polysomnography (
@@ -318,6 +333,9 @@ create table if not exists thalassemia_scg (
   updated_at timestamptz not null default now()
 );
 create index if not exists idx_thal_scg_patient on thalassemia_scg (patient_id);
+create unique index if not exists uniq_thal_scg_patient_tp
+  on thalassemia_scg (patient_id, timepoint)
+  where timepoint <> 'unscheduled';
 
 -- ── ADVERSE EVENTS ───────────────────────────────────────────────────────────
 create table if not exists thalassemia_adverse_events (
@@ -519,17 +537,47 @@ begin
 end $$;
 
 -- ============================================================================
--- HELPER — auto-update visit_schedule.status based on window vs today
+-- VIEWS — read-time computed status (no cron / no stale KPIs)
+-- Codex fix: replaces the never-called refresh_thalassemia_visit_status().
+-- Query these from the frontend instead of the raw tables when you need
+-- derived status or baseline completion.
 -- ============================================================================
-create or replace function refresh_thalassemia_visit_status()
-returns void language plpgsql as $$
-begin
-  update thalassemia_visit_schedule
-  set status = case
-    when actual_date is not null then 'complete'::thal_visit_status
-    when current_date < window_start then 'scheduled'::thal_visit_status
-    when current_date between window_start and window_end then 'window_open'::thal_visit_status
-    else 'overdue'::thal_visit_status
-  end
-  where status <> 'missed';
-end $$;
+
+-- Visit status computed live from window vs current_date
+create or replace view thalassemia_visit_schedule_v as
+select
+  vs.id, vs.patient_id, vs.study_id, vs.timepoint,
+  vs.expected_date, vs.window_start, vs.window_end, vs.actual_date,
+  vs.notes, vs.entered_by, vs.entered_at, vs.updated_by, vs.updated_at,
+  case
+    when vs.actual_date is not null                              then 'complete'
+    when current_date < vs.window_start                          then 'scheduled'
+    when current_date between vs.window_start and vs.window_end  then 'window_open'
+    else                                                              'overdue'
+  end as computed_status
+from thalassemia_visit_schedule vs;
+
+-- Baseline completion: patient has ≥1 row in every required baseline modality
+create or replace view thalassemia_baseline_status_v as
+select
+  p.id as patient_id,
+  p.study_id,
+  p.patient_code,
+  exists (select 1 from thalassemia_lab              l where l.patient_id = p.id and l.timepoint = 'baseline') as has_lab,
+  exists (select 1 from thalassemia_ecg              e where e.patient_id = p.id and e.timepoint = 'baseline') as has_ecg,
+  exists (select 1 from thalassemia_echo             e where e.patient_id = p.id and e.timepoint = 'baseline') as has_echo,
+  exists (select 1 from thalassemia_t2mri            m where m.patient_id = p.id and m.timepoint = 'baseline') as has_t2mri,
+  exists (select 1 from thalassemia_polysomnography  psg where psg.patient_id = p.id)                          as has_psg,
+  exists (select 1 from thalassemia_scg              s where s.patient_id = p.id and s.timepoint = 'baseline') as has_scg,
+  (
+    exists (select 1 from thalassemia_lab              l where l.patient_id = p.id and l.timepoint = 'baseline') and
+    exists (select 1 from thalassemia_ecg              e where e.patient_id = p.id and e.timepoint = 'baseline') and
+    exists (select 1 from thalassemia_echo             e where e.patient_id = p.id and e.timepoint = 'baseline') and
+    exists (select 1 from thalassemia_t2mri            m where m.patient_id = p.id and m.timepoint = 'baseline') and
+    exists (select 1 from thalassemia_polysomnography  psg where psg.patient_id = p.id) and
+    exists (select 1 from thalassemia_scg              s where s.patient_id = p.id and s.timepoint = 'baseline')
+  ) as baseline_complete
+from thalassemia_patients p;
+
+-- Views inherit RLS from their underlying tables (invoker-security via
+-- default view behaviour) — no separate policies needed.
