@@ -1,7 +1,9 @@
 import { Link, Outlet, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const NAV_ITEMS = [
+interface NavItem { path: string; label: string; icon: string; adminOnly?: boolean; studySlug?: string }
+
+const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: 'Overview', icon: '📊' },
   { path: '/dashboard/residents', label: 'Residents', icon: '👥' },
   { path: '/dashboard/data-entry', label: 'Data Entry', icon: '📝' },
@@ -11,6 +13,12 @@ const NAV_ITEMS = [
   { path: '/dashboard/enrollment', label: 'Enrollment', icon: '🔗' },
   { path: '/dashboard/exports', label: 'Exports', icon: '📦' },
   { path: '/dashboard/surveys', label: 'Surveys', icon: '📋' },
+];
+
+const THAL_NAV_ITEMS: NavItem[] = [
+  { path: '/dashboard/thalassemia', label: 'Thalassemia Overview', icon: '🫀', studySlug: 'thalassemia-cardiac' },
+  { path: '/dashboard/thalassemia/patients', label: 'Thalassemia Patients', icon: '🩸', studySlug: 'thalassemia-cardiac' },
+  { path: '/dashboard/thalassemia/export', label: 'Thalassemia Export', icon: '📦', studySlug: 'thalassemia-cardiac' },
 ];
 
 export default function DashboardLayout() {
@@ -79,6 +87,26 @@ export default function DashboardLayout() {
               </Link>
             );
           })}
+
+          {studyRoles.some(r => r.study_slug === 'thalassemia-cardiac') && (
+            <>
+              <div style={{margin:'16px 4px 6px',fontSize:10,fontWeight:700,color:'#64748b',textTransform:'uppercase',letterSpacing:'0.1em'}}>Thalassemia Study</div>
+              {THAL_NAV_ITEMS.map(item => {
+                const active = location.pathname === item.path || (item.path !== '/dashboard/thalassemia' && location.pathname.startsWith(item.path));
+                return (
+                  <Link key={item.path} to={item.path} style={{
+                    display:'flex',alignItems:'center',gap:10,padding:'10px 12px',borderRadius:8,fontSize:14,
+                    color: active ? '#0f172a' : '#1e293b',
+                    background: active ? '#f1f5f9' : 'transparent',
+                    fontWeight: active ? 700 : 500,
+                    textDecoration:'none',
+                  }}>
+                    <span style={{fontSize:16}}>{item.icon}</span>{item.label}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
         <div style={{padding:'16px 16px 20px',borderTop:'1px solid #e2e8f0'}}>
           <div style={{fontSize:13,fontWeight:700,color:'#0f172a',marginBottom:2}}>{staff.full_name}</div>

@@ -51,6 +51,17 @@ const STUDIES: StudyCardData[] = [
     targetPopulation: 'OMSB Residents (Oman)',
     icon: '👨‍👩‍👧',
   },
+  {
+    slug: 'thalassemia-cardiac',
+    title: 'Multi-Modal Cardiac Assessment in Transfusion-Dependent Beta Thalassemia',
+    shortDescription: 'A prospective study of ~120 adult transfusion-dependent beta thalassemia patients at Sultan Qaboos University Hospital. Combines novel MMP biomarkers (MMP-2, MMP-9, TIMP-1), home polysomnography for OSA prevalence, AI-based ECG prediction, and AI-enabled seismocardiography with conventional imaging (Echo, Cardiac T2* MRI) to detect early myocardial iron overload.',
+    status: 'recruiting',
+    ethicsIds: ['MREC #3938', 'SQU-EC/096/2026'],
+    pi: 'Dr. Mohammed Al Rawahi',
+    studyType: 'Prospective Cohort Study',
+    targetPopulation: 'Adult TDT Patients at SQUH (Oman)',
+    icon: '🫀',
+  },
 ];
 
 export default function ActiveResearch() {

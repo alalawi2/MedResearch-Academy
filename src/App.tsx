@@ -17,6 +17,13 @@ import ShiftStudyDashboard from './pages/studies/ShiftStudyDashboard';
 import ShiftStudyAssessment from './pages/studies/ShiftStudyAssessment';
 import ShiftStudyInvestigator from './pages/studies/ShiftStudyInvestigator';
 import ShiftStudyEditor from './pages/studies/ShiftStudyEditor';
+import Thalassemia from './pages/studies/Thalassemia';
+import ThalassemiaOverview from './pages/dashboard/thalassemia/Overview';
+import ThalassemiaPatientList from './pages/dashboard/thalassemia/PatientList';
+import ThalassemiaPatientNew from './pages/dashboard/thalassemia/PatientNew';
+import ThalassemiaPatientDetail from './pages/dashboard/thalassemia/PatientDetail';
+import ThalassemiaForm from './pages/dashboard/thalassemia/ThalassemiaForm';
+import ThalassemiaExport from './pages/dashboard/thalassemia/Export';
 import Contact from './pages/Contact';
 import Surveys from './pages/Surveys';
 import SurveyTake from './pages/SurveyTake';
@@ -75,6 +82,7 @@ export default function App() {
           <Route path="/active-research/cognitive-shifts/assessment/:timepoint" element={<ShiftStudyAssessment />} />
           <Route path="/active-research/cognitive-shifts/investigator" element={<ShiftStudyInvestigator />} />
           <Route path="/active-research/cognitive-shifts/settings" element={<ShiftStudyEditor />} />
+          <Route path="/active-research/thalassemia-cardiac" element={<Thalassemia />} />
           <Route path="/surveys" element={<Surveys />} />
           <Route path="/survey/:id" element={<SurveyTake />} />
           <Route path="/surveys/submit" element={<SurveySubmit />} />
@@ -101,6 +109,14 @@ export default function App() {
             <Route path="enrollment" element={<Enrollment />} />
             <Route path="exports" element={<Exports />} />
             <Route path="surveys" element={<SurveyManager />} />
+            {/* Thalassemia study portal */}
+            <Route path="thalassemia" element={<ThalassemiaOverview />} />
+            <Route path="thalassemia/patients" element={<ThalassemiaPatientList />} />
+            <Route path="thalassemia/patients/new" element={<ThalassemiaPatientNew />} />
+            <Route path="thalassemia/patients/:id" element={<ThalassemiaPatientDetail />} />
+            <Route path="thalassemia/patients/:id/:modality/new" element={<ThalassemiaForm />} />
+            <Route path="thalassemia/patients/:id/:modality/:rowId" element={<ThalassemiaForm />} />
+            <Route path="thalassemia/export" element={<ThalassemiaExport />} />
           </Route>
 
           {/* ── Resident Portal ── */}
