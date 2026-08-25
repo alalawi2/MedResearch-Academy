@@ -232,18 +232,28 @@ export default function ThalassemiaForm() {
   useEffect(() => {
     if (!schema || !rowId) return;
     (async () => {
-      const { data, error } = await supabase.from(schema.table).select('*').eq('id', rowId).maybeSingle();
+      // Codex fix: bind fetch to the route patient. A URL like
+      // /patients/A/lab/rowB (where rowB belongs to patient B) must return
+      // no row, not silently move data to patient A on save.
+      const { data, error } = await supabase
+        .from(schema.table)
+        .select('*')
+        .eq('id', rowId)
+        .eq('patient_id', id)
+        .maybeSingle();
       if (error) { setErr(error.message); setLoading(false); return; }
-      if (data) {
-        const vals: Record<string, any> = {};
-        for (const f of schema.fields) vals[f.key] = (data as any)[f.key];
-        setValues(vals);
-        setDate((data as any)[schema.dateField] ?? date);
-        if (schema.hasTimepoint) setTimepoint((data as any).timepoint ?? 'unscheduled');
+      if (!data) {
+        setErr('Record not found or does not belong to this patient.');
+        setLoading(false); return;
       }
+      const vals: Record<string, any> = {};
+      for (const f of schema.fields) vals[f.key] = (data as any)[f.key];
+      setValues(vals);
+      setDate((data as any)[schema.dateField] ?? date);
+      if (schema.hasTimepoint) setTimepoint((data as any).timepoint ?? 'unscheduled');
       setLoading(false);
     })();
-  }, [rowId, modality]);
+  }, [rowId, modality, id]);
 
   const sections = useMemo(() => {
     if (!schema) return [];
@@ -265,18 +275,42 @@ export default function ThalassemiaForm() {
     setErr('');
     setSaving(true);
     try {
-      const record: Record<string, any> = {
-        patient_id: id,
+      // Codex fix: on edit, never send patient_id in the payload (it's
+      // scoped by the WHERE clause and must not be rewritten). On insert,
+      // include patient_id from the route.
+      const payload: Record<string, any> = {
         [schema.dateField]: date,
         ...values,
       };
-      if (schema.hasTimepoint) record.timepoint = timepoint;
+      if (schema.hasTimepoint) payload.timepoint = timepoint;
 
-      const q = rowId
-        ? supabase.from(schema.table).update(record).eq('id', rowId)
-        : supabase.from(schema.table).insert(record);
-      const { error } = await q;
+      let error;
+      if (rowId) {
+        // Update: scope by BOTH id and patient_id (defence in depth vs RLS).
+        ({ error } = await supabase
+          .from(schema.table)
+          .update(payload)
+          .eq('id', rowId)
+          .eq('patient_id', id));
+      } else {
+        ({ error } = await supabase
+          .from(schema.table)
+          .insert({ patient_id: id, ...payload }));
+      }
       if (error) throw error;
+
+      // Mark the corresponding scheduled visit as completed (bonus fix):
+      // when a modality row lands at baseline/6mo/12mo, set actual_date so
+      // the visit view flips to 'complete'.
+      if (schema.hasTimepoint && timepoint !== 'unscheduled') {
+        await supabase
+          .from('thalassemia_visit_schedule')
+          .update({ actual_date: date })
+          .eq('patient_id', id)
+          .eq('timepoint', timepoint)
+          .is('actual_date', null); // don't overwrite an earlier actual_date
+      }
+
       nav(`/dashboard/thalassemia/patients/${id}`);
     } catch (e: any) {
       setErr(e.message ?? String(e));

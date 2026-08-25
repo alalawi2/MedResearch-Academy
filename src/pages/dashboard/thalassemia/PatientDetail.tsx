@@ -145,7 +145,7 @@ function ChecklistPanel({ cells, visits, patientId }: { cells: ChecklistCell[]; 
   const cell = (inv: string, tp: Timepoint) => cells.find(c => c.investigation === inv && c.timepoint === tp);
   const visitLabel = (tp: Timepoint) => {
     const v = visits.find(vv => vv.timepoint === tp);
-    return v ? { expected: v.expected_date, status: v.status } : null;
+    return v ? { expected: v.expected_date, status: v.computed_status } : null;
   };
 
   return (
