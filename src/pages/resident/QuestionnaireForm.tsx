@@ -299,20 +299,14 @@ function getCurrentBlock(): CurrentBlockInfo | null {
     for (const b of BLOCK_SCHEDULE) {
       const { start, end } = getBlockDates(b, year);
       if (now >= start && now <= end) {
-        // Calculate 3rd week start (day 15 of block)
-        const submissionOpens = new Date(start);
-        submissionOpens.setDate(submissionOpens.getDate() + 14);
-        const canSubmit = now >= submissionOpens;
-        const daysUntilOpen = canSubmit ? 0 : Math.ceil((submissionOpens.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-
         return {
           block: b.block,
           label: b.label,
           startDate: start,
           endDate: end,
-          canSubmit,
-          submissionOpensDate: submissionOpens,
-          daysUntilOpen,
+          canSubmit: true, // Always allow submission — no 3rd week gate
+          submissionOpensDate: start,
+          daysUntilOpen: 0,
         };
       }
     }
@@ -320,21 +314,23 @@ function getCurrentBlock(): CurrentBlockInfo | null {
   return null;
 }
 
-// Find past blocks since enrollment that the resident can still submit
-function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] {
+// Find past blocks that the resident can still submit retrospectively
+// Allows ALL past blocks from the study year (AY 2025-2026 + 2026-2027), not just since enrollment
+function getPastBlocksSinceEnrollment(_enrollmentDate: Date): CurrentBlockInfo[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
-  const enroll = new Date(enrollmentDate);
-  enroll.setHours(0, 0, 0, 0);
   const currentYear = now.getFullYear();
   const yearsToTry = [currentYear, currentYear - 1];
   const results: CurrentBlockInfo[] = [];
+  const seen = new Set<string>();
 
   for (const year of yearsToTry) {
     for (const b of BLOCK_SCHEDULE) {
       const { start, end } = getBlockDates(b, year);
-      // Block must have ended before today and started after (or during) enrollment
-      if (end < now && end >= enroll) {
+      const key = `${b.block}-${start.getTime()}`;
+      // Block must have ended before today — allow retrospective for any past block
+      if (end < now && !seen.has(key)) {
+        seen.add(key);
         results.push({
           block: b.block,
           label: b.label,
@@ -347,8 +343,8 @@ function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] 
       }
     }
   }
-  // Sort by block number
-  results.sort((a, b) => a.block - b.block);
+  // Sort by end date (most recent first for easier selection)
+  results.sort((a, b) => b.endDate.getTime() - a.endDate.getTime());
   return results;
 }
 
