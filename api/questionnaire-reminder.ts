@@ -94,6 +94,7 @@ interface BlockDates {
   start: Date;
   end: Date;
   label: string;
+  academicYear: string;
 }
 
 interface CurrentBlock extends BlockDates {
@@ -122,7 +123,8 @@ function resolveAllBlocks(today: Date): BlockDates[] {
     const end = new Date(Date.UTC(endYear, em - 1, ed));
     const sl = start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
     const el = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    results.push({ block: b.block, start, end, label: `Block ${b.block}: ${sl} - ${el}` });
+    const ay = `${academicStartYear}-${academicStartYear + 1}`;
+    results.push({ block: b.block, start, end, label: `Block ${b.block}: ${sl} - ${el}`, academicYear: ay });
   }
   return results;
 }
@@ -303,7 +305,7 @@ function coordinatorEscalationHtml(
 function dailyTeamReportHtml(
   today: string,
   participants: Participant[],
-  submittedByResident: Map<string, Set<number>>,
+  submittedByResident: Map<string, Set<string>>,
   allBlocks: BlockDates[],
   currentBlock: CurrentBlock | null,
 ): string {
@@ -329,7 +331,7 @@ function dailyTeamReportHtml(
       return b.end >= enroll;
     });
     if (eligible.length === 0) continue;
-    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(b.block)).length;
+    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(`${b.block}:${b.academicYear}`)).length;
     const rate = Math.round((completed / eligible.length) * 100);
     const color = rate >= 80 ? '#16a34a' : rate >= 50 ? '#d97706' : '#dc2626';
     blockSummaryRows += `<tr>
@@ -344,7 +346,7 @@ function dailyTeamReportHtml(
       const enroll = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
       return currentBlock.start >= enroll || currentBlock.end >= enroll;
     });
-    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(currentBlock.block)).length;
+    const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(`${currentBlock.block}:${currentBlock.academicYear}`)).length;
     const rate = eligible.length > 0 ? Math.round((completed / eligible.length) * 100) : 0;
     const windowOpen = currentBlock.daysOverdue >= 0;
     blockSummaryRows += `<tr style="background:#f0f9ff;">
@@ -427,17 +429,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ message: 'No active participants' });
   }
 
-  // Get all submitted block assessments
+  // Get all submitted block assessments (keyed by block_number + academic_year)
   const { data: allAssessments } = await supabase
     .from('block_assessments')
-    .select('resident_id, block_number')
+    .select('resident_id, block_number, academic_year')
     .limit(5000);
 
-  const submittedByResident = new Map<string, Set<number>>();
+  // submittedByResident: resident_id → Set of "block:year" keys
+  const submittedByResident = new Map<string, Set<string>>();
   for (const a of (allAssessments ?? [])) {
     if (a.block_number == null) continue;
     if (!submittedByResident.has(a.resident_id)) submittedByResident.set(a.resident_id, new Set());
-    submittedByResident.get(a.resident_id)!.add(a.block_number);
+    submittedByResident.get(a.resident_id)!.add(`${a.block_number}:${a.academic_year || '2025-2026'}`);
   }
 
   // Get existing reminders to track escalation
@@ -508,7 +511,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ── PART 2: Current block assessment reminders ──
-    if (currentBlock && currentBlock.daysOverdue >= 0 && !submitted.has(currentBlock.block)) {
+    if (currentBlock && currentBlock.daysOverdue >= 0 && !submitted.has(`${currentBlock.block}:${currentBlock.academicYear}`)) {
       const level = getEscalationLevel(currentBlock.daysOverdue, currentBlock.end, todayUTC);
       const prevLevel = maxLevelByResidentBlock.get(`${p.id}:${currentBlock.block}`) || 0;
 
@@ -551,7 +554,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const MISSED_BLOCK_GRACE_DAYS = 3;
     const missedPast: BlockDates[] = [];
     for (const b of pastBlocks) {
-      if (b.end >= enrollDate && !submitted.has(b.block)) {
+      if (b.end >= enrollDate && !submitted.has(`${b.block}:${b.academicYear}`)) {
         const daysSinceEnd = Math.floor((todayUTC.getTime() - b.end.getTime()) / (1000 * 60 * 60 * 24));
         if (daysSinceEnd >= MISSED_BLOCK_GRACE_DAYS) {
           missedPast.push(b);

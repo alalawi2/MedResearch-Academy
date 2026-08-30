@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 5. Block assessments
   const { data: assessments } = await supabase
     .from('block_assessments')
-    .select('resident_id, assessment_date, block_number, rotation_name, clinical_intensity, calls_count, call_types, rotation_types, weekly_hours, major_life_event, annual_leave, sick_leave, who5_total, who5_percent, cbi_personal_score, cbi_work_score, cbi_patient_score, cbi_any_burnout, phq9_total, phq9_severity, gad7_total, gad7_severity, isi_total, isi_severity')
+    .select('resident_id, assessment_date, block_number, academic_year, rotation_name, clinical_intensity, calls_count, call_types, rotation_types, weekly_hours, major_life_event, annual_leave, sick_leave, who5_total, who5_percent, cbi_personal_score, cbi_work_score, cbi_patient_score, cbi_any_burnout, phq9_total, phq9_severity, gad7_total, gad7_severity, isi_total, isi_severity')
     .limit(1000);
 
   // 6. WHOOP aggregated

@@ -35,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!resident) return res.status(403).json({ error: 'Not a study participant' });
 
-  const { payload, cbiData, phq9Data, gad7Data, isiData, blockNumber } = req.body;
+  const { payload, cbiData, phq9Data, gad7Data, isiData, blockNumber, academicYear } = req.body;
 
   if (!payload || !cbiData || !phq9Data || !gad7Data || !isiData) {
     return res.status(400).json({ error: 'Missing assessment data' });
@@ -49,13 +49,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get block_id if exists
   let blockId: string | null = null;
   if (blockNumber) {
-    const { data: block } = await supabase
+    let query = supabase
       .from('rotation_blocks')
       .select('id')
       .eq('resident_id', resident.id)
-      .eq('block_number', blockNumber)
-      .limit(1)
-      .single();
+      .eq('block_number', blockNumber);
+    if (academicYear) query = query.eq('academic_year', academicYear);
+    const { data: block } = await query.limit(1).single();
     blockId = block?.id || null;
   }
 

@@ -264,6 +264,17 @@ const BLOCK_SCHEDULE: BlockDef[] = [
   { block: 13, start: '08-02', end: '08-31', label: 'Block 13: Aug 2 - Aug 31' },
 ];
 
+// Derive academic year from a block's start date
+// Sep-Dec → AY starts that year; Jan-Aug → AY started previous year
+function getAcademicYear(startDate: Date): string {
+  const month = startDate.getMonth(); // 0-indexed
+  const year = startDate.getFullYear();
+  if (month >= 8) { // Sep (8) through Dec (11)
+    return `${year}-${year + 1}`;
+  }
+  return `${year - 1}-${year}`;
+}
+
 function getBlockDates(b: BlockDef, refYear: number): { start: Date; end: Date } {
   const [sm, sd] = b.start.split('-').map(Number);
   const [em, ed] = b.end.split('-').map(Number);
@@ -285,6 +296,7 @@ interface CurrentBlockInfo {
   canSubmit: boolean;       // true if we're in week 3+
   submissionOpensDate: Date;
   daysUntilOpen: number;
+  academicYear: string;     // e.g. '2025-2026'
 }
 
 function getCurrentBlock(): CurrentBlockInfo | null {
@@ -307,6 +319,7 @@ function getCurrentBlock(): CurrentBlockInfo | null {
           canSubmit: true, // Always allow submission — no 3rd week gate
           submissionOpensDate: start,
           daysUntilOpen: 0,
+          academicYear: getAcademicYear(start),
         };
       }
     }
@@ -315,10 +328,12 @@ function getCurrentBlock(): CurrentBlockInfo | null {
 }
 
 // Find past blocks that the resident can still submit retrospectively
-// Allows ALL past blocks from the study year (AY 2025-2026 + 2026-2027), not just since enrollment
-function getPastBlocksSinceEnrollment(_enrollmentDate: Date): CurrentBlockInfo[] {
+// Only includes blocks that ended AFTER enrollment and BEFORE today
+function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
+  const enroll = new Date(enrollmentDate);
+  enroll.setHours(0, 0, 0, 0);
   const currentYear = now.getFullYear();
   const yearsToTry = [currentYear, currentYear - 1];
   const results: CurrentBlockInfo[] = [];
@@ -327,9 +342,10 @@ function getPastBlocksSinceEnrollment(_enrollmentDate: Date): CurrentBlockInfo[]
   for (const year of yearsToTry) {
     for (const b of BLOCK_SCHEDULE) {
       const { start, end } = getBlockDates(b, year);
-      const key = `${b.block}-${start.getTime()}`;
-      // Block must have ended before today — allow retrospective for any past block
-      if (end < now && !seen.has(key)) {
+      const ay = getAcademicYear(start);
+      const key = `${b.block}-${ay}`;
+      // Block must have ended before today AND started after (or during) enrollment
+      if (end < now && end >= enroll && !seen.has(key)) {
         seen.add(key);
         results.push({
           block: b.block,
@@ -339,6 +355,7 @@ function getPastBlocksSinceEnrollment(_enrollmentDate: Date): CurrentBlockInfo[]
           canSubmit: true,
           submissionOpensDate: start,
           daysUntilOpen: 0,
+          academicYear: ay,
         });
       }
     }
@@ -654,29 +671,28 @@ export default function QuestionnaireForm() {
     }
 
     async function checkBlocks() {
-      // Get all submitted block numbers for this resident
+      // Get all submitted block numbers + academic years for this resident
       const { data: submitted } = await supabase
         .from('block_assessments')
-        .select('block_number, assessment_date')
+        .select('block_number, academic_year, assessment_date')
         .eq('resident_id', residentProfile!.id)
         .limit(100);
 
-      const submittedBlockNums = new Set(
-        (submitted ?? []).map(a => a.block_number).filter(Boolean)
+      // Track submitted as "block-year" keys for accurate dedup across academic years
+      const submittedKeys = new Set(
+        (submitted ?? []).map(a => `${a.block_number}-${a.academic_year || '2025-2026'}`).filter(Boolean)
       );
-      // Also track date-range submissions (for baseline with null block_number)
-      const submittedDates = (submitted ?? []).map(a => a.assessment_date);
 
       // Find missed blocks
       const enrollDate = residentProfile!.enrollment_date
         ? new Date(residentProfile!.enrollment_date)
         : new Date('2026-04-01');
       const pastBlocks = getPastBlocksSinceEnrollment(enrollDate);
-      const missed = pastBlocks.filter(b => !submittedBlockNums.has(b.block));
+      const missed = pastBlocks.filter(b => !submittedKeys.has(`${b.block}-${b.academicYear}`));
       setMissedBlocks(missed);
 
-      // Check if current block is already submitted (by block_number only)
-      if (currentBlock && submittedBlockNums.has(currentBlock.block)) {
+      // Check if current block is already submitted
+      if (currentBlock && submittedKeys.has(`${currentBlock.block}-${currentBlock.academicYear}`)) {
         setAlreadySubmitted(true);
       }
 
@@ -776,12 +792,13 @@ export default function QuestionnaireForm() {
     try {
       const today = new Date().toISOString().slice(0, 10);
 
-      // Double-check duplicate by block_number (works for both current and missed blocks)
+      // Double-check duplicate by block_number + academic_year
       const { data: existing } = await supabase
         .from('block_assessments')
         .select('id')
         .eq('resident_id', residentProfile.id)
         .eq('block_number', blockInfo.block)
+        .eq('academic_year', blockInfo.academicYear)
         .limit(1);
 
       if (existing && existing.length > 0) {
@@ -837,6 +854,7 @@ export default function QuestionnaireForm() {
         study_id: residentProfile.study_id,
         resident_id: residentProfile.id,
         block_number: blockInfo.block,
+        academic_year: blockInfo.academicYear,
         assessment_date: today,
 
         // Rotation context
@@ -912,6 +930,7 @@ export default function QuestionnaireForm() {
         body: JSON.stringify({
           payload,
           blockNumber: blockInfo.block,
+          academicYear: blockInfo.academicYear,
           cbiData: {
             response_date: today,
             items: cbiItems,
@@ -999,7 +1018,7 @@ export default function QuestionnaireForm() {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {missedBlocks.map(mb => (
             <button
-              key={mb.block}
+              key={`${mb.block}-${mb.academicYear}`}
               type="button"
               onClick={() => {
                 setSelectedMissedBlock(mb);
@@ -1020,7 +1039,7 @@ export default function QuestionnaireForm() {
                 cursor: 'pointer',
               }}
             >
-              Block {mb.block} ({mb.label.split(': ')[1]})
+              Block {mb.block} ({formatDateShort(mb.startDate)} - {formatDateShort(mb.endDate)})
             </button>
           ))}
         </div>
@@ -1214,15 +1233,15 @@ export default function QuestionnaireForm() {
         </div>
 
         {/* Show remaining missed blocks so resident can continue */}
-        {missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 0 && (
+        {missedBlocks.filter(mb => `${mb.block}-${mb.academicYear}` !== `${blockInfo.block}-${blockInfo.academicYear}`).length > 0 && (
           <div style={{ background: '#fef3cd', border: '1px solid #ffc107', borderRadius: 12, padding: '16px 20px', marginTop: 24 }}>
             <div style={{ fontWeight: 600, color: '#664d03', marginBottom: 8, fontSize: 15 }}>
-              You still have {missedBlocks.filter(mb => mb.block !== blockInfo.block).length} more previous block{missedBlocks.filter(mb => mb.block !== blockInfo.block).length > 1 ? 's' : ''} to complete
+              You still have {missedBlocks.filter(mb => `${mb.block}-${mb.academicYear}` !== `${blockInfo.block}-${blockInfo.academicYear}`).length} more previous block{missedBlocks.filter(mb => `${mb.block}-${mb.academicYear}` !== `${blockInfo.block}-${blockInfo.academicYear}`).length > 1 ? 's' : ''} to complete
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {missedBlocks.filter(mb => mb.block !== blockInfo.block).map(mb => (
+              {missedBlocks.filter(mb => `${mb.block}-${mb.academicYear}` !== `${blockInfo.block}-${blockInfo.academicYear}`).map(mb => (
                 <button
-                  key={mb.block}
+                  key={`${mb.block}-${mb.academicYear}`}
                   type="button"
                   onClick={() => {
                     setSelectedMissedBlock(mb);
@@ -1249,7 +1268,7 @@ export default function QuestionnaireForm() {
                     cursor: 'pointer',
                   }}
                 >
-                  Complete Block {mb.block} ({mb.label.split(': ')[1]}) →
+                  Complete Block {mb.block} ({formatDateShort(mb.startDate)} - {formatDateShort(mb.endDate)}) →
                 </button>
               ))}
             </div>
