@@ -328,7 +328,7 @@ function dailyTeamReportHtml(
   for (const b of pastBlocks) {
     const eligible = real.filter(p => {
       const enroll = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
-      return b.end >= enroll;
+      return enroll <= b.end;
     });
     if (eligible.length === 0) continue;
     const completed = eligible.filter(p => (submittedByResident.get(p.id) || new Set()).has(`${b.block}:${b.academicYear}`)).length;
@@ -551,10 +551,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── PART 3: Missed past block reminders ──
     // Grace period: only remind about blocks that ended 3+ days ago
+    // Only for blocks where resident was enrolled before the block ended
     const MISSED_BLOCK_GRACE_DAYS = 3;
     const missedPast: BlockDates[] = [];
     for (const b of pastBlocks) {
-      if (b.end >= enrollDate && !submitted.has(`${b.block}:${b.academicYear}`)) {
+      if (enrollDate <= b.end && !submitted.has(`${b.block}:${b.academicYear}`)) {
         const daysSinceEnd = Math.floor((todayUTC.getTime() - b.end.getTime()) / (1000 * 60 * 60 * 24));
         if (daysSinceEnd >= MISSED_BLOCK_GRACE_DAYS) {
           missedPast.push(b);

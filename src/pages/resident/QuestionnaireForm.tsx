@@ -328,7 +328,8 @@ function getCurrentBlock(): CurrentBlockInfo | null {
 }
 
 // Find past blocks that the resident can still submit retrospectively
-// Only includes blocks that ended AFTER enrollment and BEFORE today
+// Only shows blocks where the resident was enrolled BEFORE or DURING the block
+// (i.e., enrolled before the block ended)
 function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] {
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -344,8 +345,8 @@ function getPastBlocksSinceEnrollment(enrollmentDate: Date): CurrentBlockInfo[] 
       const { start, end } = getBlockDates(b, year);
       const ay = getAcademicYear(start);
       const key = `${b.block}-${ay}`;
-      // Block must have ended before today AND started after (or during) enrollment
-      if (end < now && end >= enroll && !seen.has(key)) {
+      // Block must have ended before today AND resident enrolled before block ended
+      if (end < now && enroll <= end && !seen.has(key)) {
         seen.add(key);
         results.push({
           block: b.block,
