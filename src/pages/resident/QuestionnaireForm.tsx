@@ -911,16 +911,22 @@ export default function QuestionnaireForm() {
 
       // Submit via server API (service role bypasses RLS)
       // Try to refresh session if expired
-      let session = await supabase.auth.getSession();
-      if (!session.data.session?.access_token) {
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        session = { data: { session: refreshed.session } } as typeof session;
+      let token: string | undefined;
+      try {
+        let session = await supabase.auth.getSession();
+        if (!session.data.session?.access_token) {
+          const { data: refreshed } = await supabase.auth.refreshSession();
+          session = { data: { session: refreshed.session } } as typeof session;
+        }
+        token = session.data.session?.access_token;
+      } catch {
+        // Session token corrupted or expired beyond recovery
+        token = undefined;
       }
-      const token = session.data.session?.access_token;
       if (!token) {
         // Session expired beyond recovery — force re-login
         alert('Your session has expired. You will be redirected to log in again. Your answers have NOT been lost — after logging in, return to Block Assessment to re-submit.');
-        await supabase.auth.signOut();
+        try { await supabase.auth.signOut(); } catch { /* ignore */ }
         window.location.href = '/resident/login';
         return;
       }
