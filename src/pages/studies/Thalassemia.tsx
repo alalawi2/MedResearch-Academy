@@ -3,18 +3,18 @@ import Layout from '../../components/Layout';
 
 const TEAM = [
   { name: 'Dr. Mohammed Al Rawahi',    role: 'Principal Investigator',    email: 'mrawahi@squ.edu.om' },
+  { name: 'Dr. Adil Al Riyami',        role: 'Co-Principal Investigator',  email: 'dradil@squ.edu.om' },
   { name: 'Dr. Abdullah M. Al Alawi',  role: 'Research Lead',              email: 'alalawi2@squ.edu.om' },
   { name: 'Dr. Mohamed Al Husaini',    role: 'AI Co-Investigator',         email: null },
-  { name: 'Nuha Al Habsi',             role: 'Research Team',              email: 'Nuhahabsi7@gmail.com' },
-  { name: 'Abubakr El’Tigani',    role: 'Research Team',              email: 'abubakr@squ.edu.om' },
-  { name: 'Malak Amur Alkulaibi',      role: 'Research Team',              email: 'Malakalkulibi@gmail.com' },
+  { name: 'Nuha Al Habsi',             role: 'Research Team',              email: 'nuhahabsi7@gmail.com' },
+  { name: 'Abubakr El\u2019Tigani',    role: 'Research Team',              email: 'abubakr@squ.edu.om' },
+  { name: 'Malak Amur Al Kulaibi',     role: 'Research Team',              email: 'malakalkulibi@gmail.com' },
   { name: 'Sarah Al Rahbi',            role: 'Research Team',              email: 'sara55@squ.edu.om' },
   { name: 'Mohammed Al Habsi',         role: 'Research Team',              email: 'm.s.m22133@gmail.com' },
-  { name: 'Fatema Al Maqblai',         role: 'Research Team',              email: '2fatma2me@gmail.com' },
-  { name: 'Noura Al-Harmali',          role: 'Research Team',              email: 'doctornoura33@gmail.com' },
+  { name: 'Fatema Al Maqbali',         role: 'Research Team',              email: '2fatma2me@gmail.com' },
+  { name: 'Noura Al Harmali',          role: 'Research Team',              email: 'doctornoura33@gmail.com' },
   { name: 'Bader Al Rawahi',           role: 'Research Team',              email: 'bass@squ.edu.om' },
-  { name: 'Abdullah Ismaili',          role: 'Research Team',              email: 'aalismaili@squ.edu.om' },
-  { name: 'Adil Riyami',               role: 'Research Team',              email: 'Dradil@squ.edu.om' },
+  { name: 'Abdullah Al Ismaili',       role: 'Research Team',              email: 'aalismaili@squ.edu.om' },
   { name: 'Omar Al Taei',              role: 'Research Team',              email: 'altaeiomar11@gmail.com' },
   { name: 'Dawood Al Amri',            role: 'Research Team',              email: 'd.alaamri@squ.edu.om' },
 ];
@@ -208,7 +208,7 @@ export default function Thalassemia() {
           <p style={{color:'var(--text-muted)',marginBottom:20}}>Contact the research team for enrollment inquiries or collaboration.</p>
           <div style={{display:'flex',gap:10,flexWrap:'wrap',justifyContent:'center'}}>
             <a href="mailto:mrawahi@squ.edu.om" className="btn btn-primary">Email PI (Dr. Al Rawahi)</a>
-            <a href="mailto:alalawi2@squ.edu.om" className="btn btn-outline">Email Research Lead</a>
+            <a href="mailto:dradil@squ.edu.om" className="btn btn-outline">Email Co-PI (Dr. Al Riyami)</a>
           </div>
         </div>
       </section>
