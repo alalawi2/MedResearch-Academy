@@ -215,6 +215,30 @@ const SCHEMAS: Record<string, ModalitySchema> = {
       { key: 'reported_date',     label: 'Reported date',    type: 'date' },
     ],
   },
+
+  meds: {
+    slug: 'meds', label: 'Concomitant Medication',
+    table: 'thalassemia_concomitant_meds', dateField: 'start_date', hasTimepoint: false,
+    fields: [
+      { key: 'medication_name', label: 'Medication name',  type: 'text', required: true, placeholder: 'e.g. Deferasirox, Atenolol' },
+      { key: 'dose',            label: 'Dose',             type: 'text', placeholder: 'e.g. 20mg/kg, 50mg' },
+      { key: 'frequency',       label: 'Frequency',        type: 'text', placeholder: 'e.g. daily, BID, PRN' },
+      { key: 'route',           label: 'Route',            type: 'select',
+        options: [
+          { value: '',     label: '—' },
+          { value: 'oral', label: 'Oral' },
+          { value: 'iv',   label: 'IV' },
+          { value: 'sc',   label: 'Subcutaneous' },
+          { value: 'im',   label: 'Intramuscular' },
+          { value: 'topical', label: 'Topical' },
+          { value: 'other', label: 'Other' },
+        ] },
+      { key: 'indication',      label: 'Indication',       type: 'text', placeholder: 'e.g. iron chelation, hypertension' },
+      { key: 'end_date',        label: 'End date',          type: 'date' },
+      { key: 'ongoing',         label: 'Ongoing',           type: 'bool' },
+      { key: 'notes',           label: 'Notes',             type: 'textarea' },
+    ],
+  },
 };
 
 // ── The route component ─────────────────────────────────────────────────────

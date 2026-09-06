@@ -9,7 +9,7 @@ import {
   ChecklistCell, Timepoint,
 } from '../../../lib/thalassemia';
 
-type Tab = 'checklist' | 'demographics' | 'lab' | 'ecg' | 'echo' | 't2mri' | 'polysomnography' | 'scg' | 'transfusions' | 'ae';
+type Tab = 'checklist' | 'demographics' | 'lab' | 'ecg' | 'echo' | 't2mri' | 'polysomnography' | 'scg' | 'transfusions' | 'ae' | 'meds';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'checklist',       label: 'Checklist' },
@@ -21,6 +21,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'polysomnography', label: 'PSG' },
   { id: 'scg',             label: 'SCG' },
   { id: 'transfusions',    label: 'Transfusions' },
+  { id: 'meds',            label: 'Medications' },
   { id: 'ae',              label: 'Adverse Events' },
 ];
 
@@ -38,6 +39,7 @@ export default function ThalassemiaPatientDetail() {
   const [scg, setScg] = useState<ScgRow[]>([]);
   const [tx, setTx] = useState<TransfusionRow[]>([]);
   const [ae, setAe] = useState<AdverseEventRow[]>([]);
+  const [meds, setMeds] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
 
@@ -45,7 +47,7 @@ export default function ThalassemiaPatientDetail() {
     (async () => {
       try {
         setLoading(true);
-        const [p, i, v, l, ec, ech, t2, ps, sc, tr, aev] = await Promise.all([
+        const [p, i, v, l, ec, ech, t2, ps, sc, tr, aev, medsData] = await Promise.all([
           fetchPatient(id),
           fetchIdentifiers(id),
           fetchVisitSchedule(id),
@@ -57,10 +59,11 @@ export default function ThalassemiaPatientDetail() {
           fetchModalityRows<ScgRow>('thalassemia_scg', id),
           fetchModalityRows<TransfusionRow>('thalassemia_transfusions', id, 'transfusion_date'),
           fetchModalityRows<AdverseEventRow>('thalassemia_adverse_events', id, 'event_date'),
+          fetchModalityRows<any>('thalassemia_concomitant_meds', id, 'start_date'),
         ]);
         setPatient(p); setIdent(i); setVisits(v);
         setLab(l); setEcg(ec); setEchoRows(ech); setT2mri(t2);
-        setPsg(ps); setScg(sc); setTx(tr); setAe(aev);
+        setPsg(ps); setScg(sc); setTx(tr); setAe(aev); setMeds(medsData);
       } catch (e: any) {
         setErr(e.message ?? String(e));
       } finally {
@@ -128,6 +131,7 @@ export default function ThalassemiaPatientDetail() {
       {tab === 'polysomnography' && <ModalityListPanel title="Polysomnography" rows={psg} columns={PSG_COLS} dateCol="study_date" patientId={id} modality="polysomnography" />}
       {tab === 'scg' && <ModalityListPanel title="Seismocardiography" rows={scg} columns={SCG_COLS} dateCol="assessment_date" patientId={id} modality="scg" />}
       {tab === 'transfusions' && <ModalityListPanel title="Transfusion Log" rows={tx} columns={TX_COLS} dateCol="transfusion_date" patientId={id} modality="transfusions" />}
+      {tab === 'meds' && <ModalityListPanel title="Concomitant Medications" rows={meds} columns={MEDS_COLS} dateCol="start_date" patientId={id} modality="meds" />}
       {tab === 'ae' && <AdverseEventsPanel rows={ae} patientId={id} />}
     </div>
   );
@@ -315,6 +319,7 @@ const T2MRI_COLS = [ {key:'cardiac_t2_star_ms',label:'Cardiac T2*'}, {key:'liver
 const PSG_COLS   = [ {key:'ahi',label:'AHI'}, {key:'sleep_efficiency_pct',label:'Sleep eff %'}, {key:'average_spo2',label:'Avg SpO2'}, {key:'osa_severity',label:'OSA severity'} ];
 const SCG_COLS   = [ {key:'ejection_fraction_pct',label:'EF %'}, {key:'cardiac_output_l_min',label:'CO'}, {key:'stroke_volume_ml',label:'SV'} ];
 const TX_COLS    = [ {key:'volume_ml',label:'Volume (ml)'}, {key:'pre_transfusion_hb',label:'Pre-tx Hb'}, {key:'chelation_at_visit',label:'Chelation'} ];
+const MEDS_COLS  = [ {key:'medication_name',label:'Medication'}, {key:'dose',label:'Dose'}, {key:'frequency',label:'Frequency'}, {key:'indication',label:'Indication'}, {key:'ongoing',label:'Ongoing'} ];
 
 // ── Adverse events ───────────────────────────────────────────────────────────
 function AdverseEventsPanel({ rows, patientId }: { rows: AdverseEventRow[]; patientId: string }) {

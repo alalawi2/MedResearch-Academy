@@ -21,6 +21,7 @@ const EXPORTS: ModalityExport[] = [
   { table: 'thalassemia_scg',              label: 'Seismocardiography',      dateField: 'assessment_date',   joinsPatients: true  },
   { table: 'thalassemia_transfusions',     label: 'Transfusion Log',         dateField: 'transfusion_date',  joinsPatients: true  },
   { table: 'thalassemia_adverse_events',   label: 'Adverse Events',          dateField: 'event_date',        joinsPatients: true  },
+  { table: 'thalassemia_concomitant_meds', label: 'Concomitant Medications', dateField: 'start_date',        joinsPatients: true  },
 ];
 
 export default function ThalassemiaExport() {
