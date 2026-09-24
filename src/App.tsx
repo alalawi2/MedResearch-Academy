@@ -114,6 +114,7 @@ export default function App() {
             <Route path="thalassemia/patients" element={<ThalassemiaPatientList />} />
             <Route path="thalassemia/patients/new" element={<ThalassemiaPatientNew />} />
             <Route path="thalassemia/patients/:id" element={<ThalassemiaPatientDetail />} />
+            <Route path="thalassemia/patients/:id/edit" element={<ThalassemiaPatientNew />} />
             <Route path="thalassemia/patients/:id/:modality/new" element={<ThalassemiaForm />} />
             <Route path="thalassemia/patients/:id/:modality/:rowId" element={<ThalassemiaForm />} />
             <Route path="thalassemia/export" element={<ThalassemiaExport />} />

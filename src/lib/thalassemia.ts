@@ -218,6 +218,39 @@ export interface AdverseEventRow {
   reported_date: string | null;
 }
 
+// ── Investigation files & confirmations ──────────────────────────────────────
+
+export type InvestigationType = 'ecg' | 'echo' | 'mri' | 'scg' | 'polysomnography';
+
+export interface InvestigationFile {
+  id: string;
+  patient_id: string;
+  investigation_type: InvestigationType;
+  investigation_id: string;
+  file_path: string;
+  file_name: string;
+  file_type: string;
+  file_size_bytes: number | null;
+  uploaded_by: string | null;
+  uploaded_at: string;
+  notes: string | null;
+  // joined
+  uploader_name?: string;
+}
+
+export interface InvestigationConfirmation {
+  id: string;
+  patient_id: string;
+  investigation_type: InvestigationType;
+  investigation_id: string;
+  confirmed_by: string;
+  confirmed_at: string;
+  agrees_with_findings: boolean;
+  comments: string | null;
+  // joined
+  confirmer_name?: string;
+}
+
 // Investigations required by protocol at each timepoint
 export const REQUIRED_INVESTIGATIONS = {
   baseline: ['demographics', 'lab', 'ecg', 'echo', 't2mri', 'polysomnography', 'scg'],
@@ -358,6 +391,44 @@ export function buildChecklist(
   return cells;
 }
 
+// ── Update helpers ──────────────────────────────────────────────────────────
+
+export async function updatePatient(
+  id: string,
+  data: Partial<Omit<ThalPatient, 'id' | 'study_id' | 'entered_at'>>,
+) {
+  const { error } = await supabase
+    .from('thalassemia_patients')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function updateIdentifiers(
+  patientId: string,
+  data: Partial<Omit<ThalIdentifiers, 'patient_id' | 'study_id'>>,
+) {
+  const { error } = await supabase
+    .from('thalassemia_patient_identifiers')
+    .update(data)
+    .eq('patient_id', patientId);
+  if (error) throw error;
+}
+
+export async function updateModalityRow(
+  table: string,
+  rowId: string,
+  patientId: string,
+  data: Record<string, any>,
+) {
+  const { error } = await supabase
+    .from(table)
+    .update(data)
+    .eq('id', rowId)
+    .eq('patient_id', patientId);
+  if (error) throw error;
+}
+
 // Generate default visit schedule based on enrollment date
 export function generateVisitSchedule(enrollmentDate: string) {
   const enroll = new Date(enrollmentDate);
@@ -399,4 +470,135 @@ export function generateVisitSchedule(enrollmentDate: string) {
     window_end: addDays(m12, gracePost),
   });
   return rows;
+}
+
+// ── Investigation file queries ──────────────────────────────────────────────
+
+const STORAGE_BUCKET = 'thalassemia-files';
+
+export async function fetchInvestigationFiles(
+  investigationType: InvestigationType,
+  investigationId: string,
+): Promise<InvestigationFile[]> {
+  const { data, error } = await supabase
+    .from('thalassemia_investigation_files')
+    .select('*, staff:uploaded_by(full_name)')
+    .eq('investigation_type', investigationType)
+    .eq('investigation_id', investigationId)
+    .order('uploaded_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    ...r,
+    uploader_name: r.staff?.full_name ?? null,
+    staff: undefined,
+  })) as InvestigationFile[];
+}
+
+export async function uploadInvestigationFile(params: {
+  patientId: string;
+  investigationType: InvestigationType;
+  investigationId: string;
+  file: File;
+  uploadedBy: string | null;
+  notes?: string;
+}): Promise<InvestigationFile> {
+  const { patientId, investigationType, investigationId, file, uploadedBy, notes } = params;
+
+  // Upload to Supabase Storage
+  const ext = file.name.split('.').pop() ?? 'bin';
+  const storagePath = `${patientId}/${investigationType}/${investigationId}/${crypto.randomUUID()}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .upload(storagePath, file, { contentType: file.type });
+  if (uploadError) throw uploadError;
+
+  // Insert metadata row
+  const { data, error } = await supabase
+    .from('thalassemia_investigation_files')
+    .insert({
+      patient_id: patientId,
+      investigation_type: investigationType,
+      investigation_id: investigationId,
+      file_path: storagePath,
+      file_name: file.name,
+      file_type: file.type,
+      file_size_bytes: file.size,
+      uploaded_by: uploadedBy,
+      notes: notes ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as InvestigationFile;
+}
+
+export function getFileUrl(filePath: string): string {
+  const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
+  return data.publicUrl;
+}
+
+export async function getSignedFileUrl(filePath: string): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(STORAGE_BUCKET)
+    .createSignedUrl(filePath, 3600); // 1 hour
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+export async function deleteInvestigationFile(fileId: string, filePath: string): Promise<void> {
+  // Remove from storage
+  await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+  // Remove metadata
+  const { error } = await supabase
+    .from('thalassemia_investigation_files')
+    .delete()
+    .eq('id', fileId);
+  if (error) throw error;
+}
+
+// ── Investigation confirmation queries ──────────────────────────────────────
+
+export async function fetchConfirmations(
+  investigationType: InvestigationType,
+  investigationId: string,
+): Promise<InvestigationConfirmation[]> {
+  const { data, error } = await supabase
+    .from('thalassemia_investigation_confirmations')
+    .select('*, staff:confirmed_by(full_name)')
+    .eq('investigation_type', investigationType)
+    .eq('investigation_id', investigationId)
+    .order('confirmed_at', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    ...r,
+    confirmer_name: r.staff?.full_name ?? null,
+    staff: undefined,
+  })) as InvestigationConfirmation[];
+}
+
+export async function confirmInvestigationFindings(params: {
+  patientId: string;
+  investigationType: InvestigationType;
+  investigationId: string;
+  confirmedBy: string;
+  agreesWithFindings: boolean;
+  comments?: string;
+}): Promise<InvestigationConfirmation> {
+  const { patientId, investigationType, investigationId, confirmedBy, agreesWithFindings, comments } = params;
+  const { data, error } = await supabase
+    .from('thalassemia_investigation_confirmations')
+    .upsert({
+      patient_id: patientId,
+      investigation_type: investigationType,
+      investigation_id: investigationId,
+      confirmed_by: confirmedBy,
+      confirmed_at: new Date().toISOString(),
+      agrees_with_findings: agreesWithFindings,
+      comments: comments ?? null,
+    }, { onConflict: 'investigation_id,confirmed_by' })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as InvestigationConfirmation;
 }

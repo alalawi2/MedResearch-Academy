@@ -507,7 +507,8 @@ begin
   for team in
     select * from (values
       ('mrawahi@squ.edu.om',      'Dr. Mohammed Al Rawahi',    'Principal Investigator',   'research_admin'),
-      ('alalawi2@squ.edu.om',     'Dr. Abdullah M. Al Alawi',  'Research Lead',            'super_admin'),
+      ('Dradil@squ.edu.om',       'Dr. Adil Al Riyami',        'Co-Principal Investigator', 'research_admin'),
+      ('alalawi2@squ.edu.om',     'Dr. Abdullah M. Al Alawi',  'Co-Investigator',          'super_admin'),
       ('Nuhahabsi7@gmail.com',    'Nuha Al Habsi',             'Research Team',            'research_assistant'),
       ('abubakr@squ.edu.om',      'Abubakr El''Tigani',        'Research Team',            'research_assistant'),
       ('Malakalkulibi@gmail.com', 'Malak Amur Alkulaibi',      'Research Team',            'research_assistant'),
@@ -517,7 +518,6 @@ begin
       ('doctornoura33@gmail.com', 'Noura Al-Harmali',          'Research Team',            'research_assistant'),
       ('bass@squ.edu.om',         'Bader Al Rawahi',           'Research Team',            'research_assistant'),
       ('aalismaili@squ.edu.om',   'Abdullah Ismaili',          'Research Team',            'research_assistant'),
-      ('Dradil@squ.edu.om',       'Adil Riyami',               'Research Team',            'research_assistant'),
       ('altaeiomar11@gmail.com',  'Omar Al Taei',              'Research Team',            'research_assistant'),
       ('d.alaamri@squ.edu.om',    'Dawood Al Amri',            'Research Team',            'research_assistant')
     ) as t(email, full_name, title, role)
