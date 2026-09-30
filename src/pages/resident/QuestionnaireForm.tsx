@@ -728,9 +728,17 @@ export default function QuestionnaireForm() {
       );
 
       // Find missed blocks
-      const enrollDate = residentProfile!.enrollment_date
+      // Use enrollment_date, but cap at the start of the CURRENT academic year
+      // so all blocks in the current AY are always visible (even if enrolled mid-year)
+      const rawEnroll = residentProfile!.enrollment_date
         ? new Date(residentProfile!.enrollment_date)
         : new Date('2026-04-01');
+      // If enrolled before current AY started, use AY start (Sep 1) as effective enrollment
+      const nowForEnroll = new Date();
+      const currentAYStart = nowForEnroll.getMonth() >= 8
+        ? new Date(nowForEnroll.getFullYear(), 8, 1)
+        : new Date(nowForEnroll.getFullYear() - 1, 8, 1);
+      const enrollDate = rawEnroll < currentAYStart ? currentAYStart : rawEnroll;
       const pastBlocks = getPastBlocksSinceEnrollment(enrollDate);
       const missed = pastBlocks.filter(b => !submittedKeys.has(`${b.block}-${b.academicYear}`));
       setMissedBlocks(missed);

@@ -65,6 +65,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ checked: 0, message: 'No active participants with WHOOP' });
   }
 
+  // Get token status to detect revoked tokens
+  const { data: tokenStatuses } = await supabase
+    .from('whoop_tokens')
+    .select('resident_id, token_status, consecutive_failures')
+    .limit(1000);
+  const tokenStatusMap = new Map<string, { status: string; failures: number }>();
+  for (const ts of (tokenStatuses ?? [])) {
+    tokenStatusMap.set(ts.resident_id, {
+      status: ts.token_status || 'active',
+      failures: ts.consecutive_failures || 0,
+    });
+  }
+
   // Get latest WHOOP pull for each participant
   const { data: pulls } = await supabase
     .from('whoop_pulls')
@@ -104,7 +117,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   for (const participant of participants as Participant[]) {
     const pull = latestPulls.get(participant.id);
 
-    // No WHOOP data at all — treat as critical
+    // Check token status — revoked means re-auth needed, not "wear band"
+    const tokenInfo = tokenStatusMap.get(participant.id);
+    const isRevoked = tokenInfo?.status === 'revoked';
+
     const pctRecorded = pull?.pct_recorded ?? 0;
     const daysWithData = pull?.days_with_data ?? 0;
     const lastPulled = pull?.pulled_at;
@@ -156,18 +172,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Send to resident
     if (participant.email) {
       const isUrgent = alertType === 'critical';
-      await sendEmail(
-        [participant.email],
-        isUrgent
+      const subject = isRevoked
+        ? 'OMSB Burnout Study — WHOOP Re-Authorization Required'
+        : isUrgent
           ? 'OMSB Burnout Study — Please Wear Your WHOOP Band'
-          : 'OMSB Burnout Study — WHOOP Reminder',
-        `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333;">
+          : 'OMSB Burnout Study — WHOOP Reminder';
+      const body = isRevoked
+        ? `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333;">
+<div style="background: #7c3aed; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
+<h1 style="color: white; margin: 0; font-size: 18px;">WHOOP Re-Authorization Required</h1>
+</div>
+<div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
+<p>Dear ${participant.full_name || 'Participant'},</p>
+<p>Your WHOOP connection to the burnout study has been <strong>disconnected</strong>. This usually happens if:</p>
+<ul style="line-height: 1.8;">
+<li>You logged out of the WHOOP app and back in</li>
+<li>You revoked app permissions in WHOOP settings</li>
+<li>Your WHOOP account password was changed</li>
+</ul>
+<p style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 8px; padding: 12px; color: #5b21b6; font-weight: 600;">Please re-authorize by visiting: <a href="https://www.medresearch-academy.om/enroll/whoop" style="color: #7c3aed;">medresearch-academy.om/enroll/whoop</a></p>
+<p style="font-size: 13px; color: #666;">If you need assistance, contact the study team.</p>
+<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
+<p style="font-size: 13px; color: #666;">WHOOP Resident Study Team — <a href="mailto:info@medresearch-academy.om" style="color: #0f766e;">info@medresearch-academy.om</a></p>
+</div></div>`
+        : `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333;">
 <div style="background: ${isUrgent ? '#dc2626' : '#f59e0b'}; padding: 20px; border-radius: 12px 12px 0 0; text-align: center;">
 <h1 style="color: white; margin: 0; font-size: 18px;">${isUrgent ? 'Low WHOOP Adherence' : 'WHOOP Reminder'}</h1>
 </div>
 <div style="background: #fff; border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 12px 12px;">
 <p>Dear ${participant.full_name || 'Participant'},</p>
-<p>Our records show your WHOOP band has recorded data for only <strong>${Math.round(pctRecorded)}%</strong> of the expected time (${daysWithData} out of 28 days).</p>
+<p>Our records show your WHOOP band has recorded data for only <strong>${Math.round(pctRecorded)}%</strong> of the expected time (${daysWithData} out of 25 days).</p>
 ${isUrgent ? '<p style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px; color: #991b1b; font-weight: 600;">Your data quality is below the minimum threshold for the study. Please ensure your WHOOP band is charged and worn consistently.</p>' : ''}
 <p>To ensure your biophysical data is complete and usable for the study, please:</p>
 <ul style="line-height: 1.8;">
@@ -178,8 +212,8 @@ ${isUrgent ? '<p style="background: #fef2f2; border: 1px solid #fecaca; border-r
 <p style="font-size: 13px; color: #666;">If your device is lost or damaged, please contact the study team immediately.</p>
 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 16px 0;" />
 <p style="font-size: 13px; color: #666;">WHOOP Resident Study Team — <a href="mailto:info@medresearch-academy.om" style="color: #0f766e;">info@medresearch-academy.om</a></p>
-</div></div>`,
-      );
+</div></div>`;
+      await sendEmail([participant.email], subject, body);
       sentTo.push(participant.email);
     }
 

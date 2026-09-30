@@ -44,6 +44,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const latestPull = new Map<string, any>();
   pulls?.forEach(p => { if (!latestPull.has(p.resident_id)) latestPull.set(p.resident_id, p); });
 
+  // Get block assessment completions per resident
+  const { data: blockAssessments } = await supabase
+    .from('block_assessments')
+    .select('resident_id, block_number, academic_year')
+    .limit(5000);
+  const completedBlocksByResident = new Map<string, Set<string>>();
+  (blockAssessments ?? []).forEach(a => {
+    if (!completedBlocksByResident.has(a.resident_id)) completedBlocksByResident.set(a.resident_id, new Set());
+    completedBlocksByResident.get(a.resident_id)!.add(`${a.block_number}-${a.academic_year || '2025-2026'}`);
+  });
+
+  // Determine current block number (Sep=1, Oct=2, etc. — approximate)
+  const nowMonth = new Date().getMonth(); // 0-indexed
+  const nowYear = new Date().getFullYear();
+  const ayStartYear = nowMonth >= 8 ? nowYear : nowYear - 1;
+  // Count expected blocks in current AY (blocks that have ended)
+  const expectedBlockKeys: string[] = [];
+  const ayStr = `${ayStartYear}-${ayStartYear + 1}`;
+  for (let b = 1; b <= 13; b++) {
+    // Simple approximation: Block N ends ~4 weeks after start
+    const blockStartMonth = ((8 + (b - 1)) % 12); // Sep=8 for block 1
+    const blockStartYear = blockStartMonth >= 8 ? ayStartYear : ayStartYear + 1;
+    const blockEnd = new Date(blockStartYear, blockStartMonth, 27); // approximate end
+    if (blockEnd < new Date()) {
+      expectedBlockKeys.push(`${b}-${ayStr}`);
+    }
+  }
+
   // Group by coordinator
   const byCoord = new Map<string, typeof parts>();
   parts.forEach(p => {
@@ -67,24 +95,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const lastPull = pull?.pulled_at ? new Date(pull.pulled_at) : null;
       const stale = !lastPull || (Date.now() - lastPull.getTime()) > 3 * 86400000;
       const formsDone = m.demographics_completed && m.baseline_completed;
-      return { name: m.full_name, email: m.email, phone: m.phone, pct, days, stale, formsDone };
+      // Survey completion tracking
+      const completedBlocks = completedBlocksByResident.get(m.id) || new Set<string>();
+      const surveysCompleted = expectedBlockKeys.filter(k => completedBlocks.has(k)).length;
+      const surveysMissing = expectedBlockKeys.length - surveysCompleted;
+      return { name: m.full_name, email: m.email, phone: m.phone, pct, days, stale, formsDone, surveysCompleted, surveysMissing, totalExpected: expectedBlockKeys.length };
     }).sort((a, b) => a.pct - b.pct);
 
-    const needsAttention = memberData.filter(m => m.pct < 70 || m.stale || !m.formsDone);
+    const needsAttention = memberData.filter(m => m.pct < 70 || m.stale || !m.formsDone || m.surveysMissing > 0);
     const groupAvg = memberData.length > 0 ? Math.round(memberData.reduce((s, m) => s + m.pct, 0) / memberData.length) : 0;
 
     const rows = memberData.map(m => {
       const pctColor = m.pct >= 80 ? '#16a34a' : m.pct >= 60 ? '#d97706' : '#dc2626';
       const flags: string[] = [];
-      if (m.pct < 70) flags.push('Low adherence');
+      if (m.pct < 70) flags.push('Low WHOOP');
       if (m.stale) flags.push('Data stale');
-      if (!m.formsDone) flags.push('Forms incomplete');
+      if (!m.formsDone) flags.push('Baseline incomplete');
+      if (m.surveysMissing > 0) flags.push(`${m.surveysMissing} survey${m.surveysMissing > 1 ? 's' : ''} missing`);
       const bgColor = flags.length > 0 ? '#fef2f2' : '';
+      const surveyColor = m.surveysMissing > 0 ? '#dc2626' : '#16a34a';
       return `<tr style="background:${bgColor}">
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.name}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.phone || '—'}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;color:${pctColor};font-weight:600">${m.pct}%</td>
-        <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px">${m.days}/25</td>
+        <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;color:${surveyColor};font-weight:600">${m.surveysCompleted}/${m.totalExpected}</td>
         <td style="padding:5px 8px;border-bottom:1px solid #eee;font-size:11px;color:#dc2626">${flags.join(', ') || '-'}</td>
       </tr>`;
     }).join('');
@@ -112,8 +146,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <thead><tr style="background:#f0fdf4">
       <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Name</th>
       <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Phone</th>
-      <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">Adherence</th>
-      <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">Days</th>
+      <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">WHOOP</th>
+      <th style="padding:6px 8px;text-align:center;border-bottom:2px solid #d1fae5">Surveys</th>
       <th style="padding:6px 8px;text-align:left;border-bottom:2px solid #d1fae5">Flags</th>
     </tr></thead>
     <tbody>${rows}</tbody>
@@ -130,7 +164,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         from: 'OMSB Burnout Study <info@medresearch-academy.om>',
         to: [coordEmail],
         cc: PI_CC,
-        subject: `[Group ${group}] Weekly Adherence: ${groupAvg}% avg, ${needsAttention.length} need attention`,
+        subject: `[Group ${group}] Weekly Report: WHOOP ${groupAvg}%, ${needsAttention.length} need attention`,
         html,
       }),
     });

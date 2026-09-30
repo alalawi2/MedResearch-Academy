@@ -36,7 +36,11 @@ async function refreshToken(token: TokenRow, supabase: any): Promise<string | nu
         client_secret: CLIENT_SECRET,
       }),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error(`Token refresh failed for ${token.resident_id}: ${res.status} ${errText.substring(0, 200)}`);
+      return null;
+    }
     const data = await res.json();
     await supabase.from('whoop_tokens').update({
       access_token: data.access_token,
@@ -48,12 +52,26 @@ async function refreshToken(token: TokenRow, supabase: any): Promise<string | nu
   } catch { return null; }
 }
 
-async function whoopGet(path: string, accessToken: string) {
-  const res = await fetch(`${WHOOP_API_V2}${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) return null;
-  return res.json();
+async function whoopGet(path: string, accessToken: string, retries = 2): Promise<any> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(`${WHOOP_API_V2}${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.ok) return res.json();
+
+    if (res.status === 429 && attempt < retries) {
+      const retryAfter = parseInt(res.headers.get('Retry-After') || '0', 10);
+      const delay = retryAfter > 0 ? retryAfter * 1000 : 1000 * Math.pow(2, attempt);
+      console.warn(`WHOOP 429 on ${path}, retrying in ${delay}ms (attempt ${attempt + 1})`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    const errText = await res.text().catch(() => '');
+    console.error(`WHOOP API error: ${res.status} ${path} — ${errText.substring(0, 200)}`);
+    return null;
+  }
+  return null;
 }
 
 function formatMin(ms: number | null | undefined): number | null {
@@ -186,13 +204,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Support batch param to process subset (0-indexed): ?batch=0&size=20
-  const batchNum = parseInt(String(req.query.batch ?? '0'), 10);
-  const batchSize = parseInt(String(req.query.size ?? '20'), 10);
-
+  // Process ALL residents (no batching — maxDuration=300s is sufficient for 70+ residents)
+  // Skip revoked tokens to avoid wasting API calls on deauthorized devices
   const { data: tokens } = await supabase
     .from('whoop_tokens')
     .select('id, resident_id, access_token, refresh_token, expires_at')
+    .or('token_status.is.null,token_status.neq.revoked')
     .order('resident_id')
     .limit(1000);
 
@@ -200,15 +217,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.json({ pulled: 0, message: 'No tokens' });
   }
 
-  const start = batchNum * batchSize;
-  const batch = tokens.slice(start, start + batchSize);
-
-  if (batch.length === 0) {
-    return res.json({ message: 'No tokens in this batch', batch: batchNum, total: tokens.length });
-  }
-
   const results = [];
-  for (const token of batch) {
+  for (const token of tokens) {
     const result = await pullDaily(token, supabase);
     results.push(result);
     await new Promise(r => setTimeout(r, 200));
@@ -219,14 +229,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.json({
     pulled_at: new Date().toISOString(),
-    batch: batchNum,
-    batch_size: batchSize,
     total_residents: tokens.length,
-    processed: batch.length,
+    processed: tokens.length,
     succeeded,
     failed: results.filter(r => r.status !== 'success').length,
     total_daily_records: totalDays,
-    has_more: start + batchSize < tokens.length,
     results,
   });
 }

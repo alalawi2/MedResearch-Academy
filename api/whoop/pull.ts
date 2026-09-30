@@ -19,10 +19,9 @@ interface TokenRow {
 }
 
 async function refreshToken(token: TokenRow, supabase: any): Promise<string | null> {
-  const now = new Date();
-  const expires = new Date(token.expires_at);
-
-  if (now < expires) return token.access_token;
+  // Always refresh preemptively — WHOOP tokens expire in ~1h
+  // This keeps tokens alive and matches cron-pull behavior
+  if (!token.refresh_token) return token.access_token;
 
   try {
     const res = await fetch(WHOOP_TOKEN_URL, {
@@ -36,21 +35,26 @@ async function refreshToken(token: TokenRow, supabase: any): Promise<string | nu
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '');
+      console.error(`Token refresh failed for ${token.resident_id}: ${res.status} ${errText.substring(0, 200)}`);
+      return null;
+    }
 
     const data = await res.json();
     await supabase
       .from('whoop_tokens')
       .update({
         access_token: data.access_token,
-        refresh_token: data.refresh_token,
+        refresh_token: data.refresh_token || token.refresh_token,
         expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', token.id);
 
     return data.access_token;
-  } catch {
+  } catch (err: any) {
+    console.error(`Token refresh exception for ${token.resident_id}: ${err.message}`);
     return null;
   }
 }
@@ -208,7 +212,7 @@ async function pullResidentData(token: TokenRow, supabase: any, startDate: strin
     top_sport_name: topSport,
     // Data quality
     days_with_data: scoredCycles.length,
-    pct_recorded: scoredCycles.length > 0 ? Math.round((scoredCycles.length / 28) * 100) : 0,
+    pct_recorded: scoredCycles.length > 0 ? Math.round((scoredCycles.length / 25) * 100) : 0,
   };
 
   // Get study_id from resident

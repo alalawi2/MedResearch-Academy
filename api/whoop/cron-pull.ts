@@ -59,12 +59,27 @@ async function refreshAccessToken(token: TokenRow, supabase: any): Promise<strin
   }
 }
 
-async function whoopGet(path: string, accessToken: string) {
-  const res = await fetch(`${WHOOP_API_V2}${path}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!res.ok) return null;
-  return res.json();
+async function whoopGet(path: string, accessToken: string, retries = 2): Promise<any> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const res = await fetch(`${WHOOP_API_V2}${path}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (res.ok) return res.json();
+
+    // Rate limited — retry with exponential backoff
+    if (res.status === 429 && attempt < retries) {
+      const retryAfter = parseInt(res.headers.get('Retry-After') || '0', 10);
+      const delay = retryAfter > 0 ? retryAfter * 1000 : 1000 * Math.pow(2, attempt);
+      console.warn(`WHOOP 429 on ${path}, retrying in ${delay}ms (attempt ${attempt + 1})`);
+      await new Promise(r => setTimeout(r, delay));
+      continue;
+    }
+
+    const errText = await res.text().catch(() => '');
+    console.error(`WHOOP API error: ${res.status} ${path} — ${errText.substring(0, 200)}`);
+    return null;
+  }
+  return null;
 }
 
 function avg(nums: number[]): number | null {
@@ -294,10 +309,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  // Get all tokens
+  // Get all active tokens (skip revoked ones to avoid wasting API calls)
   const { data: tokens, error: tokErr } = await supabase
     .from('whoop_tokens')
     .select('*')
+    .or('token_status.is.null,token_status.neq.revoked')
     .limit(1000);
 
   if (tokErr || !tokens || tokens.length === 0) {
@@ -308,7 +324,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   for (const token of tokens) {
     const result = await pullResident(token, supabase);
     results.push(result);
-    // Small delay to respect rate limits
+
+    // Track consecutive token failures — mark as revoked after 3 consecutive failures
+    if (result.status === 'token_failed') {
+      const { data: tokenRow } = await supabase
+        .from('whoop_tokens')
+        .select('consecutive_failures')
+        .eq('resident_id', token.resident_id)
+        .single();
+      const failures = (tokenRow?.consecutive_failures || 0) + 1;
+      await supabase
+        .from('whoop_tokens')
+        .update({
+          consecutive_failures: failures,
+          ...(failures >= 3 ? { token_status: 'revoked' } : {}),
+        })
+        .eq('resident_id', token.resident_id);
+      if (failures >= 3) {
+        console.warn(`Token for ${token.resident_id} marked as revoked after ${failures} consecutive failures`);
+      }
+    } else if (result.status === 'success') {
+      // Reset failure counter on success
+      await supabase
+        .from('whoop_tokens')
+        .update({ consecutive_failures: 0, token_status: 'active' })
+        .eq('resident_id', token.resident_id);
+    }
+
     await new Promise(r => setTimeout(r, 200));
   }
 
