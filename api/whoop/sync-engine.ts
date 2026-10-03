@@ -3,6 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {normalizeWhoop,studyWindow} from '../../shared/whoop-normalize.js';
 const PATHS:Record<string,string>={cycle:'/cycle',sleep:'/activity/sleep',recovery:'/recovery',workout:'/activity/workout'};
 const DAY=86400000;
+export function syncClient(){return createClient(process.env.VITE_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(20000)})}})}
 function checked<T extends {error?:any}>(r:T):T{if(r.error)throw new Error(r.error.message??'Database write failed');return r}
 async function request(url:string,options:any={}){
  for(let attempt=0;attempt<3;attempt++){
@@ -49,21 +50,23 @@ async function materialize(db:any,p:any,bounds:{start:Date,end:Date}){
  }
  return rows.length;
 }
-export async function runSync(db:any,maxSeconds=210){
+export async function runSync(db:any,maxSeconds=150){
  const run=randomUUID(); const {data:locked}=checked(await db.rpc('claim_whoop_sync',{run_id:run})) as any;
  if(!locked)return {busy:true};
  const deadline=Date.now()+maxSeconds*1000;const results:any[]=[];
  try{
   const {data:participants}=checked(await db.from('burnout_participants').select('id,study_id,enrollment_date,withdrawal_date,status,study_participant_id').eq('status','active').like('study_participant_id','RES-%').limit(1000)) as any;
   const residents=new Map<string,any>();
+  const seeds:any[]=[];
   for(const p of participants){
    if(!/^RES-[0-9]+$/.test(p.study_participant_id)||!p.enrollment_date)continue;
    const bounds=studyWindow(p.enrollment_date,p.withdrawal_date);if(bounds.end<=bounds.start)continue;
    residents.set(p.id,p);
-   checked(await db.from('whoop_sync_state').upsert(Object.keys(PATHS).map(kind=>({resident_id:p.id,kind,window_start:bounds.start.toISOString(),window_end:new Date(Math.min(bounds.end.getTime(),bounds.start.getTime()+28*DAY)).toISOString()})),{onConflict:'resident_id,kind',ignoreDuplicates:true}));
+   seeds.push(...Object.keys(PATHS).map(kind=>({resident_id:p.id,kind,window_start:bounds.start.toISOString(),window_end:new Date(Math.min(bounds.end.getTime(),bounds.start.getTime()+28*DAY)).toISOString()})));
   }
+  if(seeds.length)checked(await db.from('whoop_sync_state').upsert(seeds,{onConflict:'resident_id,kind',ignoreDuplicates:true}));
   // Fair queue across residents/types; persistent page cursors survive timeouts.
-  const {data:jobs}=checked(await db.from('whoop_sync_state').select('*').lte('next_attempt',new Date().toISOString()).order('last_attempt',{nullsFirst:true}).order('resident_id').limit(400)) as any;
+  const {data:jobs}=checked(await db.from('whoop_sync_state').select('*').lte('next_attempt',new Date().toISOString()).order('last_attempt',{nullsFirst:true}).order('resident_id').order('kind').limit(400)) as any;
   const tokens=new Map<string,string>();
   for(const job of jobs){
    if(Date.now()>deadline-30000)break;
@@ -120,6 +123,6 @@ export default async function handler(req:any,res:any){
  const auth=req.headers.authorization?.replace('Bearer ','')??req.headers['x-api-key'];
  if(!auth||!key||!(auth===key||(process.env.CRON_SECRET&&auth===process.env.CRON_SECRET)))return res.status(401).json({error:'Unauthorized'});
  if(!['GET','POST'].includes(req.method))return res.status(405).end();
- try{return res.json(await runSync(createClient(process.env.VITE_SUPABASE_URL!,key,{auth:{persistSession:false,autoRefreshToken:false}})));}
+ try{return res.json(await runSync(syncClient()));}
  catch(e:any){return res.status(500).json({error:e.message});}
 }
