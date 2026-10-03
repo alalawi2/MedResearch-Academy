@@ -19,7 +19,7 @@ export default function ThalassemiaPatientList() {
   const filtered = useMemo(() => {
     return patients.filter(p => {
       if (statusFilter !== 'all' && p.status !== statusFilter) return false;
-      if (q && !p.patient_code.toLowerCase().includes(q.toLowerCase())) return false;
+      if (q && !(p.mrn ?? '').toLowerCase().includes(q.toLowerCase())) return false;
       return true;
     });
   }, [patients, q, statusFilter]);
@@ -29,7 +29,7 @@ export default function ThalassemiaPatientList() {
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,flexWrap:'wrap',gap:12}}>
         <div>
           <h1 style={{margin:0,color:'var(--primary)',fontFamily:'var(--font-serif)'}}>Patients</h1>
-          <p style={{color:'var(--text-muted)',margin:'4px 0 0',fontSize:14}}>{filtered.length} of {patients.length} shown · pseudonymized view</p>
+          <p style={{color:'var(--text-muted)',margin:'4px 0 0',fontSize:14}}>{filtered.length} of {patients.length} shown · verify MRN before entering data</p>
         </div>
         <Link to="/dashboard/thalassemia/patients/new" className="btn btn-primary">+ Enroll New Patient</Link>
       </div>
@@ -37,7 +37,7 @@ export default function ThalassemiaPatientList() {
       <div style={{background:'white',border:'1px solid var(--border)',borderRadius:12,padding:16,marginBottom:16,display:'flex',gap:12,flexWrap:'wrap'}}>
         <input
           type="text"
-          placeholder="Filter by patient code (e.g. TDT-001)"
+          placeholder="Search patient MRN"
           value={q}
           onChange={e => setQ(e.target.value)}
           style={{flex:1,minWidth:220,padding:'8px 12px',border:'1px solid var(--border)',borderRadius:8}}
@@ -63,7 +63,7 @@ export default function ThalassemiaPatientList() {
           <table style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
               <tr style={{background:'var(--bg-muted)',borderBottom:'1px solid var(--border)'}}>
-                <Th>Code</Th>
+                <Th>MRN</Th>
                 <Th>Enrolled</Th>
                 <Th>Age</Th>
                 <Th>Sex</Th>
@@ -83,7 +83,7 @@ export default function ThalassemiaPatientList() {
               )}
               {filtered.map(p => (
                 <tr key={p.id} style={{borderBottom:'1px solid var(--border)'}}>
-                  <Td><strong style={{color:'var(--primary)'}}>{p.patient_code}</strong></Td>
+                  <Td><strong style={{color:'var(--primary)'}}>{p.mrn ?? 'MRN unavailable'}</strong></Td>
                   <Td>{p.enrollment_date ?? '—'}</Td>
                   <Td>{p.age_at_enrollment ?? '—'}</Td>
                   <Td>{p.sex === 1 ? 'M' : p.sex === 0 ? 'F' : '—'}</Td>

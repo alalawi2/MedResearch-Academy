@@ -1,0 +1,16 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const ts = require('typescript');
+const code = ts.transpileModule(fs.readFileSync('src/lib/thalassemia-chelation.ts','utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+const context = vm.createContext({exports:{}});
+vm.runInContext(code, context);
+const {parseChelation, serializeChelation} = context.exports;
+const drugs = parseChelation('Deferasirox 500 mg daily; Deferiprone 1000 mg twice daily; Legacy medicine');
+assert.equal(drugs[0].drug, 'Deferasirox');
+assert.equal(drugs[0].dose, '500 mg daily');
+assert.equal(drugs[1].drug, 'Deferiprone');
+assert.equal(serializeChelation(drugs), 'Deferasirox 500 mg daily; Deferiprone 1000 mg twice daily; Legacy medicine');
+assert.equal(parseChelation('').length,0);
+assert.equal(parseChelation('deferasirox 500mg')[0].drug, 'Deferasirox');
+console.log('Chelation dose parsing and legacy preservation passed.');

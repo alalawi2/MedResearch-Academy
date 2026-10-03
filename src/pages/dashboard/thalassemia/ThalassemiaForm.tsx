@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
-import { Timepoint } from '../../../lib/thalassemia';
+import { Timepoint, fetchIdentifiers } from '../../../lib/thalassemia';
 
 // ── Field schema types ──────────────────────────────────────────────────────
 type FieldType = 'text' | 'number' | 'date' | 'bool' | 'select' | 'textarea';
@@ -31,31 +31,9 @@ interface ModalitySchema {
 // ── Schemas ─────────────────────────────────────────────────────────────────
 const SCHEMAS: Record<string, ModalitySchema> = {
   lab: {
-    slug: 'lab', label: 'Lab Biomarkers',
+    slug: 'lab', label: 'Pre-transfusion Hb',
     table: 'thalassemia_lab', dateField: 'assessment_date', hasTimepoint: true,
-    fields: [
-      { key: 'hemoglobin',           label: 'Hemoglobin',        type: 'number', unit: 'g/dL',  step: '0.1', section: 'Iron / Hematology' },
-      { key: 'ferritin',             label: 'Ferritin',          type: 'number', unit: 'ng/mL', step: '1',   section: 'Iron / Hematology' },
-      { key: 'labile_plasma_iron',   label: 'Labile Plasma Iron (LPI)', type: 'number', unit: 'µmol/L', step: '0.01', section: 'Iron / Hematology' },
-      { key: 'mmp_2',                label: 'MMP-2',             type: 'number', unit: 'ng/mL', step: '0.01', section: 'MMP Panel' },
-      { key: 'mmp_9',                label: 'MMP-9',             type: 'number', unit: 'ng/mL', step: '0.01', section: 'MMP Panel' },
-      { key: 'timp_1',               label: 'TIMP-1',            type: 'number', unit: 'ng/mL', step: '0.01', section: 'MMP Panel' },
-      { key: 'galectin_3',           label: 'Galectin-3',        type: 'number', unit: 'ng/mL', step: '0.01', section: 'Cardiac Fibrosis' },
-      { key: 'troponin',             label: 'Troponin',          type: 'number', unit: 'ng/mL', step: '0.001', section: 'Cardiac Markers' },
-      { key: 'bnp',                  label: 'NT-proBNP',         type: 'number', unit: 'pg/mL', step: '1',   section: 'Cardiac Markers' },
-      { key: 'creatinine',           label: 'Creatinine',        type: 'number', unit: 'µmol/L', step: '0.1', section: 'Renal' },
-      { key: 'growth_hormone',       label: 'Growth Hormone',    type: 'number', unit: 'ng/mL', step: '0.1', section: 'Endocrine' },
-      { key: 'pth',                  label: 'PTH',               type: 'number', unit: 'pmol/L', step: '0.1', section: 'Endocrine' },
-      { key: 'calcium',              label: 'Calcium',           type: 'number', unit: 'mmol/L', step: '0.01', section: 'Endocrine' },
-      { key: 'tsh',                  label: 'TSH',               type: 'number', unit: 'mIU/L', step: '0.01', section: 'Endocrine' },
-      { key: 't4_t3',                label: 'T4 / T3',           type: 'text', section: 'Endocrine' },
-      { key: 'fsh_lh',               label: 'FSH / LH',          type: 'text', section: 'Endocrine' },
-      { key: 'ast',                  label: 'AST',               type: 'number', unit: 'U/L', step: '1', section: 'Liver' },
-      { key: 'alt',                  label: 'ALT',               type: 'number', unit: 'U/L', step: '1', section: 'Liver' },
-      { key: 'alp',                  label: 'ALP',               type: 'number', unit: 'U/L', step: '1', section: 'Liver' },
-      { key: 'crp',                  label: 'CRP',               type: 'number', unit: 'mg/L', step: '0.1', section: 'Inflammation' },
-      { key: 'notes',                label: 'Notes',             type: 'textarea', section: 'Notes' },
-    ],
+    fields: [{ key: 'pre_transfusion_hb', label: 'Pre-transfusion Hb', type: 'number', unit: 'g/dL', step: '0.1', min: 0, max: 30, required: true }],
   },
 
   ecg: {
@@ -176,9 +154,10 @@ const SCHEMAS: Record<string, ModalitySchema> = {
   },
 
   ae: {
-    slug: 'ae', label: 'Adverse Event',
+    slug: 'ae', label: 'Cardiac Adverse Event',
     table: 'thalassemia_adverse_events', dateField: 'event_date', hasTimepoint: false,
     fields: [
+      { key: 'cardiac_complication', label: 'Cardiac complication', type: 'select', required: true, options: ['', 'Heart failure', 'Atrial fibrillation', 'Ventricular tachycardia', 'Other arrhythmia', 'Heart block', 'Pulmonary hypertension', 'Pericarditis', 'Myocarditis', 'Pericardial effusion', 'Sudden cardiac death', 'Other cardiac complication'].map(value => ({value, label: value || 'Select complication'})) },
       { key: 'description',       label: 'Description',      type: 'textarea', required: true },
       { key: 'severity',          label: 'Severity',         type: 'select', required: true,
         options: [
@@ -217,10 +196,10 @@ const SCHEMAS: Record<string, ModalitySchema> = {
   },
 
   meds: {
-    slug: 'meds', label: 'Concomitant Medication',
+    slug: 'meds', label: 'Other Medication (excluding chelation)',
     table: 'thalassemia_concomitant_meds', dateField: 'start_date', hasTimepoint: false,
     fields: [
-      { key: 'medication_name', label: 'Medication name',  type: 'text', required: true, placeholder: 'e.g. Deferasirox, Atenolol' },
+      { key: 'medication_name', label: 'Non-chelation medication',  type: 'text', required: true, placeholder: 'e.g. Atenolol — enter chelators in Demographics' },
       { key: 'dose',            label: 'Dose',             type: 'text', placeholder: 'e.g. 20mg/kg, 50mg' },
       { key: 'frequency',       label: 'Frequency',        type: 'text', placeholder: 'e.g. daily, BID, PRN' },
       { key: 'route',           label: 'Route',            type: 'select',
@@ -233,7 +212,7 @@ const SCHEMAS: Record<string, ModalitySchema> = {
           { value: 'topical', label: 'Topical' },
           { value: 'other', label: 'Other' },
         ] },
-      { key: 'indication',      label: 'Indication',       type: 'text', placeholder: 'e.g. iron chelation, hypertension' },
+      { key: 'indication',      label: 'Indication',       type: 'text', placeholder: 'e.g. hypertension' },
       { key: 'end_date',        label: 'End date',          type: 'date' },
       { key: 'ongoing',         label: 'Ongoing',           type: 'bool' },
       { key: 'notes',           label: 'Notes',             type: 'textarea' },
@@ -245,6 +224,13 @@ const SCHEMAS: Record<string, ModalitySchema> = {
 export default function ThalassemiaForm() {
   const { id = '', modality = '', rowId } = useParams();
   const nav = useNavigate();
+  const [mrn, setMrn] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    setMrn(null);
+    fetchIdentifiers(id).then(i => { if (active) setMrn(i?.mrn ?? null); }).catch(() => { if (active) setMrn(null); });
+    return () => { active = false; };
+  }, [id]);
   const schema = SCHEMAS[modality];
   const [values, setValues] = useState<Record<string, any>>({});
   const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -252,9 +238,11 @@ export default function ThalassemiaForm() {
   const [loading, setLoading] = useState(!!rowId);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
+  const [recordReady, setRecordReady] = useState(!rowId);
 
   useEffect(() => {
     if (!schema || !rowId) return;
+    setRecordReady(false);
     (async () => {
       // Codex fix: bind fetch to the route patient. A URL like
       // /patients/A/lab/rowB (where rowB belongs to patient B) must return
@@ -273,6 +261,7 @@ export default function ThalassemiaForm() {
       const vals: Record<string, any> = {};
       for (const f of schema.fields) vals[f.key] = (data as any)[f.key];
       setValues(vals);
+      setRecordReady(true);
       setDate((data as any)[schema.dateField] ?? date);
       if (schema.hasTimepoint) setTimepoint((data as any).timepoint ?? 'unscheduled');
       setLoading(false);
@@ -296,6 +285,7 @@ export default function ThalassemiaForm() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!mrn || !recordReady) { setErr('Confirm patient identity and load the record before saving.'); return; }
     setErr('');
     setSaving(true);
     try {
@@ -315,25 +305,15 @@ export default function ThalassemiaForm() {
           .from(schema.table)
           .update(payload)
           .eq('id', rowId)
-          .eq('patient_id', id));
+          .eq('patient_id', id).select('id').single());
       } else {
         ({ error } = await supabase
           .from(schema.table)
-          .insert({ patient_id: id, ...payload }));
+          .insert({ patient_id: id, ...payload }).select('id').single());
       }
       if (error) throw error;
 
-      // Mark the corresponding scheduled visit as completed (bonus fix):
-      // when a modality row lands at baseline/6mo/12mo, set actual_date so
-      // the visit view flips to 'complete'.
-      if (schema.hasTimepoint && timepoint !== 'unscheduled') {
-        await supabase
-          .from('thalassemia_visit_schedule')
-          .update({ actual_date: date })
-          .eq('patient_id', id)
-          .eq('timepoint', timepoint)
-          .is('actual_date', null); // don't overwrite an earlier actual_date
-      }
+      // Visit completion is computed from all required investigations by the database view.
 
       nav(`/dashboard/thalassemia/patients/${id}`);
     } catch (e: any) {
@@ -343,6 +323,7 @@ export default function ThalassemiaForm() {
   }
 
   if (loading) return <div style={{padding:40}}>Loading…</div>;
+  if (!mrn || !recordReady) return <div role="alert" style={{padding:40}}>{err || 'Data entry is blocked until the patient MRN is available. An authorized study administrator must confirm identity.'} <button onClick={() => nav(-1)}>Back</button></div>;
 
   return (
     <div style={{padding:'28px',maxWidth:900}}>
@@ -350,6 +331,7 @@ export default function ThalassemiaForm() {
       <h1 style={{margin:'0 0 4px',color:'var(--primary)',fontFamily:'var(--font-serif)'}}>
         {rowId ? 'Edit' : 'Add'} {schema.label}
       </h1>
+      <p><strong>Patient MRN: {mrn ?? 'unavailable — confirm with the study coordinator'}</strong></p>
       <p style={{color:'var(--text-muted)',margin:'0 0 20px',fontSize:14}}>
         Fields shown for {schema.slug} per protocol. Leave blank if not measured.
       </p>
@@ -408,13 +390,14 @@ export default function ThalassemiaForm() {
 function FieldInput({ def, value, onChange }: { def: FieldDef; value: any; onChange: (v: any) => void }) {
   switch (def.type) {
     case 'text':
-      return <input value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder={def.placeholder} style={inputSt} />;
+      return <input required={def.required} value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder={def.placeholder} style={inputSt} />;
     case 'textarea':
-      return <textarea value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder={def.placeholder} rows={3} style={{...inputSt,fontFamily:'inherit',resize:'vertical'}} />;
+      return <textarea required={def.required} value={value ?? ''} onChange={e => onChange(e.target.value)} placeholder={def.placeholder} rows={3} style={{...inputSt,fontFamily:'inherit',resize:'vertical'}} />;
     case 'number':
       return (
         <input
           type="number"
+          required={def.required}
           step={def.step ?? 'any'}
           min={def.min}
           max={def.max}
@@ -425,7 +408,7 @@ function FieldInput({ def, value, onChange }: { def: FieldDef; value: any; onCha
         />
       );
     case 'date':
-      return <input type="date" value={value ?? ''} onChange={e => onChange(e.target.value || null)} style={inputSt} />;
+      return <input required={def.required} type="date" value={value ?? ''} onChange={e => onChange(e.target.value || null)} style={inputSt} />;
     case 'bool':
       return (
         <label style={{display:'flex',alignItems:'center',gap:8,paddingTop:8}}>
@@ -435,7 +418,7 @@ function FieldInput({ def, value, onChange }: { def: FieldDef; value: any; onCha
       );
     case 'select':
       return (
-        <select value={value ?? ''} onChange={e => onChange(e.target.value || null)} style={inputSt}>
+        <select required={def.required} value={value ?? ''} onChange={e => onChange(e.target.value || null)} style={inputSt}>
           {def.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
       );

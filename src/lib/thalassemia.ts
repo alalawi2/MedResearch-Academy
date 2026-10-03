@@ -10,6 +10,7 @@ export type Diagnosis = 'major' | 'intermedia';
 export type AeSeverity = 'mild' | 'moderate' | 'severe' | 'life_threatening' | 'fatal';
 
 export interface ThalPatient {
+  mrn?: string;
   id: string;
   study_id: string;
   patient_code: string;
@@ -43,6 +44,7 @@ export interface ThalPatient {
 }
 
 export interface ThalIdentifiers {
+  date_of_birth: string | null;
   patient_id: string;
   study_id: string;
   mrn: string;
@@ -66,6 +68,7 @@ export interface VisitScheduleRow {
 }
 
 export interface LabRow {
+  pre_transfusion_hb: number | null;
   id: string;
   patient_id: string;
   assessment_date: string;
@@ -281,7 +284,10 @@ export async function fetchPatients() {
     .select('*')
     .order('patient_code', { ascending: true });
   if (error) throw error;
-  return (data ?? []) as ThalPatient[];
+  const { data: identifiers, error: identifierError } = await supabase.from('thalassemia_patient_identifiers').select('patient_id,mrn');
+  if (identifierError) throw identifierError;
+  const mrns = new Map((identifiers ?? []).map(i => [i.patient_id, i.mrn]));
+  return (data ?? []).map(p => ({ ...p, mrn: mrns.get(p.id) })) as ThalPatient[];
 }
 
 export async function fetchPatient(id: string) {
@@ -291,11 +297,12 @@ export async function fetchPatient(id: string) {
 }
 
 export async function fetchIdentifiers(patientId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('thalassemia_patient_identifiers')
     .select('*')
     .eq('patient_id', patientId)
     .maybeSingle();
+  if (error) throw error;
   return data as ThalIdentifiers | null;
 }
 
@@ -359,7 +366,7 @@ export function buildChecklist(
     const visit = visits.find(v => v.timepoint === tp);
     // Use view's computed_status when available; fall back to date math.
     const overdueTp = visit?.computed_status === 'overdue'
-      || (visit?.window_end != null && today > visit.window_end && !visit.actual_date);
+      || (visit?.window_end != null && today > visit.window_end);
 
     for (const inv of required) {
       let done = false;
@@ -433,18 +440,18 @@ export async function updateModalityRow(
 export function generateVisitSchedule(enrollmentDate: string) {
   const enroll = new Date(enrollmentDate);
   const addDays = (d: Date, days: number) => {
-    const c = new Date(d); c.setDate(c.getDate() + days); return c.toISOString().slice(0, 10);
+    const c = new Date(d); c.setUTCDate(c.getUTCDate() + days); return c.toISOString().slice(0, 10);
   };
   // Codex fix: clamp to end-of-month. Native setMonth rolls Aug-31 + 6mo into
   // Mar 3, not end-of-Feb. Clamp the day to the last valid day of the target
   // month so month-end enrollments produce clinically sensible visit dates.
   const addMonths = (d: Date, months: number) => {
-    const originalDay = d.getDate();
-    const targetYear = d.getFullYear();
-    const targetMonth = d.getMonth() + months;
-    const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    const originalDay = d.getUTCDate();
+    const targetYear = d.getUTCFullYear();
+    const targetMonth = d.getUTCMonth() + months;
+    const lastDayOfTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
     const day = Math.min(originalDay, lastDayOfTargetMonth);
-    return new Date(targetYear, targetMonth, day);
+    return new Date(Date.UTC(targetYear, targetMonth, day));
   };
   const rows: { timepoint: Timepoint; expected_date: string; window_start: string; window_end: string }[] = [];
   const gracePost = 30;
@@ -538,10 +545,10 @@ export function getFileUrl(filePath: string): string {
   return data.publicUrl;
 }
 
-export async function getSignedFileUrl(filePath: string): Promise<string> {
+export async function getSignedFileUrl(filePath: string, download?: string): Promise<string> {
   const { data, error } = await supabase.storage
     .from(STORAGE_BUCKET)
-    .createSignedUrl(filePath, 3600); // 1 hour
+    .createSignedUrl(filePath, 3600, download ? { download } : undefined); // private download
   if (error) throw error;
   return data.signedUrl;
 }

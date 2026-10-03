@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../../lib/supabase';
+import { useAuth } from '../../../context/AuthContext';
+import { CHELATORS, parseChelation, serializeChelation, ChelationDrug } from '../../../lib/thalassemia-chelation';
 import {
   fetchStudyId, generateVisitSchedule, fetchPatient, fetchIdentifiers,
   updatePatient, updateIdentifiers,
 } from '../../../lib/thalassemia';
 
 export default function ThalassemiaPatientNew() {
+  const { getRoleForStudy } = useAuth();
+  const canIdentify = ['super_admin', 'research_admin'].includes(getRoleForStudy('thalassemia-cardiac') ?? '');
+  const [chelation, setChelation] = useState<ChelationDrug[]>([]);
+  const [recordReady, setRecordReady] = useState(false);
   const nav = useNavigate();
   const { id: editId } = useParams();
   const isEdit = !!editId;
@@ -17,6 +23,7 @@ export default function ThalassemiaPatientNew() {
     patient_code: '',
     mrn: '',
     full_name: '',
+    date_of_birth: '',
     enrollment_date: new Date().toISOString().slice(0, 10),
     age_at_enrollment: '',
     sex: '',
@@ -53,10 +60,14 @@ export default function ThalassemiaPatientNew() {
           fetchIdentifiers(editId),
         ]);
         if (!patient) { setErr('Patient not found'); setLoading(false); return; }
+        if (!ident?.mrn) throw new Error('Patient MRN is unavailable. Editing is blocked until identity can be confirmed.');
+        setChelation(parseChelation(patient.chelation_therapy ?? ''));
+        setRecordReady(true);
         setForm({
           patient_code: patient.patient_code ?? '',
           mrn: ident?.mrn ?? '',
           full_name: ident?.full_name ?? '',
+          date_of_birth: ident?.date_of_birth ?? '',
           enrollment_date: patient.enrollment_date ?? new Date().toISOString().slice(0, 10),
           age_at_enrollment: patient.age_at_enrollment?.toString() ?? '',
           sex: patient.sex != null ? String(patient.sex) : '',
@@ -78,7 +89,7 @@ export default function ThalassemiaPatientNew() {
           stroke: patient.stroke ?? false,
           hypothyroidism: patient.hypothyroidism ?? false,
           kidney_disease: patient.kidney_disease ?? false,
-          splenectomy_done: patient.splenectomy_done ?? false,
+          splenectomy_done: patient.splenectomy ?? false,
           notes: patient.notes ?? '',
         });
       } catch (e: any) {
@@ -93,11 +104,12 @@ export default function ThalassemiaPatientNew() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!canIdentify || (isEdit && !recordReady)) return;
     setErr('');
     setSaving(true);
     try {
       const patientPayload = {
-        patient_code: form.patient_code.trim(),
+        patient_code: form.patient_code.trim() || `TDT-${crypto.randomUUID()}`,
         enrollment_date: form.enrollment_date,
         age_at_enrollment: form.age_at_enrollment ? Number(form.age_at_enrollment) : null,
         sex: form.sex === '' ? null : Number(form.sex) as 0 | 1 | null,
@@ -105,84 +117,25 @@ export default function ThalassemiaPatientNew() {
         diagnosis: (form.diagnosis || null) as 'major' | 'intermedia' | null,
         age_at_diagnosis: form.age_at_diagnosis ? Number(form.age_at_diagnosis) : null,
         transfusion_frequency: form.transfusion_frequency || null,
-        chelation_therapy: form.chelation_therapy || null,
+        chelation_therapy: serializeChelation(chelation) || null,
       };
 
-      if (isEdit && editId) {
-        // Update patient demographics
-        await updatePatient(editId, {
-          ...patientPayload,
-          heart_failure: form.heart_failure,
-          af: form.af,
-          vt: form.vt,
-          pacs: form.pacs,
-          pvcs: form.pvcs,
-          pericarditis: form.pericarditis,
-          myocarditis: form.myocarditis,
-          pulmonary_hypertension: form.pulmonary_hypertension,
-          dm: form.dm,
-          liver_disease: form.liver_disease,
-          stroke: form.stroke,
-          hypothyroidism: form.hypothyroidism,
-          kidney_disease: form.kidney_disease,
-          splenectomy_done: form.splenectomy_done,
-          notes: form.notes || null,
-        });
-
-        // Update identifiers if provided
-        if (form.mrn.trim() || form.full_name.trim()) {
-          try {
-            await updateIdentifiers(editId, {
-              mrn: form.mrn.trim(),
-              full_name: form.full_name.trim(),
-            });
-          } catch {
-            console.warn('Could not update identifiers — may lack permissions');
-          }
-        }
-
-        nav(`/dashboard/thalassemia/patients/${editId}`);
-      } else {
-        // Create new patient
-        const studyId = await fetchStudyId();
-        if (!studyId) throw new Error('Study not found');
-
-        const { data: patient, error: pErr } = await supabase
-          .from('thalassemia_patients')
-          .insert({ study_id: studyId, ...patientPayload, status: 'active' })
-          .select()
-          .single();
-        if (pErr) throw pErr;
-
-        // Insert identifiers (restricted table — only PI/Co-PI can access)
-        if (form.mrn.trim() && form.full_name.trim()) {
-          const { error: iErr } = await supabase
-            .from('thalassemia_patient_identifiers')
-            .insert({
-              patient_id: patient.id,
-              study_id: studyId,
-              mrn: form.mrn.trim(),
-              full_name: form.full_name.trim(),
-            });
-          if (iErr) {
-            console.warn('Could not save identifiers:', iErr.message);
-          }
-        }
-
-        // Generate baseline / 6mo / 12mo visit schedule
-        const schedule = generateVisitSchedule(form.enrollment_date);
-        const visitRows = schedule.map(v => ({
-          patient_id: patient.id,
-          study_id: studyId,
-          timepoint: v.timepoint,
-          expected_date: v.expected_date,
-          window_start: v.window_start,
-          window_end: v.window_end,
-        }));
-        await supabase.from('thalassemia_visit_schedule').insert(visitRows);
-
-        nav(`/dashboard/thalassemia/patients/${patient.id}`);
-      }
+      const { data: savedId, error } = await supabase.rpc('save_thalassemia_patient', {
+        existing_id: editId ?? null,
+        patient_data: { ...patientPayload, ...(isEdit ? {
+          heart_failure: form.heart_failure, af: form.af, vt: form.vt,
+          pacs: form.pacs, pvcs: form.pvcs, pericarditis: form.pericarditis,
+          myocarditis: form.myocarditis, pulmonary_hypertension: form.pulmonary_hypertension,
+          dm: form.dm, liver_disease: form.liver_disease, stroke: form.stroke,
+          hypothyroidism: form.hypothyroidism, kidney_disease: form.kidney_disease,
+          splenectomy: form.splenectomy_done, notes: form.notes || null,
+        } : {}) },
+        identifier_data: { mrn: form.mrn.trim(), full_name: form.full_name.trim(), date_of_birth: form.date_of_birth || null },
+        visits: generateVisitSchedule(form.enrollment_date),
+      });
+      if (error) throw error;
+      if (!savedId) throw new Error('The patient save was not confirmed.');
+      nav(`/dashboard/thalassemia/patients/${savedId}`);
     } catch (e: any) {
       setErr(e.message ?? String(e));
       setSaving(false);
@@ -190,6 +143,7 @@ export default function ThalassemiaPatientNew() {
   }
 
   if (loading) return <div style={{padding:40,textAlign:'center',color:'var(--text-muted)'}}>Loading...</div>;
+  if (!canIdentify || (isEdit && !recordReady)) return <div role="alert" style={{padding:40}}>{err || 'Enrollment and demographic editing require authorized study administrator access to patient identifiers.'} <button onClick={() => nav(-1)}>Back</button></div>;
 
   const complications = [
     { k: 'heart_failure', l: 'Heart Failure' },
@@ -221,7 +175,7 @@ export default function ThalassemiaPatientNew() {
       <p style={{color:'var(--text-muted)',margin:'0 0 24px',fontSize:14}}>
         {isEdit
           ? 'Update patient demographics, clinical history, and complications.'
-          : <>Only <strong>Patient Code</strong> is required. Baseline / 6mo / 12mo visits will be auto-scheduled.</>
+          : <>Identify the patient by <strong>MRN</strong>. Baseline / 6mo / 12mo visits will be auto-scheduled.</>
         }
       </p>
 
@@ -233,16 +187,14 @@ export default function ThalassemiaPatientNew() {
 
       <form onSubmit={onSubmit} style={{background:'white',border:'1px solid var(--border)',borderRadius:12,padding:24,display:'grid',gap:16}}>
         <Group title="Identification">
-          <Field label="Patient Code (study pseudonym)" required>
-            <input required value={form.patient_code} onChange={e => set('patient_code', e.target.value)} placeholder="TDT-001" style={inputSt} />
-          </Field>
           <Row2>
-            <Field label="MRN (identifier — PI/Co-PI only)"><input value={form.mrn} onChange={e => set('mrn', e.target.value)} style={inputSt} /></Field>
+            <Field label="Patient MRN" required><input required value={form.mrn} onChange={e => set('mrn', e.target.value)} style={inputSt} /></Field>
             <Field label="Full Name (identifier)"><input value={form.full_name} onChange={e => set('full_name', e.target.value)} style={inputSt} /></Field>
           </Row2>
         </Group>
 
         <Group title="Enrollment">
+          <Field label="Date of birth"><input type="date" max={form.enrollment_date} value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} style={inputSt} /></Field>
           <Row2>
             <Field label="Enrollment Date" required>
               <input required type="date" value={form.enrollment_date} onChange={e => set('enrollment_date', e.target.value)} style={inputSt} />
@@ -283,7 +235,9 @@ export default function ThalassemiaPatientNew() {
               <input placeholder="e.g. every 3-4 weeks" value={form.transfusion_frequency} onChange={e => set('transfusion_frequency', e.target.value)} style={inputSt} />
             </Field>
             <Field label="Chelation Therapy">
-              <input placeholder="e.g. deferasirox 1000mg" value={form.chelation_therapy} onChange={e => set('chelation_therapy', e.target.value)} style={inputSt} />
+              <div>Select all prescribed chelators:</div>
+              {CHELATORS.map(drug => <label key={drug} style={{display:'block'}}><input type="checkbox" checked={chelation.some(item => item.drug === drug)} onChange={e => setChelation(items => e.target.checked ? [...items, {drug, dose:''}] : items.filter(item => item.drug !== drug))} /> {drug}</label>)}
+              {chelation.map((item, index) => <div key={`${item.drug}-${index}`}><label>{item.drug} dose and frequency<input aria-label={`${item.drug} dose and frequency`} value={item.dose} onChange={e => setChelation(items => items.map((entry, i) => i === index ? {...entry, dose:e.target.value.replace(/;/g, ',')} : entry))} style={inputSt} /></label>{!CHELATORS.includes(item.drug) && <button type="button" onClick={() => setChelation(items => items.filter((_, i) => i !== index))}>Remove legacy entry</button>}</div>)}
             </Field>
           </Row2>
         </Group>

@@ -27,8 +27,8 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'polysomnography', label: 'PSG' },
   { id: 'scg',             label: 'SCG' },
   { id: 'transfusions',    label: 'Transfusions' },
-  { id: 'meds',            label: 'Medications' },
-  { id: 'ae',              label: 'Adverse Events' },
+  { id: 'meds',            label: 'Other medications' },
+  { id: 'ae',              label: 'Cardiac adverse events' },
 ];
 
 export default function ThalassemiaPatientDetail() {
@@ -94,7 +94,7 @@ export default function ThalassemiaPatientDetail() {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginTop:8,flexWrap:'wrap',gap:12}}>
           <div>
             <h1 style={{margin:0,color:'var(--primary)',fontFamily:'var(--font-serif)'}}>
-              {patient.patient_code}
+              MRN: {ident?.mrn ?? 'unavailable'}
               {ident && <span style={{fontSize:'0.8rem',color:'var(--text-muted)',marginLeft:12}}>&middot; {ident.full_name}</span>}
             </h1>
             <div style={{color:'var(--text-muted)',fontSize:13,marginTop:4}}>
@@ -232,9 +232,9 @@ function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: Th
   return (
     <div style={{background:'white',border:'1px solid var(--border)',borderRadius:12,padding:24}}>
       <h2 style={{margin:'0 0 16px',fontSize:'1.1rem',color:'var(--primary)'}}>Demographics &amp; Clinical Profile</h2>
-      <InfoRow label="Patient Code" value={patient.patient_code} />
       {ident && <InfoRow label="MRN" value={ident.mrn} />}
       {ident && <InfoRow label="Full Name" value={ident.full_name} />}
+      {ident && <InfoRow label="Date of birth" value={ident.date_of_birth} />}
       <InfoRow label="Enrollment date" value={patient.enrollment_date} />
       <InfoRow label="Diagnosis" value={patient.diagnosis === 'major' ? 'Thalassemia Major' : patient.diagnosis === 'intermedia' ? 'Thalassemia Intermedia' : null} />
       <InfoRow label="Age at diagnosis" value={patient.age_at_diagnosis?.toString()} />
@@ -473,11 +473,24 @@ function FileUploadSection({ patientId, investigationType, investigationId, file
     }
   }
 
-  async function handleView(file: InvestigationFile) {
+  async function handleView(file: InvestigationFile, download = false) {
+    const preview = download ? null : window.open('about:blank', '_blank');
     try {
-      const url = await getSignedFileUrl(file.file_path);
-      window.open(url, '_blank');
+      const url = await getSignedFileUrl(file.file_path, download ? file.file_name : undefined);
+      if (download) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Download failed (${response.status})`);
+        const objectUrl = URL.createObjectURL(await response.blob());
+        const link = document.createElement('a');
+        link.href = objectUrl; link.download = file.file_name;
+        document.body.appendChild(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      } else if (preview) {
+        preview.opener = null;
+        preview.location.href = url;
+      } else throw new Error('Preview blocked by browser. Please allow popups or use Download.');
     } catch (err: any) {
+      preview?.close();
       setUploadErr('Could not generate file URL: ' + (err.message ?? String(err)));
     }
   }
@@ -544,6 +557,7 @@ function FileUploadSection({ patientId, investigationType, investigationId, file
               </div>
               <div style={{display:'flex',gap:6,marginTop:2}}>
                 <button onClick={() => handleView(f)} style={{background:'none',border:'none',color:'var(--primary)',cursor:'pointer',padding:0,fontSize:11}}>View</button>
+                <button onClick={() => handleView(f, true)} style={{background:'none',border:'none',color:'var(--primary)',cursor:'pointer',padding:0,fontSize:11}}>Download {investigationType === 'ecg' ? 'ECG' : 'file'}</button>
                 <button onClick={() => handleDelete(f)} style={{background:'none',border:'none',color:'#dc2626',cursor:'pointer',padding:0,fontSize:11}}>Delete</button>
               </div>
             </div>
@@ -714,7 +728,7 @@ function formatCell(v: any) {
 const thSt: React.CSSProperties = { textAlign:'left',padding:'10px 14px',fontSize:11,fontWeight:600,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em' };
 const tdSt: React.CSSProperties = { padding:'10px 14px',color:'var(--text)' };
 
-const LAB_COLS   = [ {key:'hemoglobin',label:'Hb'}, {key:'ferritin',label:'Ferritin'}, {key:'mmp_2',label:'MMP-2'}, {key:'mmp_9',label:'MMP-9'}, {key:'timp_1',label:'TIMP-1'}, {key:'bnp',label:'NT-proBNP'} ];
+const LAB_COLS = [{key:'pre_transfusion_hb',label:'Pre-transfusion Hb (g/dL)'}];
 const ECG_COLS   = [ {key:'rate',label:'Rate'}, {key:'rhythm',label:'Rhythm'}, {key:'qtc_ms',label:'QTc'}, {key:'lvh',label:'LVH'}, {key:'rvh',label:'RVH'}, {key:'t_wave_abnormality',label:'T-wave abn'} ];
 const ECHO_COLS  = [ {key:'lvef',label:'LVEF %'}, {key:'gls_pct',label:'GLS %'}, {key:'lavi_ml_m2',label:'LAVi'}, {key:'e_e_avg',label:"E/E'avg"}, {key:'rvsp_mmhg',label:'RVSP'} ];
 const T2MRI_COLS = [ {key:'cardiac_t2_star_ms',label:'Cardiac T2*'}, {key:'liver_t2_star_ms',label:'Liver T2*'}, {key:'interpretation',label:'Interpretation'} ];
