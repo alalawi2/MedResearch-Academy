@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { blocksForYear, academicYearStart, omanToday } from '../shared/burnout-calendar.js';
 
 // ============================================================================
 // Unified Study Reminder & Report System
@@ -49,21 +50,6 @@ const COORDINATOR_CC = [
 ];
 
 // Block schedule: 13 blocks of ~4 weeks each (OMSB academic year Sep-Aug)
-const BLOCK_DEFS = [
-  { block: 1,  startMD: '09-01', endMD: '09-27' },
-  { block: 2,  startMD: '09-28', endMD: '10-25' },
-  { block: 3,  startMD: '10-27', endMD: '11-22' },
-  { block: 4,  startMD: '11-23', endMD: '12-20' },
-  { block: 5,  startMD: '12-21', endMD: '01-17' },
-  { block: 6,  startMD: '01-18', endMD: '02-14' },
-  { block: 7,  startMD: '02-15', endMD: '03-14' },
-  { block: 8,  startMD: '03-15', endMD: '04-11' },
-  { block: 9,  startMD: '04-12', endMD: '05-09' },
-  { block: 10, startMD: '05-10', endMD: '06-06' },
-  { block: 11, startMD: '06-07', endMD: '07-06' },
-  { block: 12, startMD: '07-07', endMD: '08-01' },
-  { block: 13, startMD: '08-02', endMD: '08-31' },
-];
 
 const ASSESSMENT_WINDOW_DAY = 15;
 
@@ -107,40 +93,16 @@ interface CurrentBlock extends BlockDates {
 // ============================================================================
 
 function resolveAllBlocks(today: Date): BlockDates[] {
-  const year = today.getFullYear();
-  const month = today.getMonth() + 1;
-  const academicStartYear = month >= 9 ? year : year - 1;
-  const results: BlockDates[] = [];
-
-  for (const b of BLOCK_DEFS) {
-    const [sm, sd] = b.startMD.split('-').map(Number);
-    const [em, ed] = b.endMD.split('-').map(Number);
-    let startYear = sm >= 9 ? academicStartYear : academicStartYear + 1;
-    let endYear = em >= 9 ? academicStartYear : academicStartYear + 1;
-    if (sm === 12 && em === 1) { startYear = academicStartYear; endYear = academicStartYear + 1; }
-
-    const start = new Date(Date.UTC(startYear, sm - 1, sd));
-    const end = new Date(Date.UTC(endYear, em - 1, ed));
-    const sl = start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const el = end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
-    const ay = `${academicStartYear}-${academicStartYear + 1}`;
-    results.push({ block: b.block, start, end, label: `Block ${b.block}: ${sl} - ${el}`, academicYear: ay });
-  }
-  return results;
+  return blocksForYear(academicYearStart(today), today).map(b => ({
+    block:b.block, start:b.startDate, end:b.endDate, label:b.label, academicYear:b.academicYear,
+  }));
 }
-
 function getCurrentBlock(today: Date, allBlocks: BlockDates[]): CurrentBlock | null {
-  const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-
-  for (const b of allBlocks) {
-    if (todayUTC >= b.start && todayUTC <= b.end) {
-      const windowOpened = new Date(b.start);
-      windowOpened.setUTCDate(windowOpened.getUTCDate() + ASSESSMENT_WINDOW_DAY);
-      const daysOverdue = Math.floor((todayUTC.getTime() - windowOpened.getTime()) / (1000 * 60 * 60 * 24));
-      return { ...b, windowOpened, daysOverdue };
-    }
-  }
-  return null;
+  const day = omanToday(today);
+  const b = allBlocks.find(b => day >= b.start && day <= b.end);
+  if (!b) return null;
+  const windowOpened = new Date(b.start.getTime() + 14 * 86400000);
+  return {...b, windowOpened, daysOverdue: Math.floor((day.getTime()-windowOpened.getTime())/86400000)};
 }
 
 // Escalation is now relative to block END, not window open.
@@ -412,8 +374,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   const today = new Date();
-  const todayStr = today.toISOString().slice(0, 10);
-  const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const todayUTC = omanToday(today);
+  const todayStr = todayUTC.toISOString().slice(0, 10);
   const allBlocks = resolveAllBlocks(today);
   const currentBlock = getCurrentBlock(today, allBlocks);
   const loginUrl = `${SITE_URL}/resident/login`;
@@ -430,10 +392,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Get all submitted block assessments (keyed by block_number + academic_year)
-  const { data: allAssessments } = await supabase
+  const { data: allAssessments, error: assessmentsError } = await supabase
     .from('block_assessments')
     .select('resident_id, block_number, academic_year')
     .limit(5000);
+  if (assessmentsError) return res.status(503).json({error:'Unable to verify completed assessments; no reminders sent.'});
 
   // submittedByResident: resident_id → Set of "block:year" keys
   const submittedByResident = new Map<string, Set<string>>();
@@ -446,12 +409,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get existing reminders to track escalation
   const { data: existingReminders } = await supabase
     .from('questionnaire_reminders')
-    .select('resident_id, block_number, level')
+    .select('resident_id, block_number, academic_year, level')
     .limit(5000);
 
   const maxLevelByResidentBlock = new Map<string, number>();
   for (const r of (existingReminders ?? [])) {
-    const key = `${r.resident_id}:${r.block_number}`;
+    const key = r.block_number === 0 ? `${r.resident_id}:0` : `${r.resident_id}:${r.block_number}:${r.academic_year}`;
     const current = maxLevelByResidentBlock.get(key) || 0;
     if (r.level > current) maxLevelByResidentBlock.set(key, r.level);
   }
@@ -513,7 +476,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── PART 2: Current block assessment reminders ──
     if (currentBlock && currentBlock.daysOverdue >= 0 && !submitted.has(`${currentBlock.block}:${currentBlock.academicYear}`)) {
       const level = getEscalationLevel(currentBlock.daysOverdue, currentBlock.end, todayUTC);
-      const prevLevel = maxLevelByResidentBlock.get(`${p.id}:${currentBlock.block}`) || 0;
+      const prevLevel = maxLevelByResidentBlock.get(`${p.id}:${currentBlock.block}:${currentBlock.academicYear}`) || 0;
 
       if (level > prevLevel) {
         const missing: string[] = [];
@@ -543,6 +506,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         await supabase.from('questionnaire_reminders').insert({
           study_id: p.study_id, resident_id: p.id, block_number: currentBlock.block, level,
+          academic_year: currentBlock.academicYear,
           reminder_type: level <= 2 ? 'email_gentle' : level <= 4 ? 'email_firm' : 'coordinator_escalation',
           sent_to: [p.email], missing_items: missing,
         });
@@ -584,6 +548,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         await supabase.from('questionnaire_reminders').insert({
           study_id: p.study_id, resident_id: p.id, block_number: missedPast[0].block, level: 10,
+          academic_year: missedPast[0].academicYear,
           reminder_type: 'missed_block',
           sent_to: [p.email], missing_items: missedPast.map(b => b.label),
         });

@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import { validateBlockSubmission } from '../shared/burnout-calendar.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -21,14 +22,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error_message: authErr?.message || 'No user from token',
       error_source: 'auth_failure',
       payload_summary: { has_token: !!authHeader },
-    }).catch(() => {});
+    }).then(() => {}, () => {});
     return res.status(401).json({ error: 'Invalid token' });
   }
 
   // Get resident profile
   const { data: resident } = await supabase
     .from('burnout_participants')
-    .select('id, study_id')
+    .select('id, study_id, enrollment_date')
     .eq('auth_user_id', user.id)
     .limit(1)
     .single();
@@ -40,6 +41,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!payload || !cbiData || !phq9Data || !gad7Data || !isiData) {
     return res.status(400).json({ error: 'Missing assessment data' });
   }
+  if (payload.block_number !== blockNumber || payload.academic_year !== academicYear) {
+    return res.status(400).json({ error: 'Block and academic year must match the assessment.' });
+  }
+  const eligibilityError = validateBlockSubmission(blockNumber, academicYear, resident.enrollment_date);
+  if (eligibilityError) return res.status(400).json({ error: eligibilityError });
 
   // Verify the payload belongs to this resident
   if (payload.resident_id !== resident.id || payload.study_id !== resident.study_id) {
@@ -72,7 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error_message: baError.message,
       error_source: 'block_assessment_insert',
       payload_summary: { rotation_name: payload.rotation_name, on_extended_leave: payload.on_extended_leave, block_number: payload.block_number },
-    }).catch(() => {});
+    }).then(() => {}, () => {});
     return res.status(500).json({ error: 'Failed to save assessment: ' + baError.message });
   }
 
@@ -119,7 +125,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       error_message: errors.join('; '),
       error_source: 'instrument_insert',
       payload_summary: { rotation_name: payload.rotation_name, block_number: payload.block_number },
-    }).catch(() => {});
+    }).then(() => {}, () => {});
     return res.status(207).json({ saved: true, warnings: errors });
   }
 
