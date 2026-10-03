@@ -34,6 +34,7 @@ import EnrollWhoop from './pages/EnrollWhoop';
 import Login from './pages/dashboard/Login';
 import DashboardLayout from './components/DashboardLayout';
 import Overview from './pages/dashboard/Overview';
+import WhoopCoverage from './pages/dashboard/WhoopCoverage';
 import Residents from './pages/dashboard/Residents';
 import ResidentDetail from './pages/dashboard/ResidentDetail';
 import DataEntry from './pages/dashboard/DataEntry';
@@ -99,6 +100,7 @@ export default function App() {
           {/* ── Dashboard (gated by DashboardLayout) ── */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Overview />} />
+            <Route path="whoop-coverage" element={<WhoopCoverage />} />
             <Route path="residents" element={<Residents />} />
             <Route path="residents/:id" element={<ResidentDetail />} />
             <Route path="data-entry" element={<DataEntry />} />

@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const ctx={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync('shared/whoop-normalize.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,ctx);
+const {studyWindow,normalizeWhoop}=ctx.exports;
+const bounds=studyWindow('2026-05-01',null,new Date('2026-05-10T00:00:00Z'));
+const records=[{kind:'cycle',payload:{id:1,start:'2026-05-01T22:00:00Z',score_state:'SCORED',score:{strain:10}}},{kind:'sleep',payload:{id:'sleep',end:'2026-05-01T22:00:00Z',nap:false,score_state:'SCORED',score:{stage_summary:{total_light_sleep_time_milli:60000,total_slow_wave_sleep_time_milli:120000,total_rem_sleep_time_milli:180000,total_in_bed_time_milli:99999999,total_awake_time_milli:0}}}},{kind:'recovery',payload:{cycle_id:1,sleep_id:'sleep',created_at:'2026-05-09T00:00:00Z',score_state:'SCORED',score:{hrv_rmssd_milli:60}}},{kind:'sleep',payload:{id:'nap',nap:true,end:'2026-05-02T10:00:00Z',score_state:'SCORED',score:{stage_summary:{total_light_sleep_time_milli:600000}}}}];
+const rows=normalizeWhoop(records,bounds.start,bounds.end);
+assert.equal(rows.length,1);assert.equal(rows[0].date,'2026-05-02');assert.equal(rows[0].total_sleep_min,6);assert.equal(rows[0].hrv_rmssd_ms,60);
+assert.equal(normalizeWhoop([records[2]],bounds.start,bounds.end).length,0,'Unlinked recovery must not invent a date');
+assert.equal(studyWindow('2026-05-01','2026-05-03',new Date('2026-06-01')).end.toISOString(),'2026-05-02T20:00:00.000Z');
+assert.equal((studyWindow('2026-05-01',null,new Date('2028-01-01')).end-bounds.start)/86400000,365);
+console.log('WHOOP: ID linkage, Oman dates, naps, sleep stages, consent and one-year caps passed.');

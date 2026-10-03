@@ -1,10 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/whoop/cron-pull",
-      "schedule": "0 3 * * *"
-    },
-    {
       "path": "/api/adherence-check",
       "schedule": "0 4 * * *"
     },
@@ -18,7 +14,7 @@
     },
     {
       "path": "/api/whoop/daily-pull",
-      "schedule": "30 3 * * *"
+      "schedule": "35 * * * *"
     },
     {
       "path": "/api/weekly-shift-email",
@@ -30,6 +26,7 @@
     }
   ],
   "functions": {
+    "api/whoop/sync-engine.ts": { "maxDuration": 300 },
     "api/whoop/callback.ts": { "maxDuration": 30 },
     "api/whoop/cron-pull.ts": { "maxDuration": 300 },
     "api/whoop/admin-pull.ts": { "maxDuration": 120 },

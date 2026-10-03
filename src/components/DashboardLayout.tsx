@@ -6,6 +6,7 @@ interface NavItem { path: string; label: string; icon: string; adminOnly?: boole
 const NAV_ITEMS: NavItem[] = [
   { path: '/dashboard', label: 'Overview', icon: '📊' },
   { path: '/dashboard/residents', label: 'Residents', icon: '👥' },
+  { path: '/dashboard/whoop-coverage', label: 'WHOOP Coverage', icon: '⌚', studySlug: 'resident-burnout' },
   { path: '/dashboard/data-entry', label: 'Data Entry', icon: '📝' },
   { path: '/dashboard/import', label: 'Import Data', icon: '📥', adminOnly: true },
   { path: '/dashboard/send-links', label: 'Send Links', icon: '🔗', adminOnly: true },

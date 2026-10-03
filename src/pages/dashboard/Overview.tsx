@@ -428,11 +428,12 @@ export default function Overview() {
         return;
       }
       const res = await fetch('/api/whoop/admin-pull', {
+        method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
       });
       const data = await res.json();
       if (res.ok) {
-        setPullResult(`Pulled ${data.pulled} participant(s) — ${data.period.start} to ${data.period.end}`);
+        setPullResult(data.busy ? 'An import is already running. See WHOOP Coverage for progress.' : `Processed ${data.processed} import jobs. Remaining history resumes automatically; see WHOOP Coverage.`);
         // Reload dashboard data after a short delay
         setTimeout(() => window.location.reload(), 1500);
       } else {
