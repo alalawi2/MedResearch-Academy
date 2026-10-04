@@ -10,7 +10,7 @@ import {
 
 export default function ThalassemiaPatientNew() {
   const { getRoleForStudy } = useAuth();
-  const canIdentify = ['super_admin', 'research_admin'].includes(getRoleForStudy('thalassemia-cardiac') ?? '');
+  const canIdentify = !!getRoleForStudy('thalassemia-cardiac');
   const [chelation, setChelation] = useState<ChelationDrug[]>([]);
   const [recordReady, setRecordReady] = useState(false);
   const nav = useNavigate();
@@ -143,7 +143,7 @@ export default function ThalassemiaPatientNew() {
   }
 
   if (loading) return <div style={{padding:40,textAlign:'center',color:'var(--text-muted)'}}>Loading...</div>;
-  if (!canIdentify || (isEdit && !recordReady)) return <div role="alert" style={{padding:40}}>{err || 'Enrollment and demographic editing require authorized study administrator access to patient identifiers.'} <button onClick={() => nav(-1)}>Back</button></div>;
+  if (!canIdentify || (isEdit && !recordReady)) return <div role="alert" style={{padding:40}}>{err || 'Enrollment and demographic editing require active Thalassemia study team membership.'} <button onClick={() => nav(-1)}>Back</button></div>;
 
   const complications = [
     { k: 'heart_failure', l: 'Heart Failure' },
