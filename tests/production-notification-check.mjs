@@ -13,6 +13,13 @@ for(const path of ['/api/adherence-check','/api/coordinator-adherence-report']){
  if(body.results){const actions={};for(const p of body.results)actions[p.action]=(actions[p.action]||0)+1;console.log(path,JSON.stringify({checked:body.checked,actions,maryam:body.results.find(p=>p.participant==='RES-003')}));}
  else console.log(path,JSON.stringify({coordinators:body.coordinators,sent:body.sent}));
 }
+for(const path of ['/api/questionnaire-reminder','/api/weekly-shift-email']){
+ const response=await fetch(origin+path+'?dry_run=true',{headers});assert.equal(response.status,200);const result=await response.json();assert.equal(result.dry_run,true);assert.equal(result.sent,0);
+ console.log(path,'planned successfully without sending or recording reminders');
+}
+const exportResponse=await fetch(origin+'/api/export-study-data?format=counts',{headers});assert.equal(exportResponse.status,200);const exportCounts=await exportResponse.json();
+assert(exportCounts.counts.whoop_daily>1000,'Export must paginate beyond the database default cap');console.log('Export counts:',JSON.stringify(exportCounts.counts));
+const pageResponse=await fetch(origin+'/api/export-study-data?table=whoop_daily&limit=2&offset=0',{headers});assert.equal(pageResponse.status,200);const page=await pageResponse.json();assert.equal(page.rows.length,2);assert.equal(page.next_offset,2);assert(page.rows.every(r=>r.participant_id&&!r.resident_id));
 const anomaly=await fetch(origin+'/api/anomaly-detect',{headers});assert.equal((await anomaly.json()).paused,true);
 console.log('Unvalidated anomaly emails paused');
 const db=createClient(process.env.VITE_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY);

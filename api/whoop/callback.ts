@@ -144,6 +144,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           refresh_token: refresh_token || '',
           expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
           updated_at: new Date().toISOString(),
+          token_status: 'active',
+          consecutive_failures: 0,
         }, { onConflict: 'resident_id' });
 
       if (tokenErr) {
@@ -152,6 +154,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // Log enrollment event
+      const {error:queueError}=await supabase.from('whoop_sync_state').update({error:null,next_attempt:new Date().toISOString()}).eq('resident_id',existing.id);
+      if(queueError)throw new Error('Connection saved, but import rescheduling requires coordinator review');
       await supabase
         .from('enrollment_events')
         .insert({

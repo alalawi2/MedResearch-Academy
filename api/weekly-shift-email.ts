@@ -1,3 +1,4 @@
+import {deliverEmail} from '../shared/notification-safety.js';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
@@ -21,6 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+  const dryRun=req.query.dry_run==='true';
 
   // Calculate the week that just ended (Sun-Sat)
   const today = omanToday();
@@ -67,6 +69,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if(existing.submitted_at){skipped++;continue;}
       // Already exists — use existing token (re-send link)
       token = existing.token;
+    } else if(dryRun){
+      token='dry-run-not-a-token';
     } else {
       // Create new entry with unique token
       token = randomBytes(24).toString('base64url');
@@ -89,14 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const name = p.full_name?.split(' ')[0] || 'Participant';
 
     // Send email with one-click link
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-        'Idempotency-Key': `weekly-shift-${p.id}-${weekStartStr}`,
-      },
-      body: JSON.stringify({
+    if(!dryRun)await deliverEmail({
         from: 'OMSB Burnout Study <info@medresearch-academy.om>',
         to: [p.email],
         subject: `Shift Log — Week of ${weekStartStr} (30 seconds)`,
@@ -116,11 +113,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/>
   <p style="font-size:12px;color:#666">OMSB Burnout Study Team</p>
 </div></div>`,
-      }),
-    });
-
-    if (emailRes.ok) sent++;
-    else skipped++;
+    }, `weekly-shift-${p.id}-${weekStartStr}`);
+    sent++;
 
     await new Promise(r => setTimeout(r, 100));
   }
@@ -128,7 +122,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return res.json({
     week: weekStartStr,
     total: participants.length,
-    sent,
+    dry_run:dryRun,
+    sent:dryRun?0:sent,
+    ...(dryRun?{planned:sent}:{}),
     skipped,
   });
 }

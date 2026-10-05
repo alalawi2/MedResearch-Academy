@@ -73,22 +73,22 @@ export default function ReviewQueue() {
 
     const [cbiRes, phq9Res, gad7Res, isiRes] = await Promise.all([
       supabase
-        .from('cbi_responses')
+        .from('cbi_assessment_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),
       supabase
-        .from('phq9_responses')
+        .from('phq9_assessment_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),
       supabase
-        .from('gad7_responses')
+        .from('gad7_assessment_responses')
         .select('id, resident_id, items, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),
       supabase
-        .from('isi_responses')
+        .from('isi_assessment_responses')
         .select('id, resident_id, items, total_score, review_status, created_at, burnout_participants!inner(study_participant_id)')
         .eq('burnout_participants.study_id', studyId)
         .limit(500),

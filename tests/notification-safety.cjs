@@ -24,7 +24,15 @@ const safety=load('shared/notification-safety.ts');
 assert.equal(safety.authorizedJob({headers:{}}),false);
 (async()=>{
  const failed=load('shared/notification-safety.ts',{fetch:async()=>({ok:false,status:429})});
- await assert.rejects(()=>failed.deliverEmail({to:['example@example.com']}),/not recorded as sent/);
+ const chain={eq(){return this},select:async()=>({data:[{message_key:'test'}]})};
+ const db={rpc:async()=>({data:{body:{to:['example@example.com']}}}),from:()=>({update:()=>chain})};
+ await assert.rejects(()=>failed.deliverEmail({to:['example@example.com']},'test',db),/not recorded as sent/);
+ let fetches=0;
+ const success=load('shared/notification-safety.ts',{fetch:async()=>{fetches++;return {ok:true,json:async()=>({id:'provider-id'})}}});
+ assert.equal((await success.deliverEmail({to:['example@example.com']},'test',db)).id,'provider-id');
+ assert.equal((await success.deliverEmail({},'accepted',{...db,rpc:async()=>({data:{accepted:true,id:'original'}})})).id,'original');
+ assert.equal(fetches,1,'Accepted message is never sent twice');
+ await assert.rejects(()=>success.deliverEmail({},'old',{...db,rpc:async()=>({data:{review_required:true}})}),/review/);
  let calls=0;
  const rows=await safety.allRows(()=>({range:async()=>({data:++calls===1?Array(1000).fill(1):[2]})}));
  assert.equal(rows.length,1001);

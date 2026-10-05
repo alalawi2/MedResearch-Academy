@@ -129,7 +129,7 @@ function getEscalationLevel(daysOverdue: number, blockEndDate: Date, todayUTC: D
 // Email sender
 // ============================================================================
 
-async function sendEmail(to: string[], subject: string, html: string, cc?: string[]) {
+async function sendQuestionnaireEmail(to: string[], subject: string, html: string, cc?: string[], key?:string) {
   const body: Record<string, unknown> = {
     from: 'OMSB Burnout Study <info@medresearch-academy.om>',
     to,
@@ -138,7 +138,7 @@ async function sendEmail(to: string[], subject: string, html: string, cc?: strin
   };
   if (cc && cc.length > 0) body.cc = cc;
 
-  await deliverEmail(body);
+  await deliverEmail(body,key);
 }
 
 // ============================================================================
@@ -366,6 +366,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+  const dryRun=req.query.dry_run==='true';
+  const preview:Array<{to:string[],subject:string,key?:string}>=[];
+  const sendEmail=async(...args:Parameters<typeof sendQuestionnaireEmail>)=>{
+    if(dryRun){preview.push({to:args[0],subject:args[1],key:args[4]});return;}
+    await sendQuestionnaireEmail(...args);
+  };
 
   const today = new Date();
   const todayUTC = omanToday(today);
@@ -422,6 +428,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const coordCurrentOverdue = new Map<string, Array<{ name: string; email: string | null; phone: string | null; daysOverdue: number }>>();
   const coordMissedBlocks = new Map<string, Array<{ name: string; phone: string | null; missedBlocks: string[] }>>();
   const coordNames = new Map<string, string>();
+  const coordinatorLogs=new Map<string,any[]>();
 
   const pastBlocks = allBlocks.filter(b => b.end < todayUTC);
 
@@ -454,9 +461,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             shouldSendDay7 ? 'OMSB Burnout Study — Please Complete Your Enrollment Forms' : 'OMSB Burnout Study — Enrollment Setup Reminder',
             enrollmentReminderHtml(p.full_name || 'Participant', missing, loginUrl, daysSinceEnrollment),
             shouldSendDay7 ? PI_EMAILS : undefined,
+            `enrollment-${p.id}-${targetLevel}`,
           );
 
-          checked(await supabase.from('questionnaire_reminders').insert({
+          if(!dryRun)checked(await supabase.from('questionnaire_reminders').insert({
             study_id: p.study_id, resident_id: p.id, block_number: 0, level: targetLevel,
             reminder_type: shouldSendDay7 ? 'enrollment_urgent' : 'enrollment_gentle',
             sent_to: [p.email], missing_items: missing,
@@ -486,6 +494,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               : `Block ${currentBlock.block} Assessment Overdue — Please Submit`,
             blockReminderHtml(p.full_name || 'Participant', level, currentBlock.block, loginUrl, missing),
             PI_EMAILS,
+            `block-${p.id}-${currentBlock.academicYear}-${currentBlock.block}-${level}`,
           );
           summary.current_block_reminders++;
         }
@@ -497,12 +506,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           coordCurrentOverdue.get(ce)!.push({ name: p.full_name || 'Unknown', email: p.email, phone: p.phone, daysOverdue: currentBlock.daysOverdue });
         }
 
-        checked(await supabase.from('questionnaire_reminders').insert({
+        const reminderRecord={
           study_id: p.study_id, resident_id: p.id, block_number: currentBlock.block, level,
           academic_year: currentBlock.academicYear,
           reminder_type: level <= 2 ? 'email_gentle' : level <= 4 ? 'email_firm' : 'coordinator_escalation',
-          sent_to: [p.email], missing_items: missing,
-        }));
+          sent_to: level>=5?[p.coordinator_email]:[p.email], missing_items: missing,
+        };
+        if(level<=4&&!dryRun)checked(await supabase.from('questionnaire_reminders').insert(reminderRecord));
+        else if(p.coordinator_email)coordinatorLogs.set(p.coordinator_email,[...(coordinatorLogs.get(p.coordinator_email)||[]),reminderRecord]);
       }
     }
 
@@ -522,24 +533,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (missedPast.length > 0) {
       // Only send missed block reminder once per week per resident (not daily)
-      const { data: recentMissed } = await supabase
+      const { data: recentMissed,error:missedError } = await supabase
         .from('questionnaire_reminders')
-        .select('id')
+        .select('id,created_at')
         .eq('resident_id', p.id)
         .eq('reminder_type', 'missed_block')
-        .gte('created_at', new Date(todayUTC.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('created_at',{ascending:false})
         .limit(1);
+      if(missedError)throw new Error('Cannot verify missed-reminder history; no reminder sent.');
 
-      if (!recentMissed || recentMissed.length === 0) {
+      if (!recentMissed?.length || Date.parse(recentMissed[0].created_at)<=todayUTC.getTime()-7*86400000) {
         await sendEmail(
           [p.email],
           missedPast.length === 1
             ? `OMSB Burnout Study — Please Complete Your ${missedPast[0].label} Assessment`
             : `OMSB Burnout Study — You Have ${missedPast.length} Missed Block Assessments`,
           missedBlockReminderHtml(p.full_name || 'Participant', missedPast, loginUrl),
+          undefined,
+          `missed-${p.id}-after-${recentMissed?.[0]?.id||'initial'}`,
         );
 
-        checked(await supabase.from('questionnaire_reminders').insert({
+        if(!dryRun)checked(await supabase.from('questionnaire_reminders').insert({
           study_id: p.study_id, resident_id: p.id, block_number: missedPast[0].block, level: 10,
           academic_year: missedPast[0].academicYear,
           reminder_type: 'missed_block',
@@ -574,7 +588,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `[ACTION REQUIRED] ${totalResidents} Resident${totalResidents > 1 ? 's' : ''} — Outstanding Assessments`,
       coordinatorEscalationHtml(coordName, currentOverdue, missed, currentBlock?.block || null),
       COORDINATOR_CC,
+      `coordinator-questionnaires-${ce}-${todayStr}`,
     );
+    if(!dryRun&&coordinatorLogs.has(ce))checked(await supabase.from('questionnaire_reminders').insert(coordinatorLogs.get(ce)!));
     summary.coordinator_reports++;
   }
 
@@ -583,10 +599,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     TEAM_EMAILS,
     `Burnout Study — Daily Report (${todayStr})`,
     dailyTeamReportHtml(todayStr, participants as Participant[], submittedByResident, allBlocks, currentBlock),
+    undefined,
+    `team-questionnaires-${todayStr}`,
   );
 
   return res.json({
     success: true,
+    dry_run:dryRun,
+    ...(dryRun?{sent:0,preview}:{}),
     ...summary,
     current_block: currentBlock ? { block: currentBlock.block, daysOverdue: currentBlock.daysOverdue } : null,
   });

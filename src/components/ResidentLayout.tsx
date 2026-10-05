@@ -166,7 +166,7 @@ function InlineDashboard({ profile }: { profile: ResidentProfile }) {
           <div style={{ textAlign: 'center', padding: '24px 16px' }}>
             <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.3 }}>&#9201;</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 6 }}>Awaiting WHOOP Data</div>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>WHOOP imports run hourly. Historical data may take longer to appear.</div>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>WHOOP import jobs run every 15 minutes. Historical data may take longer to appear.</div>
           </div>
         )}
       </div>

@@ -300,10 +300,10 @@ export default function Overview() {
 
       /* Burnout Overview — query actual tables */
       const [cbiRes, phqRes, gadRes, isiRes] = await Promise.all([
-        supabase.from('cbi_responses').select('work_score').eq('study_id', studyId).limit(1000),
-        supabase.from('phq9_responses').select('total_score').eq('study_id', studyId).limit(1000),
-        supabase.from('gad7_responses').select('total_score').eq('study_id', studyId).limit(1000),
-        supabase.from('isi_responses').select('total_score').eq('study_id', studyId).limit(1000),
+        supabase.from('cbi_assessment_responses').select('work_score').eq('study_id', studyId).limit(1000),
+        supabase.from('phq9_assessment_responses').select('total_score').eq('study_id', studyId).limit(1000),
+        supabase.from('gad7_assessment_responses').select('total_score').eq('study_id', studyId).limit(1000),
+        supabase.from('isi_assessment_responses').select('total_score').eq('study_id', studyId).limit(1000),
       ]);
 
       const cbiRows = cbiRes.data ?? [];

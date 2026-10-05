@@ -14,7 +14,7 @@
     },
     {
       "path": "/api/whoop/daily-pull",
-      "schedule": "35 * * * *"
+      "schedule": "5,20,35,50 * * * *"
     },
     {
       "path": "/api/weekly-shift-email",
@@ -26,6 +26,7 @@
     }
   ],
   "functions": {
+    "api/export-study-data.ts": { "maxDuration": 120 },
     "api/whoop/sync-engine.ts": { "maxDuration": 300 },
     "api/whoop/pull.ts": { "maxDuration": 300 },
     "api/whoop/callback.ts": { "maxDuration": 30 },
