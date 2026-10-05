@@ -6,33 +6,60 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const RESEND_API_KEY = process.env.RESEND_API_KEY!;
 const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
+// Best-effort per-instance cooldown; production should also enforce an edge rate limit.
+const recentRequests = new Map<string, number>();
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { email, redirectTo } = req.body || {};
+  const { email, redirectTo, purpose } = req.body || {};
+  const staffRequest = purpose === 'staff-login' || purpose === 'staff-reset';
+  if (purpose !== undefined && !staffRequest) return res.status(400).json({ error: 'Invalid purpose' });
   if (typeof email!=='string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ error: 'Valid email is required' });
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY || !RESEND_API_KEY) {
+    return res.status(503).json({ error: 'Email service is unavailable. Please contact the study administrator.' });
+  }
+  const normalizedEmail = email.trim().toLowerCase();
+  const now = Date.now();
+  for (const [key, timestamp] of recentRequests) if (now - timestamp >= 60000) recentRequests.delete(key);
+  if (recentRequests.has(normalizedEmail)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Please wait one minute before requesting another email.' });
+  }
+  recentRequests.set(normalizedEmail, now);
   let safeRedirect = `${SITE_URL}/resident/dashboard`;
   if(typeof redirectTo==='string'){
     try{const url=new URL(redirectTo,SITE_URL);if(url.origin===new URL(SITE_URL).origin)safeRedirect=url.href;}catch{}
   }
+  if (staffRequest) safeRedirect = `${SITE_URL}${purpose === 'staff-reset' ? '/dashboard/set-password' : '/dashboard'}`;
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
   try {
+    if (staffRequest) {
+      const { data: staff, error: staffError } = await supabase.from('staff')
+        .select('auth_user_id').ilike('email', normalizedEmail.replace(/[\\%_]/g, '\\$&')).eq('active', true).maybeSingle();
+      if (staffError) throw new Error('Staff lookup failed');
+      // Do not create accounts or disclose whether an address belongs to staff.
+      if (!staff?.auth_user_id) return res.status(200).json({ success: true });
+      const { data: account, error: accountError } = await supabase.auth.admin.getUserById(staff.auth_user_id);
+      if (accountError) throw new Error('Account lookup failed');
+      if (account.user?.email?.toLowerCase() !== normalizedEmail) return res.status(200).json({ success: true });
+    }
     // Generate magic link via Supabase Admin API
     const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email.trim(),
+      type: purpose === 'staff-reset' ? 'recovery' : 'magiclink',
+      email: normalizedEmail,
       options: {
         redirectTo: safeRedirect,
       },
     });
 
     if (error) {
-      console.error('Generate link error:', error);
-      return res.status(400).json({ error: error.message });
+      console.error('Generate link failed:', error.status);
+      return res.status(503).json({ error: 'Unable to generate an access link. Please try again later.' });
     }
 
     const magicLink = data?.properties?.action_link;
@@ -48,10 +75,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'OMSB Burnout Study <info@medresearch-academy.om>',
-        to: [email.trim()],
-        subject: 'OMSB Burnout Study — Your Login Link',
-        html: `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333;">
+        from: `${staffRequest ? 'MedResearch Academy' : 'OMSB Burnout Study'} <info@medresearch-academy.om>`,
+        to: [normalizedEmail],
+        subject: staffRequest ? `MedResearch Academy - ${purpose === 'staff-reset' ? 'Reset your password' : 'Your login link'}` : 'OMSB Burnout Study — Your Login Link',
+        html: staffRequest ? `<h1>MedResearch Academy</h1><p>${purpose === 'staff-reset' ? 'Use the link below to choose a new password.' : 'Use the link below to sign in to the research dashboard.'}</p><p><a href="${magicLink.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${purpose === 'staff-reset' ? 'Reset password' : 'Sign in'}</a></p><p>This link is single-use. If you did not request it, ignore this email.</p>` : `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; color: #333;">
 <div style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
 <h1 style="color: white; margin: 0; font-size: 18px;">OMSB Burnout Study</h1>
 <p style="color: rgba(255,255,255,0.7); margin: 6px 0 0; font-size: 13px;">Secure Login Link</p>
@@ -77,7 +104,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ success: true });
   } catch (err: any) {
-    console.error('Magic link error:', err);
-    return res.status(500).json({ error: err.message || 'Server error' });
+    console.error('Access email failed');
+    return res.status(500).json({ error: 'Unable to send the email. Please try again later or contact the study administrator.' });
   }
 }

@@ -17,6 +17,16 @@ export default function Login() {
 
   const authenticatedButNoStaff = !loading && user && !staff;
 
+  async function requestAccessEmail(purpose: 'staff-login' | 'staff-reset') {
+    const response = await fetch('/api/send-magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), purpose }),
+    });
+    const result = await response.json().catch(() => null);
+    if (!response.ok || !result?.success) throw new Error(result?.error || 'Unable to send email. Please try again later.');
+  }
+
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
     if (!supabaseConfigured) { setError('Dashboard not configured.'); return; }
@@ -37,12 +47,8 @@ export default function Login() {
     setSubmitting(true);
     setError(null);
     try {
-      const { error: err } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-      });
-      if (err) setError(err.message);
-      else setMode('magic-sent');
+      await requestAccessEmail('staff-login');
+      setMode('magic-sent');
     } catch (err: any) {
       setError(err?.message || 'Network error.');
     }
@@ -55,11 +61,8 @@ export default function Login() {
     setSubmitting(true);
     setError(null);
     try {
-      const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/dashboard/set-password`,
-      });
-      if (err) setError(err.message);
-      else setMode('forgot-sent');
+      await requestAccessEmail('staff-reset');
+      setMode('forgot-sent');
     } catch (err: any) {
       setError(err?.message || 'Network error.');
     }
@@ -111,7 +114,7 @@ export default function Login() {
             <div style={{fontSize:28,marginBottom:8}}>📧</div>
             <div style={{fontWeight:700,color:'#166534',marginBottom:6}}>Check your email</div>
             <div style={{fontSize:13,color:'#166534',lineHeight:1.6}}>
-              We sent a login link to <strong>{email}</strong>.<br />Click the link to access the dashboard.
+              If <strong>{email}</strong> is linked to an active staff account, you will receive a login link. Check your inbox and spam folder.
             </div>
             <button onClick={() => switchMode('password')} style={{marginTop:16,background:'none',border:'none',color:'var(--primary)',cursor:'pointer',fontSize:13,fontWeight:600}}>
               ← Back to login
@@ -121,9 +124,9 @@ export default function Login() {
         ) : mode === 'forgot-sent' ? (
           <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'20px',textAlign:'center'}}>
             <div style={{fontSize:28,marginBottom:8}}>📧</div>
-            <div style={{fontWeight:700,color:'#166534',marginBottom:6}}>Password reset sent</div>
+            <div style={{fontWeight:700,color:'#166534',marginBottom:6}}>Check your email</div>
             <div style={{fontSize:13,color:'#166534',lineHeight:1.6}}>
-              Check <strong>{email}</strong> for a password reset link.
+              If <strong>{email}</strong> is linked to an active staff account, you will receive a password reset link. Check your inbox and spam folder.
             </div>
             <button onClick={() => switchMode('password')} style={{marginTop:16,background:'none',border:'none',color:'var(--primary)',cursor:'pointer',fontSize:13,fontWeight:600}}>
               ← Back to login

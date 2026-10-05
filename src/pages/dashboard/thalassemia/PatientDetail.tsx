@@ -221,6 +221,8 @@ function ChecklistPanel({ cells, visits, patientId }: { cells: ChecklistCell[]; 
 
 // ── Demographics view (read-only summary) ────────────────────────────────────
 function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: ThalIdentifiers | null }) {
+  const { getRoleForStudy } = useAuth();
+  const canEdit = !!getRoleForStudy('thalassemia-cardiac') && !!ident?.mrn;
   const complications = [
     { k: 'heart_failure', l: 'Heart Failure' }, { k: 'af', l: 'Atrial Fibrillation' },
     { k: 'vt', l: 'Ventricular Tachycardia' }, { k: 'pacs', l: 'PACs' }, { k: 'pvcs', l: 'PVCs' },
@@ -231,7 +233,10 @@ function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: Th
   ];
   return (
     <div style={{background:'white',border:'1px solid var(--border)',borderRadius:12,padding:24}}>
-      <h2 style={{margin:'0 0 16px',fontSize:'1.1rem',color:'var(--primary)'}}>Demographics &amp; Clinical Profile</h2>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12,marginBottom:16}}>
+        <h2 style={{margin:0,fontSize:'1.1rem',color:'var(--primary)'}}>Demographics &amp; Clinical Profile</h2>
+        {canEdit && <Link to={`/dashboard/thalassemia/patients/${patient.id}/edit`} className="btn btn-primary">Edit Demographics</Link>}
+      </div>
       {ident && <InfoRow label="MRN" value={ident.mrn} />}
       {ident && <InfoRow label="Full Name" value={ident.full_name} />}
       {ident && <InfoRow label="Date of birth" value={ident.date_of_birth} />}
@@ -261,7 +266,9 @@ function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: Th
       )}
 
       <div style={{marginTop:24,padding:14,background:'var(--bg-muted)',borderRadius:8,fontSize:13,color:'var(--text-muted)'}}>
-        <em>Editing demographics is not yet implemented &mdash; data-entry forms coming in the next commit.</em>
+        {canEdit
+          ? 'To correct these details, select Edit Demographics, update the fields, then select Save Changes. To edit an investigation, open its tab and select Edit beside the existing record.'
+          : 'Demographic editing requires active Thalassemia study team membership and an available patient MRN. Contact the study administrator if you need access.'}
       </div>
     </div>
   );

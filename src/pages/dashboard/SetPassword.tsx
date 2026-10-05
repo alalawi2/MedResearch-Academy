@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SetPassword() {
+  const { user, loading } = useAuth();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -12,6 +14,7 @@ export default function SetPassword() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading || !user) { setError('Please request a new password reset link from the login page.'); return; }
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return; }
     if (password !== confirm) { setError('Passwords do not match.'); return; }
     setSubmitting(true);
@@ -41,7 +44,9 @@ export default function SetPassword() {
           </p>
         </div>
 
-        {success ? (
+        {loading ? <p>Checking your reset link...</p> : !user ? (
+          <div role="alert"><p>This reset link is missing, expired, or has already been used.</p><Link to="/login">Return to login and request a new link</Link></div>
+        ) : success ? (
           <div style={{background:'#f0fdf4',border:'1px solid #bbf7d0',borderRadius:12,padding:'20px',textAlign:'center'}}>
             <div style={{fontSize:28,marginBottom:8}}>✅</div>
             <div style={{fontWeight:700,color:'#166534',marginBottom:6}}>Password set!</div>
