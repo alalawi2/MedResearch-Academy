@@ -1,6 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { createHash } from 'crypto';
+import { createHash,createHmac,timingSafeEqual } from 'crypto';
+
+function signedSession(id:string){
+ const payload=Buffer.from(JSON.stringify({id,exp:Date.now()+12*3600000})).toString('base64url');
+ const sig=createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY!).update('shift-session:'+payload).digest('base64url');
+ return payload+'.'+sig;
+}
+function sessionId(cookie:string|undefined):string|null{
+ if(!cookie||!process.env.SUPABASE_SERVICE_ROLE_KEY)return null;
+ const [payload,sig]=cookie.split('.');if(!payload||!sig)return null;
+ const expected=createHmac('sha256',process.env.SUPABASE_SERVICE_ROLE_KEY).update('shift-session:'+payload).digest('base64url');
+ if(sig.length!==expected.length||!timingSafeEqual(Buffer.from(sig),Buffer.from(expected)))return null;
+ try{const value=JSON.parse(Buffer.from(payload,'base64url').toString());return value.exp>Date.now()&&typeof value.id==='string'?value.id:null;}catch{return null;}
+}
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
@@ -27,6 +40,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { action } = req.body || {};
+  res.setHeader('Cache-Control','no-store');
+  if(action==='logout'){
+    res.setHeader('Set-Cookie','shift_study_session=; HttpOnly; Secure; SameSite=Strict; Path=/api/shift-study-auth; Max-Age=0');
+    return res.json({ok:true});
+  }
+  if(action!=='login'){
+    const id=sessionId(req.cookies?.shift_study_session);
+    if(!id)return res.status(401).json({error:'Your secure session expired. Please sign in again.'});
+    if(req.body?.participant_id!==id)return res.status(403).json({error:'Participant identity mismatch'});
+    const {data:current}=await supabase.from('shift_study_participants').select('status').eq('id',id).single();
+    if(!current||['withdrawn','inactive'].includes(current.status))return res.status(403).json({error:'Participation is not active'});
+  }
 
   // ── LOGIN ──
   if (action === 'login') {
@@ -55,6 +80,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    if(['withdrawn','inactive'].includes(data.status))return res.status(403).json({error:'Participation is not active'});
+    res.setHeader('Set-Cookie',`shift_study_session=${signedSession(data.id)}; HttpOnly; Secure; SameSite=Strict; Path=/api/shift-study-auth; Max-Age=43200`);
     return res.json({ participant: data });
   }
 
@@ -111,6 +138,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const now = new Date().toISOString();
+    const prerequisite=TIMEPOINT_PREREQS[timepoint];
+    if(prerequisite){
+      const {data:prior,error:priorError}=await supabase.from('shift_study_timepoints').select('id').eq('participant_id',participant_id).eq('timepoint',prerequisite).eq('completed',true).limit(1);
+      if(priorError||!prior?.length)return res.status(403).json({error:'Complete the preceding timepoint first'});
+    }
 
     // Check if record exists
     const { data: existing } = await supabase
@@ -121,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      if (existing[0].completed && completed) {
+      if (existing[0].completed) {
         return res.status(409).json({ error: 'Assessment already completed' });
       }
       const { error } = await supabase

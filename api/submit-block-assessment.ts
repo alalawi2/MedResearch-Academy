@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { validateBlockSubmission } from '../shared/burnout-calendar.js';
+import { validateBlockSubmission,omanToday } from '../shared/burnout-calendar.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -29,28 +29,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get resident profile
   const { data: resident } = await supabase
     .from('burnout_participants')
-    .select('id, study_id, enrollment_date')
+    .select('id, study_id, enrollment_date, status')
     .eq('auth_user_id', user.id)
     .limit(1)
     .single();
 
   if (!resident) return res.status(403).json({ error: 'Not a study participant' });
+  if(resident.status!=='active')return res.status(403).json({error:'Study participation is not active. Please contact the coordinator.'});
 
   const { payload, cbiData, phq9Data, gad7Data, isiData, blockNumber, academicYear } = req.body;
 
   if (!payload || !cbiData || !phq9Data || !gad7Data || !isiData) {
     return res.status(400).json({ error: 'Missing assessment data' });
   }
-  if (payload.block_number !== blockNumber || payload.academic_year !== academicYear) {
+  const isBaseline=payload.rotation_name==='BASELINE' && payload.block_number==null && blockNumber==null;
+  if (!isBaseline && (payload.block_number !== blockNumber || payload.academic_year !== academicYear)) {
     return res.status(400).json({ error: 'Block and academic year must match the assessment.' });
   }
-  const eligibilityError = validateBlockSubmission(blockNumber, academicYear, resident.enrollment_date);
+  const eligibilityError = isBaseline ? null : validateBlockSubmission(blockNumber, academicYear, resident.enrollment_date);
   if (eligibilityError) return res.status(400).json({ error: eligibilityError });
 
   // Verify the payload belongs to this resident
   if (payload.resident_id !== resident.id || payload.study_id !== resident.study_id) {
     return res.status(403).json({ error: 'Resident mismatch' });
   }
+  payload.assessment_date=omanToday().toISOString().slice(0,10);
 
   // Get block_id if exists
   let blockId: string | null = null;
@@ -65,69 +68,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     blockId = block?.id || null;
   }
 
-  // Insert block assessment (service role bypasses RLS)
-  const { error: baError } = await supabase
-    .from('block_assessments')
-    .insert(payload);
-
-  if (baError) {
-    console.error('Block assessment insert error:', baError);
-    await supabase.from('submission_error_log').insert({
-      resident_id: resident.id,
-      block_number: blockNumber || null,
-      error_message: baError.message,
-      error_source: 'block_assessment_insert',
-      payload_summary: { rotation_name: payload.rotation_name, on_extended_leave: payload.on_extended_leave, block_number: payload.block_number },
-    }).then(() => {}, () => {});
-    return res.status(500).json({ error: 'Failed to save assessment: ' + baError.message });
+  // All five records commit together; repeat submissions return the existing assessment.
+  const {data,error}=await supabase.rpc('save_burnout_assessment',{
+    assessment:payload,cbi:cbiData,phq:phq9Data,gad:gad7Data,isi:isiData,rotation_id:blockId,
+  });
+  if(error){
+    await supabase.from('submission_error_log').insert({resident_id:resident.id,block_number:blockNumber||null,error_source:'atomic_assessment',error_message:error.message});
+    return res.status(503).json({error:'The assessment was not saved. Please try again or contact your coordinator.'});
   }
-
-  // Insert individual instrument responses
-  const errors: string[] = [];
-
-  const { error: cbiErr } = await supabase.from('cbi_responses').insert({
-    ...cbiData,
-    study_id: resident.study_id,
-    resident_id: resident.id,
-    block_id: blockId,
-  });
-  if (cbiErr) errors.push('CBI: ' + cbiErr.message);
-
-  const { error: phqErr } = await supabase.from('phq9_responses').insert({
-    ...phq9Data,
-    study_id: resident.study_id,
-    resident_id: resident.id,
-    block_id: blockId,
-  });
-  if (phqErr) errors.push('PHQ-9: ' + phqErr.message);
-
-  const { error: gadErr } = await supabase.from('gad7_responses').insert({
-    ...gad7Data,
-    study_id: resident.study_id,
-    resident_id: resident.id,
-    block_id: blockId,
-  });
-  if (gadErr) errors.push('GAD-7: ' + gadErr.message);
-
-  const { error: isiErr } = await supabase.from('isi_responses').insert({
-    ...isiData,
-    study_id: resident.study_id,
-    resident_id: resident.id,
-    block_id: blockId,
-  });
-  if (isiErr) errors.push('ISI: ' + isiErr.message);
-
-  if (errors.length > 0) {
-    console.error('Instrument insert errors:', errors);
-    await supabase.from('submission_error_log').insert({
-      resident_id: resident.id,
-      block_number: blockNumber || null,
-      error_message: errors.join('; '),
-      error_source: 'instrument_insert',
-      payload_summary: { rotation_name: payload.rotation_name, block_number: payload.block_number },
-    }).then(() => {}, () => {});
-    return res.status(207).json({ saved: true, warnings: errors });
-  }
-
-  return res.json({ saved: true });
+  return res.json({saved:true,...data});
 }

@@ -156,10 +156,20 @@ function statusColor(status: string) {
 }
 
 /* ── Component ── */
-export default function ResearcherPortal() {
+export default function ResearcherPortal(){
+ const [verified,setVerified]=useState<string|null>(null),[email,setEmail]=useState(''),[message,setMessage]=useState('');
+ useEffect(()=>{
+  const refresh=()=>supabase.auth.getUser().then(({data})=>setVerified(data.user?.email_confirmed_at?data.user.email||null:null));
+  void refresh();const {data}=supabase.auth.onAuthStateChange(()=>{setTimeout(()=>void refresh(),0);});
+  return ()=>data.subscription.unsubscribe();
+ },[]);
+ if(verified)return <VerifiedResearcherPortal verifiedEmail={verified}/>;
+ return <Layout><section className="section"><div className="container" style={{maxWidth:520}}><h1>Researcher sign in</h1><p>Use the email address registered for your survey. Access now requires a verified email link; old displayed codes and survey passwords are no longer accepted.</p><form onSubmit={async e=>{e.preventDefault();setMessage('Sending…');const {error}=await supabase.auth.signInWithOtp({email:email.trim(),options:{emailRedirectTo:window.location.origin+'/researcher'}});setMessage(error?'Unable to send a sign-in link. Please try again or contact the study team.':'Check your email for a secure sign-in link.');}}><input type="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="Researcher email"/><button type="submit">Email sign-in link</button></form><p>{message}</p></div></section></Layout>;
+}
+function VerifiedResearcherPortal({verifiedEmail}:{verifiedEmail:string}) {
   // Auth state
-  const [step, setStep] = useState<'email' | 'code' | 'dashboard'>('email');
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState<'email' | 'code' | 'dashboard'>('dashboard');
+  const [email, setEmail] = useState(verifiedEmail);
   const [code, setCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [error, setError] = useState('');
@@ -187,11 +197,7 @@ export default function ResearcherPortal() {
 
   // Check session on mount
   useEffect(() => {
-    const stored = sessionStorage.getItem(SESSION_KEY);
-    if (stored) {
-      setEmail(stored);
-      setStep('dashboard');
-    }
+    sessionStorage.removeItem(SESSION_KEY);
   }, []);
 
   // Load surveys when entering dashboard
@@ -219,94 +225,11 @@ export default function ResearcherPortal() {
   }, [step, email, loadSurveys]);
 
   /* ── Auth handlers ── */
-  async function handleEmailSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    setSending(true);
-
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) { setError('Please enter your email address.'); setSending(false); return; }
-
-    // Check if email exists in surveys table
-    const { data: surveyData, error: surveyErr } = await supabase
-      .from('surveys')
-      .select('id')
-      .eq('researcher_email', trimmed)
-      .limit(1);
-
-    if (surveyErr || !surveyData || surveyData.length === 0) {
-      setError('No surveys found for this email address. Only registered researchers can access the portal.');
-      setSending(false);
-      return;
-    }
-
-    // Generate and store code
-    const newCode = generateCode();
-    const { error: insertErr } = await supabase
-      .from('researcher_access_codes')
-      .insert({
-        email: trimmed,
-        code: newCode,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-        used: false,
-      });
-
-    if (insertErr) {
-      setError('Failed to generate access code. Please try again.');
-      setSending(false);
-      return;
-    }
-
-    setEmail(trimmed);
-    setGeneratedCode(newCode);
-    setStep('code');
-    setSending(false);
-  }
-
-  async function handleCodeSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError('');
-    setSending(true);
-
-    const trimmedCode = code.trim();
-    if (trimmedCode.length !== 6) { setError('Please enter the 6-digit code.'); setSending(false); return; }
-
-    // Verify code
-    const { data: codeData, error: codeErr } = await supabase
-      .from('researcher_access_codes')
-      .select('id,expires_at,used')
-      .eq('email', email)
-      .eq('code', trimmedCode)
-      .eq('used', false)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    if (codeErr || !codeData || codeData.length === 0) {
-      setError('Invalid code. Please check and try again.');
-      setSending(false);
-      return;
-    }
-
-    const record = codeData[0];
-    if (new Date(record.expires_at) < new Date()) {
-      setError('Code has expired. Please request a new one.');
-      setSending(false);
-      return;
-    }
-
-    // Mark code as used
-    await supabase
-      .from('researcher_access_codes')
-      .update({ used: true })
-      .eq('id', record.id);
-
-    // Store session
-    sessionStorage.setItem(SESSION_KEY, email);
-    setStep('dashboard');
-    setSending(false);
-  }
+  async function handleEmailSubmit(e: React.FormEvent) { e.preventDefault(); window.location.reload(); }
+  async function handleCodeSubmit(e: React.FormEvent) { e.preventDefault(); setError('Please use the verified email sign-in link.'); }
 
   function handleLogout() {
+    void supabase.auth.signOut();
     sessionStorage.removeItem(SESSION_KEY);
     setStep('email');
     setEmail('');

@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
-import { createHmac } from 'crypto';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 function createEnrollmentToken(participantId: string, ttlSeconds = 86400) {
   const secret = process.env.ENROLLMENT_TOKEN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
@@ -21,6 +21,12 @@ const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { code, error: oauthError } = req.query;
+  const state = typeof req.query.state === 'string' ? req.query.state : '';
+  const cookieState = req.cookies?.whoop_oauth_state || '';
+  res.setHeader('Set-Cookie', 'whoop_oauth_state=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0');
+  if (!state || !cookieState || state.length !== cookieState.length || !timingSafeEqual(Buffer.from(state), Buffer.from(cookieState))) {
+    return res.redirect(`${SITE_URL}/enroll/whoop?error=invalid_state`);
+  }
 
   if (oauthError || !code) {
     return res.redirect(`${SITE_URL}/enroll/whoop?error=denied`);
@@ -75,6 +81,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       whoopName = [profile.first_name, profile.last_name].filter(Boolean).join(' ');
     }
 
+    if (!whoopUserId || !whoopEmail) return res.redirect(`${SITE_URL}/enroll/whoop?error=profile_failed`);
     // Store in Supabase using service role (bypasses RLS)
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -96,7 +103,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Check if this WHOOP user is already enrolled (by whoop_user_id OR email)
     const { data: existingByWhoop } = await supabase
       .from('burnout_participants')
-      .select('id, study_participant_id')
+      .select('id, study_participant_id, status')
       .eq('study_id', study.id)
       .eq('whoop_user_id', whoopUserId)
       .limit(1)
@@ -108,7 +115,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!existing && whoopEmail) {
       const { data: existingByEmail } = await supabase
         .from('burnout_participants')
-        .select('id, study_participant_id')
+        .select('id, study_participant_id, status')
         .eq('study_id', study.id)
         .ilike('email', whoopEmail)
         .limit(1)
@@ -117,16 +124,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (existing) {
+      if (existing.status !== 'active') return res.redirect(`${SITE_URL}/enroll/whoop?error=coordinator_review`);
       // Link WHOOP and update tokens for existing participant
-      await supabase
+      const {error:linkError}=await supabase
         .from('burnout_participants')
         .update({
           whoop_user_id: whoopUserId,
-          full_name: whoopName || undefined,
-          status: 'active',
-          enrollment_date: new Date().toISOString().slice(0, 10),
+          // Reconnection must not overwrite study identity, consent date or status.
         })
         .eq('id', existing.id);
+      if(linkError)throw new Error('Unable to save WHOOP linkage');
 
       const { error: tokenErr } = await supabase
         .from('whoop_tokens')

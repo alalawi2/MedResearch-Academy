@@ -26,7 +26,7 @@ console.log('Burnout calendar: named-resident eligibility, opening boundaries, r
  let writes=0;
  const client={auth:{getUser:async()=>({data:{user:{id:'test-user'}}})},from:()=>({
    select(){return this},eq(){return this},limit(){return this},
-   single:async()=>({data:{id:'resident',study_id:'study',enrollment_date:'2026-06-11'}}),
+   single:async()=>({data:{id:'resident',study_id:'study',enrollment_date:'2026-06-11',status:'active'}}),
    insert(){writes++;throw new Error('Unexpected write before eligibility validation')}
  })};
  const api={exports:{},process:{env:{}},console,require:name=>name==='@supabase/supabase-js'?{createClient:()=>client}:{validateBlockSubmission:(b,ay,en)=>c.validateBlockSubmission(b,ay,en,now)}};

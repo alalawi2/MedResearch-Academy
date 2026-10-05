@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import { randomBytes } from 'crypto';
+import {omanToday} from '../shared/burnout-calendar.js';
 
 // Weekly shift log email — sends every Sunday at 6 AM Oman (2 AM UTC)
 // Creates a token-based link per resident — no login needed
@@ -13,7 +14,7 @@ const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authHeader = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'];
-  if (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY) {
+  if (!authHeader || !SUPABASE_KEY || (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -22,11 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   });
 
   // Calculate the week that just ended (Sun-Sat)
-  const today = new Date();
+  const today = omanToday();
   const dayOfWeek = today.getUTCDay(); // 0=Sun
   // Week start = last Sunday
   const weekStart = new Date(today);
-  weekStart.setUTCDate(today.getUTCDate() - dayOfWeek);
+  weekStart.setUTCDate(today.getUTCDate() - dayOfWeek - 7);
   const weekStartStr = weekStart.toISOString().slice(0, 10);
 
   const weekEnd = new Date(weekStart);
@@ -36,7 +37,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Get active participants with email
   const { data: participants } = await supabase
     .from('burnout_participants')
-    .select('id, study_id, full_name, email')
+    .select('id, study_id, full_name, email, enrollment_date')
     .eq('status', 'active')
     .not('email', 'is', null)
     .neq('study_participant_id', 'RES-TEST')
@@ -50,10 +51,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let skipped = 0;
 
   for (const p of participants) {
+    if(!p.enrollment_date || p.enrollment_date>weekEndStr || Date.parse(weekStartStr)>=Date.parse(p.enrollment_date)+365*86400000) {skipped++;continue;}
     // Check if already created for this week
     const { data: existing } = await supabase
       .from('weekly_shift_log')
-      .select('id, token')
+      .select('id, token, submitted_at')
       .eq('resident_id', p.id)
       .eq('week_start', weekStartStr)
       .limit(1)
@@ -62,6 +64,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let token: string;
 
     if (existing) {
+      if(existing.submitted_at){skipped++;continue;}
       // Already exists — use existing token (re-send link)
       token = existing.token;
     } else {
@@ -91,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
+        'Idempotency-Key': `weekly-shift-${p.id}-${weekStartStr}`,
       },
       body: JSON.stringify({
         from: 'OMSB Burnout Study <info@medresearch-academy.om>',

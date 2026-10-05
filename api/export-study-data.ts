@@ -10,7 +10,7 @@ const CRON_SECRET = process.env.CRON_SECRET || SUPABASE_KEY;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authHeader = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'];
-  if (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY) {
+  if (!authHeader || !SUPABASE_KEY || (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY)) {
     return res.status(401).json({ error: 'Unauthorized — PI access only' });
   }
 

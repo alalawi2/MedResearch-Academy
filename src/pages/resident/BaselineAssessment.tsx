@@ -381,62 +381,19 @@ export default function BaselineAssessment() {
         review_status: 'pending',
       };
 
-      const { error: insertError } = await supabase
-        .from('block_assessments')
-        .insert(payload);
-
-      // Also save to individual instrument tables
-      await Promise.all([
-        supabase.from('cbi_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          response_date: today,
-          items: cbiItems,
-          personal_score: cbi.personal.score,
-          work_score: cbi.work.score,
-          patient_score: cbi.patient.score,
-          personal_burnout: cbi.personal.burnout,
-          work_burnout: cbi.work.burnout,
-          patient_burnout: cbi.patient.burnout,
-          any_burnout: cbi.anyBurnout,
-        }),
-        supabase.from('phq9_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          response_date: today,
-          items: phq9Items,
-          total_score: phq9.total,
-          severity: phq9.severity.toLowerCase().replace(/ /g, '_'),
-        }),
-        supabase.from('gad7_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          response_date: today,
-          items: gad7Items,
-          total_score: gad7.total,
-          severity: gad7.severity.toLowerCase().replace(/ /g, '_'),
-        }),
-        supabase.from('isi_responses').insert({
-          study_id: residentProfile.study_id,
-          resident_id: residentProfile.id,
-          response_date: today,
-          items: isiItems,
-          total_score: isi.total,
-          severity: isi.severity.toLowerCase().replace(/ /g, '_').replace(/clinically_significant_/g, ''),
-        }),
-      ]);
-
-      if (insertError) {
-        setError(insertError.message);
-        setSubmitting(false);
-        return;
-      }
-
-      // Mark baseline as completed on the participant record
-      await supabase
-        .from('burnout_participants')
-        .update({ baseline_completed: true })
-        .eq('id', residentProfile.id);
+      const {data:{session}}=await supabase.auth.getSession();
+      if(!session)throw new Error('Please sign in again before submitting.');
+      const result=await fetch('/api/submit-block-assessment',{
+        method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+session.access_token},
+        body:JSON.stringify({payload,
+          cbiData:{items:cbiItems,personal_score:cbi.personal.score,work_score:cbi.work.score,patient_score:cbi.patient.score,personal_burnout:cbi.personal.burnout,work_burnout:cbi.work.burnout,patient_burnout:cbi.patient.burnout,any_burnout:cbi.anyBurnout},
+          phq9Data:{items:phq9Items,total_score:phq9.total,severity:phq9.severity.toLowerCase().replace(/ /g,'_')},
+          gad7Data:{items:gad7Items,total_score:gad7.total,severity:gad7.severity.toLowerCase().replace(/ /g,'_')},
+          isiData:{items:isiItems,total_score:isi.total,severity:isi.severity.toLowerCase().replace(/ /g,'_').replace(/clinically_significant_/g,'')}
+        })
+      });
+      const saved=await result.json();
+      if(!result.ok||!saved.saved)throw new Error(saved.error||'The assessment was not saved.');
 
       setSubmitted(true);
     } catch (e: unknown) {

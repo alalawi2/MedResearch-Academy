@@ -88,7 +88,7 @@ export function getCurrentBlock(now=new Date()):CurrentBlockInfo|null {
 export function getPastBlocksSinceEnrollment(enrollmentDate:Date,now=new Date()):CurrentBlockInfo[] {
  const day=omanToday(now), year=academicYearStart(now);
  return [year,year-1].flatMap(y=>blocksForYear(y,now))
-  .filter(b=>b.endDate<day&&enrollmentDate<=b.endDate)
+  .filter(b=>b.endDate<day&&enrollmentDate<=b.endDate&&b.startDate.getTime()<enrollmentDate.getTime()+365*DAY)
   .sort((a,b)=>b.endDate.getTime()-a.endDate.getTime());
 }
 export function validateBlockSubmission(block:number,ay:string,enrollment:string|null,now=new Date()):string|null {
@@ -98,7 +98,7 @@ export function validateBlockSubmission(block:number,ay:string,enrollment:string
  if (!target) return 'Unknown block calendar.';
  if (!enrollment || !Number.isFinite(Date.parse(enrollment))) return 'Enrollment date requires coordinator review.';
  if (new Date(enrollment.slice(0,10)+'T00:00:00Z')>target.endDate) return 'This block ended before your enrollment.';
+ if(target.startDate.getTime()>=Date.parse(enrollment.slice(0,10)+'T00:00:00Z')+365*DAY)return 'This block is outside your one-year study follow-up.';
  if (!target.canSubmit) return `Block ${block} opens on ${target.submissionOpensDate.toISOString().slice(0,10)} (Oman time).`;
  return null;
 }
-

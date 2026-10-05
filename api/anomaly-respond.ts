@@ -1,16 +1,23 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+import {escapeHtml} from '../shared/notification-safety.js';
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const SITE_URL = process.env.SITE_URL || 'https://www.medresearch-academy.om';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const { token, response } = req.query;
+  const { token, response } = req.method==='POST' ? req.body||{} : req.query;
+  res.setHeader('Cache-Control','no-store');
+  res.setHeader('Referrer-Policy','no-referrer');
+  if(!['GET','POST'].includes(req.method||''))return res.status(405).end();
 
-  if (!token || !response) {
+  if (typeof token!=='string' || !/^[a-f0-9]{48}$/.test(token) || typeof response!=='string' || !response.trim() || response.length>200) {
     return res.redirect(`${SITE_URL}/active-research/resident-burnout`);
   }
+
+  // Email security scanners may visit GET links. Never record a research answer on GET.
+  if(req.method==='GET')return res.send(`<!doctype html><html><meta name="viewport" content="width=device-width"><title>Confirm response</title><body><h1>Confirm your response</h1><p>${escapeHtml(response)}</p><form method="POST"><input type="hidden" name="token" value="${token}"><input type="hidden" name="response" value="${escapeHtml(response)}"><button type="submit">Confirm and submit</button></form></body></html>`);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -33,13 +40,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Save response
-  await supabase
+  const {data:saved,error:saveError}=await supabase
     .from('anomaly_investigations')
     .update({
       resident_response: response as string,
       responded_at: new Date().toISOString(),
     })
-    .eq('id', investigation.id);
+    .eq('id', investigation.id).is('resident_response',null).select('id');
+  if(saveError || !saved?.length)return res.status(409).send(thankYouPage('Unable to save, or a response was already submitted. Please contact the study team.',false));
 
   return res.send(thankYouPage('Your response has been recorded. Thank you for helping us understand your data.', true));
 }

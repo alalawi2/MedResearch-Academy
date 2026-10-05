@@ -124,22 +124,8 @@ export default function ResidentDashboard() {
       setWhoopStale(true); // No data at all
     }
 
-    // Adherence rank — compare against all residents (anonymized)
-    const { data: allAdh } = await supabase
-      .from('whoop_pulls')
-      .select('resident_id, pct_recorded')
-      .order('pulled_at', { ascending: false })
-      .limit(500);
-    if (allAdh) {
-      const latestPer = new Map<string, number>();
-      allAdh.forEach((p: any) => { if (!latestPer.has(p.resident_id)) latestPer.set(p.resident_id, p.pct_recorded ?? 0); });
-      const sorted = Array.from(latestPer.entries()).sort((a, b) => b[1] - a[1]);
-      const myIdx = sorted.findIndex(([id]) => id === rid);
-      const myPct = latestPer.get(rid) ?? 0;
-      if (myIdx >= 0) {
-        setAdherenceRank({ rank: myIdx + 1, total: sorted.length, pct: myPct });
-      }
-    }
+    // Cross-resident wear rankings cannot be inferred from rolling import summaries.
+    setAdherenceRank(null);
 
     // Block assessments count
     const { count: baCount, error: baErr } = await supabase
@@ -1113,15 +1099,11 @@ export default function ResidentDashboard() {
                 {/* Data coverage */}
                 <div style={metricCardStyle('#64748b')}>
                   <div style={metricLabelStyle}>Data Coverage</div>
-                  <div style={metricValueStyle}>{whoop.days_with_data ?? 0} / 28 days</div>
+                  <div style={metricValueStyle}>{whoop.days_with_data ?? '—'} recorded days</div>
                   <div>
-                    <span style={statusDotStyle(
-                      (whoop.pct_recorded ?? 0) >= 80 ? STATUS_GREEN :
-                      (whoop.pct_recorded ?? 0) >= 50 ? STATUS_AMBER : STATUS_RED
-                    )} />
-                    <span style={statusTextStyle}>{whoop.pct_recorded ?? 0}% recorded</span>
+                    <span style={statusTextStyle}>Available data in the latest summary</span>
                   </div>
-                  <div style={metricInfoStyle}>Wear consistency for data quality</div>
+                  <div style={metricInfoStyle}>Data availability does not measure continuous device wear.</div>
                 </div>
               </div>
             </div>

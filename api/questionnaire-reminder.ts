@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import {deliverEmail,allRows,checked} from '../shared/notification-safety.js';
 import { createClient } from '@supabase/supabase-js';
 import { blocksForYear, academicYearStart, omanToday } from '../shared/burnout-calendar.js';
 
@@ -137,14 +138,7 @@ async function sendEmail(to: string[], subject: string, html: string, cc?: strin
   };
   if (cc && cc.length > 0) body.cc = cc;
 
-  await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
+  await deliverEmail(body);
 }
 
 // ============================================================================
@@ -365,7 +359,7 @@ ${incomplete.length > 0 ? `<h3 style="font-size:13px;color:#dc2626;margin:16px 0
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const authHeader = req.headers['authorization']?.replace('Bearer ', '') || req.headers['x-api-key'];
-  if (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY) {
+  if (!authHeader || !SUPABASE_KEY || (authHeader !== CRON_SECRET && authHeader !== SUPABASE_KEY)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
@@ -392,11 +386,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Get all submitted block assessments (keyed by block_number + academic_year)
-  const { data: allAssessments, error: assessmentsError } = await supabase
-    .from('block_assessments')
-    .select('resident_id, block_number, academic_year')
-    .limit(5000);
-  if (assessmentsError) return res.status(503).json({error:'Unable to verify completed assessments; no reminders sent.'});
+  let allAssessments:any[];
+  try{allAssessments=await allRows(()=>supabase.from('block_assessments').select('id,resident_id,block_number,academic_year').order('id'));}
+  catch{return res.status(503).json({error:'Unable to verify completed assessments; no reminders sent.'});}
 
   // submittedByResident: resident_id → Set of "block:year" keys
   const submittedByResident = new Map<string, Set<string>>();
@@ -407,10 +399,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Get existing reminders to track escalation
-  const { data: existingReminders } = await supabase
-    .from('questionnaire_reminders')
-    .select('resident_id, block_number, academic_year, level')
-    .limit(5000);
+  let existingReminders:any[];
+  try{existingReminders=await allRows(()=>supabase.from('questionnaire_reminders').select('id,resident_id,block_number,academic_year,level').order('id'));}
+  catch{return res.status(503).json({error:'Unable to verify reminder history; no reminders sent.'});}
 
   const maxLevelByResidentBlock = new Map<string, number>();
   for (const r of (existingReminders ?? [])) {
@@ -435,11 +426,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pastBlocks = allBlocks.filter(b => b.end < todayUTC);
 
   for (const p of participants as Participant[]) {
-    if (p.study_participant_id === 'RES-TEST') continue;
+    if (!/^RES-\d+$/.test(p.study_participant_id)) continue;
     if (!p.email) continue;
 
     const submitted = submittedByResident.get(p.id) || new Set();
-    const enrollDate = p.enrollment_date ? new Date(p.enrollment_date + 'T00:00:00Z') : new Date('2026-04-01T00:00:00Z');
+    if(!p.enrollment_date)continue;
+    const enrollDate = new Date(p.enrollment_date + 'T00:00:00Z');
+    if(todayUTC.getTime()>=enrollDate.getTime()+365*86400000 || enrollDate>todayUTC)continue;
 
     // ── PART 1: Enrollment reminders ──
     if (!p.demographics_completed || !p.baseline_completed) {
@@ -463,11 +456,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             shouldSendDay7 ? PI_EMAILS : undefined,
           );
 
-          await supabase.from('questionnaire_reminders').insert({
+          checked(await supabase.from('questionnaire_reminders').insert({
             study_id: p.study_id, resident_id: p.id, block_number: 0, level: targetLevel,
             reminder_type: shouldSendDay7 ? 'enrollment_urgent' : 'enrollment_gentle',
             sent_to: [p.email], missing_items: missing,
-          });
+          }));
           summary.enrollment_reminders++;
         }
       }
@@ -504,12 +497,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           coordCurrentOverdue.get(ce)!.push({ name: p.full_name || 'Unknown', email: p.email, phone: p.phone, daysOverdue: currentBlock.daysOverdue });
         }
 
-        await supabase.from('questionnaire_reminders').insert({
+        checked(await supabase.from('questionnaire_reminders').insert({
           study_id: p.study_id, resident_id: p.id, block_number: currentBlock.block, level,
           academic_year: currentBlock.academicYear,
           reminder_type: level <= 2 ? 'email_gentle' : level <= 4 ? 'email_firm' : 'coordinator_escalation',
           sent_to: [p.email], missing_items: missing,
-        });
+        }));
       }
     }
 
@@ -546,12 +539,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           missedBlockReminderHtml(p.full_name || 'Participant', missedPast, loginUrl),
         );
 
-        await supabase.from('questionnaire_reminders').insert({
+        checked(await supabase.from('questionnaire_reminders').insert({
           study_id: p.study_id, resident_id: p.id, block_number: missedPast[0].block, level: 10,
           academic_year: missedPast[0].academicYear,
           reminder_type: 'missed_block',
           sent_to: [p.email], missing_items: missedPast.map(b => b.label),
-        });
+        }));
         summary.missed_block_reminders++;
       }
 

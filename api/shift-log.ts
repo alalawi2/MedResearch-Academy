@@ -115,15 +115,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .single();
 
   if (!entry) return res.status(404).send('Invalid or expired link');
+  res.setHeader('Cache-Control','no-store');
+  res.setHeader('Referrer-Policy','no-referrer');
 
   // Get resident name + WHOOP adherence
   const { data: resident } = await supabase
     .from('burnout_participants')
-    .select('full_name')
+    .select('full_name,status')
     .eq('id', entry.resident_id)
     .limit(1)
     .single();
 
+  if(!resident || resident.status!=='active')return res.status(403).send('Study participation is not active. Contact your coordinator.');
   const name = resident?.full_name?.split(' ')[0] || 'Participant';
 
   // Get latest WHOOP adherence for this resident
@@ -156,7 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const existing: Record<string, string | null> = {};
     DAYS.forEach(d => { existing[d] = (entry as any)[d] || null; });
     res.setHeader('Content-Type', 'text/html');
-    return res.send(renderForm(token, entry.week_start, existing, name, adherencePct, daysWithData, myRank, totalRanked));
+    return res.send(renderForm(token, entry.week_start, existing, name, null, null, null, 0));
   }
 
   if (req.method === 'POST') {
@@ -171,10 +174,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-    await supabase
+    if(DAYS.some(d=>!SHIFT_TYPES.some(st=>st.value===body?.[d])))return res.status(400).send('Please select a valid shift type for each day.');
+    const {error:saveError}=await supabase
       .from('weekly_shift_log')
       .update(update)
       .eq('id', entry.id);
+    if(saveError)return res.status(503).send('Your shift log was not saved. Please try again.');
 
     res.setHeader('Content-Type', 'text/html');
     return res.send(renderThanks());

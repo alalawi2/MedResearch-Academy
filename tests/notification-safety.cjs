@@ -1,0 +1,42 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),ts=require('typescript');
+function load(file,overrides={}){
+ const ctx={exports:{},process,Buffer,URL,Date,AbortSignal,fetch:global.fetch,...overrides};
+ ctx.require=id=>id.startsWith('.')?load(path.resolve(path.dirname(file),id.replace(/\.js$/,'.ts')),overrides):require(id);
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText,ctx);
+ return ctx.exports;
+}
+const {assessCoverage,coverageWindow}=load('shared/whoop-coverage.ts');
+const now=new Date('2026-10-04T04:00:00Z'),p={enrollment_date:'2026-05-18'};
+const days=Array.from({length:28},(_,i)=>({date:new Date(Date.UTC(2026,8,6+i)).toISOString().slice(0,10),hrv_rmssd_ms:50}));
+const jobs=['cycle','sleep','recovery'].map(kind=>({kind,error:null,completed_through:'2026-10-04T02:36:00Z',last_success:'2026-10-04T02:36:00Z'}));
+assert.equal(assessCoverage(p,days,jobs,now).pct,100);
+assert.equal(assessCoverage(p,[...days,...days],jobs,now).recorded,28,'deduplicate dates');
+assert.equal(assessCoverage(p,days,[],now).pct,null,'unknown sync is not zero');
+assert.equal(assessCoverage(p,days,jobs.map(j=>({...j,error:'reconnect_required'})),now).state,'connection_review');
+assert.equal(assessCoverage(p,[],jobs,now).pct,0,'only complete imports can establish zero coverage');
+assert.equal(assessCoverage({enrollment_date:'2026-10-04'},[],jobs,now).state,'enrollment_grace');
+assert.equal(assessCoverage({enrollment_date:null},[],jobs,now).state,'enrollment_review');
+assert.equal(assessCoverage({enrollment_date:'2025-09-01'},days,jobs,now).state,'study_complete');
+assert.equal(coverageWindow('2026-05-18',new Date('2026-10-03T21:00:00Z')).end,'2026-10-04','Oman midnight');
+assert.equal(assessCoverage(p,[...days,{date:'2026-10-04',hrv_rmssd_ms:50}],jobs,now).recorded,28,'exclude partial today');
+assert.equal(assessCoverage(p,[{date:'2026-10-03',is_nap:true,total_sleep_min:20}],jobs,now).recorded,0,'naps not full day evidence');
+const safety=load('shared/notification-safety.ts');
+assert.equal(safety.authorizedJob({headers:{}}),false);
+(async()=>{
+ const failed=load('shared/notification-safety.ts',{fetch:async()=>({ok:false,status:429})});
+ await assert.rejects(()=>failed.deliverEmail({to:['example@example.com']}),/not recorded as sent/);
+ let calls=0;
+ const rows=await safety.allRows(()=>({range:async()=>({data:++calls===1?Array(1000).fill(1):[2]})}));
+ assert.equal(rows.length,1001);
+ await assert.rejects(()=>safety.allRows(()=>({range:async()=>({error:{message:'unavailable'}})})),/unavailable/);
+ const callback=fs.readFileSync('api/whoop/callback.ts','utf8');
+ const existing=callback.slice(callback.indexOf('if (existing) {'),callback.indexOf('const { error: tokenErr }'));
+ assert(!existing.includes('enrollment_date:'),'reconnection preserves enrollment');
+ assert(!existing.includes("status: 'active'"),'reconnection cannot reactivate withdrawal');
+ assert(callback.includes('timingSafeEqual'),'OAuth state checked');
+ const account=fs.readFileSync('api/create-resident-account.ts','utf8');
+ assert(account.includes('if (!tokenPayload) return res.status(401)'));
+ assert(account.includes(".ilike('email', normalizedEmail)"));
+ assert(!fs.existsSync('api/whoop/debug.ts'));assert(!fs.existsSync('api/whoop/test-pull.ts'));
+ console.log('Notification safety: coverage, timezone, consent, sync errors, pagination, provider errors, ownership and OAuth checks passed.');
+})().catch(e=>{console.error(e);process.exit(1)});

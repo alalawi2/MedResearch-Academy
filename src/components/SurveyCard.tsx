@@ -67,64 +67,10 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
 
   // Check if already logged in for this survey
   const sessionKey = `researcher_${survey.id}`;
-  const isLoggedIn = sessionStorage.getItem(sessionKey) === 'true';
+  const isLoggedIn = false; // Data access requires the verified /researcher session.
 
-  const handleLogin = async () => {
-    setError('');
-    setLoading(true);
-    const { data } = await supabase
-      .from('surveys')
-      .select('researcher_email,researcher_password')
-      .eq('id', survey.id)
-      .single();
-
-    if (!data || data.researcher_email !== email) {
-      setError('Email does not match the survey owner.');
-      setLoading(false);
-      return;
-    }
-    if (data.researcher_password !== password) {
-      setError('Incorrect password.');
-      setLoading(false);
-      return;
-    }
-
-    sessionStorage.setItem(sessionKey, 'true');
-    setStep('dashboard');
-    setLoading(false);
-    loadDashboard();
-  };
-
-  const handleResetPassword = async () => {
-    setError('');
-    setLoading(true);
-    const { data } = await supabase
-      .from('surveys')
-      .select('researcher_email')
-      .eq('id', survey.id)
-      .single();
-
-    if (!data || data.researcher_email !== resetEmail) {
-      setError('Email does not match the survey owner.');
-      setLoading(false);
-      return;
-    }
-
-    if (!newPassword || newPassword.length < 4) {
-      setError('Password must be at least 4 characters.');
-      setLoading(false);
-      return;
-    }
-
-    await supabase
-      .from('surveys')
-      .update({ researcher_password: newPassword })
-      .eq('id', survey.id);
-
-    setResetSuccess(true);
-    setLoading(false);
-    setTimeout(() => { setStep('login'); setResetSuccess(false); setResetEmail(''); setNewPassword(''); }, 2000);
-  };
+  const handleLogin = async () => { window.location.assign('/researcher'); };
+  const handleResetPassword = async () => { window.location.assign('/researcher'); };
 
   const loadDashboard = async () => {
     const [respResult, qResult] = await Promise.all([
@@ -259,15 +205,7 @@ export default function SurveyCard({ survey }: { survey: SurveyCardData }) {
             Take Survey →
           </Link>
           <button
-            onClick={() => {
-              if (isLoggedIn && !dashboardActive) {
-                setStep('dashboard');
-                setShowLogin(true);
-                loadDashboard();
-              } else {
-                setShowLogin(!showLogin);
-              }
-            }}
+            onClick={() => window.location.assign('/researcher')}
             className="btn btn-outline"
             style={{ flex: 1, justifyContent: 'center', minWidth: 140, cursor: 'pointer', background: dashboardActive ? 'rgba(26,58,92,0.06)' : undefined }}
           >

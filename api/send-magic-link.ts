@@ -10,7 +10,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, redirectTo } = req.body || {};
-  if (!email) return res.status(400).json({ error: 'Email is required' });
+  if (typeof email!=='string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ error: 'Valid email is required' });
+  let safeRedirect = `${SITE_URL}/resident/dashboard`;
+  if(typeof redirectTo==='string'){
+    try{const url=new URL(redirectTo,SITE_URL);if(url.origin===new URL(SITE_URL).origin)safeRedirect=url.href;}catch{}
+  }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -22,7 +26,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       type: 'magiclink',
       email: email.trim(),
       options: {
-        redirectTo: redirectTo || `${SITE_URL}/resident/dashboard`,
+        redirectTo: safeRedirect,
       },
     });
 
@@ -57,7 +61,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <div style="text-align: center; margin: 24px 0;">
 <a href="${magicLink}" style="display: inline-block; padding: 14px 32px; background: #0f766e; color: white; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px;">Sign In to Study Portal</a>
 </div>
-<p style="font-size: 13px; color: #666;">This link expires in 24 hours. If you didn't request this, you can safely ignore this email.</p>
+<p style="font-size: 13px; color: #666;">Use this one-time link promptly. If it has expired, request a new link from the login page. If you didn't request this, you can safely ignore this email.</p>
 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
 <p style="font-size: 12px; color: #999;">WHOOP Resident Study Team<br/>www.medresearch-academy.om</p>
 </div>

@@ -34,6 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const normalizedEmail = email.trim().toLowerCase();
   const tokenPayload = verifyEnrollmentToken(typeof enrollmentToken === 'string' ? enrollmentToken : null);
+  if (!tokenPayload) return res.status(401).json({ error: 'Reconnect WHOOP to verify account ownership, or use the login password-reset flow.' });
 
   let participant: { id: string; auth_user_id: string | null } | null = null;
 
@@ -42,12 +43,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .from('burnout_participants')
       .select('id, auth_user_id')
       .eq('study_participant_id', tokenPayload.participantId)
+      .ilike('email', normalizedEmail)
       .limit(1)
       .single();
     participant = byParticipantId;
   }
 
-  if (!participant) {
+  if (!participant && !tokenPayload) {
     const { data: byEmail } = await supabase
       .from('burnout_participants')
       .select('id, auth_user_id')

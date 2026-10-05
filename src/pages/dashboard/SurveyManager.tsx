@@ -54,7 +54,7 @@ export default function SurveyManager() {
     setLoading(true);
     const { data } = await supabase
       .from('surveys')
-      .select('*')
+      .select('id,title_en,title_ar,researcher_name,researcher_email,institution,status,language,estimated_minutes,response_count,ethics_approved,created_at')
       .eq('status', tab)
       .order('created_at', { ascending: false })
       .limit(50);

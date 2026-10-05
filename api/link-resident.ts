@@ -76,6 +76,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Try to link by email (exact match)
+  if(!user.email || !user.email_confirmed_at)return res.status(403).json({error:'Verified email required'});
   const { data: byEmail } = await supabase
     .from('burnout_participants')
     .select('id, study_participant_id')

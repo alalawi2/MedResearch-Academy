@@ -1,6 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 import {normalizeWhoop,studyWindow} from '../../shared/whoop-normalize.js';
+import {coverageWindow,assessCoverage} from '../../shared/whoop-coverage.js';
 const PATHS:Record<string,string>={cycle:'/cycle',sleep:'/activity/sleep',recovery:'/recovery',workout:'/activity/workout'};
 const DAY=86400000;
 export function syncClient(){return createClient(process.env.VITE_SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:(input,init)=>fetch(input,{...init,signal:AbortSignal.timeout(20000)})}})}
@@ -38,9 +39,12 @@ async function materialize(db:any,p:any,bounds:{start:Date,end:Date}){
  const rows=normalizeWhoop(records,bounds.start,bounds.end);
  for(let i=0;i<rows.length;i+=100)checked(await db.rpc('merge_whoop_days',{rid:p.id,rows_json:rows.slice(i,i+100)}));
  // Keep the existing summary dashboards working. Source events remain in the archive.
- const recent=rows.filter(r=>r.date>=new Date(bounds.end.getTime()-28*DAY).toISOString().slice(0,10));
+ const window=coverageWindow(p.enrollment_date);
+ const recent=rows.filter(r=>window.start&&r.date>=window.start&&r.date<window.end);
+ const {data:jobs}=checked(await db.from('whoop_sync_state').select('kind,error,completed_through,last_success').eq('resident_id',p.id)) as any;
+ const coverage=assessCoverage(p,rows,jobs);
  if(recent.length){
-  const summary:any={resident_id:p.id,study_id:p.study_id,period_start:new Date(Math.max(bounds.start.getTime(),bounds.end.getTime()-28*DAY)).toISOString().slice(0,10),period_end:bounds.end.toISOString().slice(0,10),days_with_data:recent.length,pulled_at:new Date().toISOString()};
+  const summary:any={resident_id:p.id,study_id:p.study_id,period_start:window.start,period_end:new Date(Date.parse(window.end)-DAY).toISOString().slice(0,10),days_with_data:coverage.recorded,pct_recorded:coverage.pct,pulled_at:new Date().toISOString()};
   for(const field of ['hrv_rmssd_ms','resting_hr_bpm','spo2_pct','skin_temp_c','recovery_score','total_sleep_min','light_sleep_min','deep_sleep_min','rem_sleep_min','sleep_efficiency_pct','sleep_consistency_pct','sleep_performance_pct','sleep_debt_min','daily_strain','hr_bpm','kilojoules']){
    const vals=recent.map(r=>r[field==='hr_bpm'?'avg_hr_bpm':field]).filter(v=>typeof v==='number');
    if(vals.length)summary['avg_'+field]=vals.reduce((a,b)=>a+b,0)/vals.length;

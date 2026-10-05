@@ -160,13 +160,13 @@ function InlineDashboard({ profile }: { profile: ResidentProfile }) {
             <M l="Naps" v={whoop.nap_count != null ? String(whoop.nap_count) : '--'} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'center', gap: 14, fontSize: 11, color: '#94a3b8' }}>
-            <span>{whoop.days_with_data ?? 0}/28 days</span><span>{whoop.pct_recorded ?? 0}% recorded</span>
+            <span>{whoop.days_with_data ?? '—'} days in latest summary</span><span>Not a wear-time measurement</span>
           </div>
         </>) : (
           <div style={{ textAlign: 'center', padding: '24px 16px' }}>
             <div style={{ fontSize: 28, marginBottom: 8, opacity: 0.3 }}>&#9201;</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#0f172a', marginBottom: 6 }}>Awaiting WHOOP Data</div>
-            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>Data pulls automatically at 3 AM. Wear your WHOOP and keep it charged.</div>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>WHOOP imports run hourly. Historical data may take longer to appear.</div>
           </div>
         )}
       </div>

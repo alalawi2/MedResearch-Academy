@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { randomBytes } from 'node:crypto';
 
 const WHOOP_AUTH_URL = 'https://api.prod.whoop.com/oauth/oauth2/auth';
 const CLIENT_ID = process.env.WHOOP_CLIENT_ID!;
@@ -15,7 +16,8 @@ const SCOPES = [
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   // WHOOP requires state to be at least 8 characters
-  const state = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+  const state = randomBytes(32).toString('hex');
+  res.setHeader('Set-Cookie', `whoop_oauth_state=${state}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=600`);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,

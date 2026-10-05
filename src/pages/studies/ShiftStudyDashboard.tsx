@@ -89,6 +89,7 @@ export default function ShiftStudyDashboard() {
 
   const handleLogout = () => {
     sessionStorage.removeItem('shift_study_participant');
+    void fetch('/api/shift-study-auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'logout'})});
     navigate('/active-research/cognitive-shifts/login');
   };
 
