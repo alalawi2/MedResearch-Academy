@@ -62,6 +62,17 @@ const STUDIES: StudyCardData[] = [
     targetPopulation: 'Adult TDT Patients at SQUH (Oman)',
     icon: '🫀',
   },
+  {
+    slug: 'rafiq-reading',
+    title: 'Rafiq: AI-Powered Arabic Reading Support for Children with Dyslexia',
+    shortDescription: 'A technology development study building an AI-driven Arabic reading error classification and intervention system for children with dyslexia. Features a 25-component AI engine including phonological/visual error classification, risk scoring, adaptive exercises, and cross-session trend analysis — submitted to the Kuwait Dyslexia Association AI Innovation Award 2026.',
+    status: 'data_analysis',
+    ethicsIds: ['KDA Innovation Award 2026'],
+    pi: 'Dr. Abdullah M. Al Alawi',
+    studyType: 'Technology Development & Innovation',
+    targetPopulation: 'Arabic-Speaking Children with Dyslexia',
+    icon: '📖',
+  },
 ];
 
 export default function ActiveResearch() {

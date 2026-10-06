@@ -18,6 +18,7 @@ import ShiftStudyAssessment from './pages/studies/ShiftStudyAssessment';
 import ShiftStudyInvestigator from './pages/studies/ShiftStudyInvestigator';
 import ShiftStudyEditor from './pages/studies/ShiftStudyEditor';
 import Thalassemia from './pages/studies/Thalassemia';
+import RafiqReading from './pages/studies/RafiqReading';
 import ThalassemiaOverview from './pages/dashboard/thalassemia/Overview';
 import ThalassemiaPatientList from './pages/dashboard/thalassemia/PatientList';
 import ThalassemiaPatientNew from './pages/dashboard/thalassemia/PatientNew';
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/active-research/cognitive-shifts/investigator" element={<ShiftStudyInvestigator />} />
           <Route path="/active-research/cognitive-shifts/settings" element={<ShiftStudyEditor />} />
           <Route path="/active-research/thalassemia-cardiac" element={<Thalassemia />} />
+          <Route path="/active-research/rafiq-reading" element={<RafiqReading />} />
           <Route path="/surveys" element={<Surveys />} />
           <Route path="/survey/:id" element={<SurveyTake />} />
           <Route path="/surveys/submit" element={<SurveySubmit />} />
