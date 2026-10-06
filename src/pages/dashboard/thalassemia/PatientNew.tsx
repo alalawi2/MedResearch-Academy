@@ -199,8 +199,8 @@ export default function ThalassemiaPatientNew() {
             <Field label="Enrollment Date" required>
               <input required type="date" value={form.enrollment_date} onChange={e => set('enrollment_date', e.target.value)} style={inputSt} />
             </Field>
-            <Field label="Age at Enrollment">
-              <input type="number" min={18} max={120} value={form.age_at_enrollment} onChange={e => set('age_at_enrollment', e.target.value)} style={inputSt} />
+            <Field label="Age at Enrollment (minimum 12 years)">
+              <input type="number" min={12} max={120} value={form.age_at_enrollment} onChange={e => set('age_at_enrollment', e.target.value)} style={inputSt} />
             </Field>
           </Row2>
           <Row2>

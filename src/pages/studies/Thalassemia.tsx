@@ -21,7 +21,7 @@ const TEAM = [
 
 const TIMELINE = [
   { date: 'May 2026',       title: 'Ethical Approval Secured',       status: 'done',    detail: 'MREC #3938 · SQU-EC/096/2026' },
-  { date: 'Jun 2026',       title: 'Enrollment Opens',                status: 'done',    detail: 'Adult TDT patients at UMC Hematology Center' },
+  { date: 'Jun 2026',       title: 'Enrollment Opens',                status: 'done',    detail: 'TDT patients aged 12 years and older at UMC Hematology Center' },
   { date: 'Jun–Dec 2026',   title: 'Baseline Data Collection',        status: 'active',  detail: 'Demographics, labs, ECG, Echo, T2* MRI, PSG, SCG' },
   { date: 'Dec 2026',       title: '6-Month Lab Follow-Up',           status: 'planned', detail: 'MMPs, ferritin, LPI, NT-proBNP' },
   { date: 'Jun 2027',       title: '12-Month Full Reassessment',      status: 'planned', detail: 'Labs + Echo + Cardiac T2* MRI + ECG' },
@@ -52,7 +52,7 @@ export default function Thalassemia() {
             🫀 A prospective cohort at <strong>Sultan Qaboos University Hospital</strong>
           </div>
           <p style={{color:'rgba(255,255,255,0.8)',maxWidth:740,fontSize:'1.05rem',lineHeight:1.75,marginBottom:28}}>
-            A prospective, open-label study of adult transfusion-dependent beta thalassemia (TDT) patients at the University Medical City Hematology Center. The study combines novel matrix metalloproteinase (MMP) biomarkers, home polysomnography for obstructive sleep apnea, AI-based ECG prediction, and AI-enabled seismocardiography with conventional imaging (echocardiography, cardiac T2* MRI) to detect early myocardial iron overload and subclinical cardiac dysfunction.
+            A prospective, open-label study of transfusion-dependent beta thalassemia (TDT) patients aged 12 years and older at the University Medical City Hematology Center. The study combines novel matrix metalloproteinase (MMP) biomarkers, home polysomnography for obstructive sleep apnea, AI-based ECG prediction, and AI-enabled seismocardiography with conventional imaging (echocardiography, cardiac T2* MRI) to detect early myocardial iron overload and subclinical cardiac dysfunction.
           </p>
           <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
             <a href="#overview" className="btn btn-accent">Learn More</a>
@@ -66,7 +66,7 @@ export default function Thalassemia() {
         <div className="container" style={{maxWidth:960}}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))',gap:20,textAlign:'center'}}>
             {[
-              { n: '~120', l: 'Adult TDT patients' },
+              { n: '~120', l: 'TDT patients aged 12+' },
               { n: '4',    l: 'Investigation arms' },
               { n: '12 mo', l: 'Follow-up per patient' },
               { n: '14',   l: 'Research team members' },
@@ -104,7 +104,7 @@ export default function Thalassemia() {
             <div style={{background:'white',padding:24,borderRadius:12,border:'1px solid var(--border)'}}>
               <div style={{fontSize:12,fontWeight:700,color:'var(--accent)',marginBottom:8}}>PRIMARY</div>
               <ul style={{margin:0,paddingLeft:20,lineHeight:1.8,color:'var(--text)'}}>
-                <li>Correlate circulating MMP-2 / MMP-9 with cardiac complications in adult TDT</li>
+                <li>Correlate circulating MMP-2 / MMP-9 with cardiac complications in TDT patients aged 12 years and older</li>
                 <li>Evaluate accuracy of in-house, offline AI-based ECG prediction for early cardiac involvement</li>
                 <li>Determine OSA prevalence by home overnight polysomnography</li>
                 <li>Compare SCG-derived parameters with Echo and Cardiac MRI</li>
@@ -130,7 +130,7 @@ export default function Thalassemia() {
           <h2 style={{color:'var(--primary)',fontFamily:'var(--font-serif)',marginBottom:24}}>Methodology</h2>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:18}}>
             {[
-              { icon: '🩸', title: 'Study Design',           body: 'Prospective, open-label cohort. All eligible adult TDT patients at UMC Hematology Center (~120).' },
+              { icon: '🩸', title: 'Study Design',           body: 'Prospective, open-label cohort. All eligible TDT patients aged 12 years and older at UMC Hematology Center (~120).' },
               { icon: '🧪', title: 'MMP Biomarkers',          body: 'Serum MMP-2, MMP-9, TIMP-1, Galectin-3 measured at baseline, 6, and 12 months.' },
               { icon: '⚕️', title: 'Iron Overload',           body: 'Serum ferritin, labile plasma iron (LPI), NT-proBNP + Cardiac T2* MRI at baseline and 12 months.' },
               { icon: '💤', title: 'OSA Screening',           body: 'Home overnight polysomnography (one-time). Correlation with cardiac iron overload severity.' },
