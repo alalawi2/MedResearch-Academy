@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 
 const newsItems = [
-  {id:17,cat:'launch',title:'Introducing Bayan — Free Medical Board Exam Prep for Residents',date:'March 2026',dateSort:'2026-03',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform built specifically for residents in Oman and the region. Bayan features thousands of physician-reviewed clinical vignettes mapped to OMSB, Arab Board, MRCP, ABIM, USMLE, and 10+ other board exams.',link:'https://www.bayan.edu.om',isBayan:true,youtubeId:'',image:''},
+  {id:17,cat:'launch',title:'Introducing Bayan — Medical Education & Exam Preparation',date:'March 2026',dateSort:'2026-03',summary:'Bayan launched as a medical education initiative. It now offers medical and nursing learning tracks, board-exam practice and web/mobile access. See the product site for current features, plans and access terms.',link:'https://www.bayan.edu.om',isBayan:true,youtubeId:'',image:''},
   {id:15,cat:'media',title:'Dr. Abdullah Al Alawi Featured on Oman TV — Nabt Jinan Program',date:'March 2026',dateSort:'2026-03',summary:'Dr. Abdullah M. Al Alawi was featured as a guest on the Oman TV program Nabt Jinan during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4',youtubeId:'SnowxT9f9r4',isBayan:false,image:''},
   {id:16,cat:'media',title:'Dr. Abdullah Al Alawi on Oman TV — Taryaq: AI in Medicine',date:'March 2026',dateSort:'2026-03',summary:'Dr. Al Alawi was featured on the Oman TV health program Taryaq to discuss the role of Artificial Intelligence in modern medicine.',link:'https://www.youtube.com/watch?v=9NKD_sPF0x8',youtubeId:'9NKD_sPF0x8',isBayan:false,image:''},
   {id:14,cat:'achievement',title:'Dr. Omar Al Taie Wins First Place for Best Scientific Research',date:'December 2025',dateSort:'2025-12',summary:'Dr. Omar Al Taie was awarded First Place for the best scientific research at the 7th Annual Research Forum of the National Heart Center. His study: Ten-Year Trends in Cardiac Mortality and Sudden Death in Oman (2014-2023).',link:'https://x.com/OMSB_OM/status/2005151473563557933',youtubeId:'',isBayan:false,image:''},
@@ -85,54 +85,15 @@ export default function News() {
       {showBayan && (
         <section className="section" style={{paddingBottom:0,paddingTop:32}}>
           <div className="container">
-            <div className="bayan-card" style={{marginBottom:0}}>
-              <div className="bayan-glow-1"></div>
-              <div className="bayan-glow-2"></div>
-              <div style={{position:'relative',zIndex:1}}>
-                <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
-                  <span className="badge badge-accent">📌 Pinned</span>
-                  <span className="badge badge-green-live">
-                    <span style={{width:8,height:8,background:'white',borderRadius:'50%',display:'block'}} className="animate-pulse"></span>
-                    Live Now
-                  </span>
-                  <span className="badge badge-outline" style={{border:'1px solid rgba(255,255,255,0.2)',color:'rgba(255,255,255,0.7)'}}>Free for All Residents</span>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:40,alignItems:'start'}}>
-                  <div>
-                    <h2 style={{fontFamily:'var(--font-serif)',fontSize:'2rem',color:'white',marginBottom:12}}>
-                      Introducing <span style={{color:'var(--accent-light)'}}>Bayan</span>
-                    </h2>
-                    <p style={{color:'rgba(255,255,255,0.7)',marginBottom:16}}>
-                      A free AI-powered medical board exam preparation platform built by MedResearch Academy for residents in Oman and the region.
-                    </p>
-                    <div className="exam-tags" style={{marginBottom:20}}>
-                      {['🇴🇲 OMSB','🏥 Arab Board','🇬🇧 MRCP(UK)','🇺🇸 ABIM','🇺🇸 USMLE','🇦🇪 DHA/HAAD','🇶🇦 QCHP','🇸🇦 SMLE','+ more'].map(e => (
-                        <span key={e} className="exam-tag">{e}</span>
-                      ))}
-                    </div>
-                    <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">
-                      Try Bayan Free →
-                    </a>
-                  </div>
-                  <div className="bayan-features">
-                    {([
-                      ['🧠','Adaptive Learning','AI adjusts to your level'],
-                      ['📚','Knowledge Library','Clinical articles'],
-                      ['🃏','Flashcards','Spaced repetition'],
-                      ['📈','Analytics','Track your progress'],
-                      ['📅','Study Planner','Weekly goals'],
-                      ['🏆','Leaderboard','Compete with peers'],
-                    ] as [string,string,string][]).map(([icon,title,desc]) => (
-                      <div key={title} className="bayan-feature">
-                        <div className="icon">{icon}</div>
-                        <p>{title}</p>
-                        <small>{desc}</small>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <aside className="product-update">
+              <p className="product-update-label">Product update · Checked 9 October 2026</p>
+              <h2>Bayan: medical and nursing education</h2>
+              <p>Question practice, flashcards and structured learning for medical students, residents, clinicians and nurses. Available on the web and mobile, with free and paid access options.</p>
+              <div className="resource-links">
+                <a href="https://www.bayan.edu.om/" target="_blank" rel="noopener noreferrer" className="btn btn-primary">Explore Bayan ↗</a>
+                <a href="/resources" className="btn btn-outline">All products & resources →</a>
               </div>
-            </div>
+            </aside>
           </div>
         </section>
       )}

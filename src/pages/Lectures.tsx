@@ -45,14 +45,6 @@ const videos = [
   },
 ];
 
-const tagColors: Record<string, { bg: string; color: string }> = {
-  'Research Foundations': { bg: 'rgba(26,58,92,0.12)', color: 'var(--primary)' },
-  'Medical Writing':      { bg: 'rgba(200,151,42,0.15)', color: '#9a6e10' },
-  'Research Design':      { bg: 'rgba(20,184,166,0.12)', color: '#0d9488' },
-  'AI in Research':       { bg: 'rgba(139,92,246,0.12)', color: '#7c3aed' },
-  'Research Tools':       { bg: 'rgba(236,72,153,0.12)', color: '#be185d' },
-};
-
 export default function Lectures() {
   return (
     <Layout>
@@ -132,7 +124,6 @@ export default function Lectures() {
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:28,marginBottom:56}}>
             {videos.map((v) => {
-              const tc = tagColors[v.tag] || { bg: 'rgba(26,58,92,0.1)', color: 'var(--primary)' };
               return (
                 <a
                   key={v.id}
@@ -184,10 +175,10 @@ export default function Lectures() {
                     {/* Tag badge */}
                     <span style={{
                       position:'absolute',top:12,left:12,
-                      background:tc.bg,backdropFilter:'blur(4px)',
-                      color:tc.color,fontWeight:600,
+                      background:'#ffffff',
+                      color:'#17394a',fontWeight:600,
                       fontSize:11,padding:'4px 10px',borderRadius:50,
-                      border:`1px solid ${tc.color}33`,
+                      border:'1px solid #cad2d4',
                     }}>
                       {v.tag}
                     </span>

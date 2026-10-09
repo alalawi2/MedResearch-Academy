@@ -1,4 +1,17 @@
 /* Public-site shell only: study dashboards retain their own design system. */
+.academy-site .page-hero-light p { color: #4d5d66; }
+.academy-site .btn-accent { color: #172c3b; }
+.academy-site .badge-green-live { background: #166534; color: #fff; }
+.academy-site .news-tab-count { background: #eee8d9; color: #674b13; }
+.academy-site .news-tab.active .news-tab-count { background: #fff; color: #17394a; }
+.academy-site .text-accent { color: #795718; }
+.academy-site .bayan-feature small, .academy-site .bayan-stat-label { color: #d9e2ed; }
+.academy-site input::placeholder, .academy-site textarea::placeholder { color: #657080; opacity: 1; }
+.academy-site a:focus-visible, .academy-site button:focus-visible, .academy-site input:focus-visible, .academy-site select:focus-visible { outline: 3px solid #907022; outline-offset: 4px; }
+.product-update { background: #fff; color: #243d4d; border: 1px solid #cad2d4; border-left: 4px solid #17394a; padding: clamp(24px,4vw,40px); }
+.product-update-label { color: #52645f; font-size: 12px; letter-spacing: .06em; margin-bottom: 14px; }
+.product-update h2 { color: #17394a; font-weight: 400; margin-bottom: 16px; }
+.product-update > p:not(.product-update-label) { color: #4d5d66; max-width: 760px; margin-bottom: 24px; }
 .academy-site { --font-serif: Georgia, 'Times New Roman', serif; background: #faf9f5; }
 .academy-site nav { background: #faf9f5; box-shadow: none; border-bottom: 1px solid #d8d9d4; }
 .academy-site .nav-cta { background: transparent !important; color: var(--primary) !important; border: 1px solid #b6bfca; border-radius: 2px; }

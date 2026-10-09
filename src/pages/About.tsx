@@ -3,7 +3,7 @@ import Layout from '../components/Layout';
 export default function About() {
   return (
     <Layout>
-      <section className="page-hero" style={{background:'var(--bg-muted)',color:'var(--text)',borderBottom:'1px solid var(--border)'}}>
+      <section className="page-hero page-hero-light" style={{background:'var(--bg-muted)',color:'var(--text)',borderBottom:'1px solid var(--border)'}}>
         <div className="container">
           <h1 style={{color:'var(--primary)'}}>About MedResearch Academy</h1>
           <p>Our mission is to serve the community by building a robust research ecosystem in Oman. As a non-profit initiative, we are dedicated to equipping healthcare professionals with the skills, mentorship, and open-access resources needed to conduct world-class research.</p>

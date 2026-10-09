@@ -38,4 +38,13 @@ const resources=read('src/pages/Resources.tsx');
 assert(resources.includes('controller.abort()'));
 assert(!resources.includes('testflight.apple.com/join/bayan'));
 assert(resources.includes('Clear filters'));
+assert(resources.includes('https://journalready.ai/'));
+assert(!resources.includes('journal-ready.vercel.app'));
+assert(!resources.includes("title:'Bayan Mobile'"));
+for (const title of ['Medad','SmartBlock','Death certification course','ABG & acid-base course']) {
+  assert(resources.includes("title:'"+title+"'"));
+}
+assert(!read('src/pages/News.tsx').includes('Free for All Residents'));
+assert(read('src/pages/About.tsx').includes('page-hero-light'));
+assert(read('src/pages/Lectures.tsx').includes("background:'#ffffff'"));
 console.log('Public website: event expiry/Oman boundaries, news freshness, research copy, portal routing, contact accessibility and resource fallbacks passed.');
