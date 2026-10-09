@@ -26,59 +26,126 @@
     }
   ],
   "functions": {
-    "api/export-study-data.ts": { "maxDuration": 120 },
-    "api/whoop/sync-engine.ts": { "maxDuration": 300 },
-    "api/whoop/pull.ts": { "maxDuration": 300 },
-    "api/whoop/callback.ts": { "maxDuration": 30 },
-    "api/whoop/cron-pull.ts": { "maxDuration": 300 },
-    "api/whoop/admin-pull.ts": { "maxDuration": 120 },
-    "api/adherence-check.ts": { "maxDuration": 120 },
-    "api/anomaly-detect.ts": { "maxDuration": 120 },
-    "api/questionnaire-reminder.ts": { "maxDuration": 300 },
-    "api/whoop/daily-pull.ts": { "maxDuration": 300 },
-    "api/weekly-shift-email.ts": { "maxDuration": 120 },
-    "api/shift-log.ts": { "maxDuration": 10 },
-    "api/coordinator-adherence-report.ts": { "maxDuration": 60 },
-    "api/resident-block-summary.ts": { "maxDuration": 300 }
+    "api/export-study-data.ts": {
+      "maxDuration": 120
+    },
+    "api/whoop/sync-engine.ts": {
+      "maxDuration": 300
+    },
+    "api/whoop/pull.ts": {
+      "maxDuration": 300
+    },
+    "api/whoop/callback.ts": {
+      "maxDuration": 30
+    },
+    "api/whoop/cron-pull.ts": {
+      "maxDuration": 300
+    },
+    "api/whoop/admin-pull.ts": {
+      "maxDuration": 120
+    },
+    "api/adherence-check.ts": {
+      "maxDuration": 120
+    },
+    "api/anomaly-detect.ts": {
+      "maxDuration": 120
+    },
+    "api/questionnaire-reminder.ts": {
+      "maxDuration": 300
+    },
+    "api/whoop/daily-pull.ts": {
+      "maxDuration": 300
+    },
+    "api/weekly-shift-email.ts": {
+      "maxDuration": 120
+    },
+    "api/shift-log.ts": {
+      "maxDuration": 10
+    },
+    "api/coordinator-adherence-report.ts": {
+      "maxDuration": 60
+    },
+    "api/resident-block-summary.ts": {
+      "maxDuration": 300
+    },
+    "api/rafiq/transcribe.mjs": {
+      "maxDuration": 60
+    }
   },
   "rewrites": [
-    { "source": "/whoop/callback", "destination": "/api/whoop/callback" },
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/whoop/callback",
+      "destination": "/api/whoop/callback"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ],
   "headers": [
     {
       "source": "/((?!api|assets|images|favicon|sitemap|robots).*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Pragma", "value": "no-cache" },
-        { "key": "Expires", "value": "0" }
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Pragma",
+          "value": "no-cache"
+        },
+        {
+          "key": "Expires",
+          "value": "0"
+        }
       ]
     },
     {
       "source": "/assets/(.*).js",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/assets/(.*).css",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
       "source": "/sitemap.xml",
       "headers": [
-        { "key": "Content-Type", "value": "application/xml" },
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
       ]
     },
     {
       "source": "/robots.txt",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
       ]
     }
-  ]
+  ],
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
