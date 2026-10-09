@@ -1,148 +1,40 @@
 import { Link } from 'react-router-dom';
-import { isRecent } from '../lib/public-content';
 import Layout from '../components/Layout';
 
 export default function Home() {
-  return (
-    <Layout>
-      <section className="hero">
-        <div className="container">
-          <div className="hero-inner">
-            <div className="animate-in">
-              <div className="hero-badge"><span></span>Research Training & Education</div>
-              <h1>Empowering the Next Generation of <em>Medical Researchers</em></h1>
-              <p>Practical research training, mentorship and collaborative studies for medical students, residents and healthcare professionals in Oman.</p>
-              <div className="hero-btns">
-                <Link to="/programs" className="btn btn-accent btn-lg">Explore Programs →</Link>
-                <Link to="/sign-in" className="btn btn-outline-white btn-lg">Participant & team sign in</Link>
-              </div>
-            </div>
-            <div className="hero-images">
-              <div className="hero-img-wrapper primary">
-                <img src="/images/dr-alawi.jpg" alt="Dr. Abdullah M. Al Alawi" />
-                <div className="hero-label">Dr. Abdullah Al Alawi</div>
-              </div>
-              <div className="hero-img-wrapper secondary">
-                <img src="/mohamed-alrawahi.png" alt="Dr. Mohamed Al Rawahi" />
-                <div className="hero-label">Dr. Mohamed Al Rawahi</div>
-              </div>
-            </div>
-          </div>
+  return <Layout>
+    <div className="editorial-home container">
+      <header className="editorial-intro">
+        <p className="editorial-kicker">Medical education & research · Oman</p>
+        <h1>Research belongs <br />in everyday medicine.</h1>
+        <div className="editorial-intro-bottom">
+          <p>We help medical students, residents and clinicians turn clinical questions into research—through teaching, mentorship and collaborative studies.</p>
+          <Link to="/programs" className="editorial-link">Find a learning opportunity ↗</Link>
         </div>
-      </section>
-
-      <section className="section" aria-label="Find your starting point"><div className="container public-grid">
-        {[
-          ['Learn', 'Build research skills through programs, lectures and practical resources.', '/programs', 'Explore learning opportunities'],
-          ['Participate', 'Find study information, eligibility and access for enrolled participants.', '/active-research', 'Explore research studies'],
-          ['Collaborate', 'Discuss mentorship, research partnerships or a project idea.', '/contact?subject=Collaboration%20inquiry', 'Contact the academy'],
-        ].map(([title, description, path, label]) => <article className="public-card" key={title}><h2>{title}</h2><p>{description}</p><Link className="btn btn-outline" to={path}>{label} →</Link></article>)}
-      </div></section>
-      <section className="stats">
-        <div className="container">
-          <div className="stats-grid">
-            {[['📚','50+','Students Mentored'],['👥','200+','Workshops'],['🔬','20+','Research Projects'],['🏆','20+','Research Grants']].map(([icon,num,label]) => (
-              <div className="stat-item" key={label}>
-                <div className="stat-icon">{icon}</div>
-                <div className="stat-number">{num}</div>
-                <div className="stat-label">{label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="container">
-          <div className="section-header">
-            <h2>Why Choose MedResearch Academy?</h2>
-            <p>We provide comprehensive training in research methodology, biostatistics, and scientific writing. Our programs are designed for medical students, residents, and healthcare professionals who want to excel in academic medicine.</p>
-          </div>
-          <div className="expertise-grid">
-            {[
-              ['Research Training','Structured programs covering the full research lifecycle from question formulation to publication.'],
-              ['Expert Mentorship','Direct guidance from experienced researchers with international fellowships and awards.'],
-              ['Open Access Resources','Free access to clinical calculators, guides, and educational materials for all healthcare professionals.'],
-            ].map(([title, desc]) => (
-              <div className="expertise-card" key={title as string}>
-                <h3 style={{marginBottom:8,fontSize:'1.1rem'}}>{title}</h3>
-                <p style={{fontSize:14,color:'var(--text-muted)'}}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── News Ticker Strip ── */}
-      <div className="news-ticker-wrap">
-        <div className="news-ticker-inner">
-          <span className="ticker-label">📰 NEWS</span>
-          <div className="ticker-track">
-            <div className="ticker-animate">
-              {[
-                {text:'🚀 Introducing Bayan — Free AI Medical Board Exam Prep for Residents', date:'Mar 2026', link:'https://www.bayan.edu.om'},
-                {text:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan Program', date:'Mar 2026', link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
-                {text:'📺 Dr. Al Alawi on Oman TV — Taryaq: AI in Medicine', date:'Mar 2026', link:'https://www.youtube.com/watch?v=9NKD_sPF0x8'},
-                {text:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center Research Forum', date:'Dec 2025', link:'https://x.com/OMSB_OM/status/2005151473563557933'},
-                {text:'🚀 Launch of Medad: AI Clinical Documentation for Omani Healthcare', date:'Dec 2025', link:'https://www.medad.om/'},
-                {text:'🏆 UMC Congratulates Dr. Aisha Al Huraizi Team on National Research Award', date:'Dec 2024', link:'https://x.com/UMC_OMAN/status/1866122329937350820'},
-              ].concat([
-                {text:'🚀 Introducing Bayan — Free AI Medical Board Exam Prep for Residents', date:'Mar 2026', link:'https://www.bayan.edu.om'},
-                {text:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan Program', date:'Mar 2026', link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
-                {text:'📺 Dr. Al Alawi on Oman TV — Taryaq: AI in Medicine', date:'Mar 2026', link:'https://www.youtube.com/watch?v=9NKD_sPF0x8'},
-                {text:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center Research Forum', date:'Dec 2025', link:'https://x.com/OMSB_OM/status/2005151473563557933'},
-                {text:'🚀 Launch of Medad: AI Clinical Documentation for Omani Healthcare', date:'Dec 2025', link:'https://www.medad.om/'},
-                {text:'🏆 UMC Congratulates Dr. Aisha Al Huraizi Team on National Research Award', date:'Dec 2024', link:'https://x.com/UMC_OMAN/status/1866122329937350820'},
-              ]).map((item, i) => (
-                <a key={i} aria-hidden={i >= 6 ? true : undefined} tabIndex={i >= 6 ? -1 : undefined} href={item.link} target="_blank" rel="noopener noreferrer" className="ticker-item">
-                  <span className="ticker-dot"></span>
-                  <span className="ticker-text">{item.text}</span>
-                  <span className="ticker-date">{item.date}</span>
-                </a>
-              ))}
-            </div>
-          </div>
-          <Link to="/news" className="ticker-all-link">All News →</Link>
-        </div>
+      </header>
+      <div className="editorial-lead">
+        <figure>
+          <img src="/images/dr_salim_presentation.jpg" width="1600" height="1066" alt="A speaker addressing an audience during a medical teaching session" fetchPriority="high" />
+          <figcaption>From the academy archive <span>Teaching & discussion</span></figcaption>
+        </figure>
+        <aside className="editorial-notices" aria-label="Learning and participant access">
+          <p className="editorial-kicker">At the academy</p>
+          <article><h2>Start with a question.</h2><p>Research methods, study design and scientific writing. Explore the teaching programme or work through recorded sessions at your own pace.</p><Link className="editorial-link" to="/programs">Programmes ↗</Link><Link className="editorial-link" to="/lectures">Lecture recordings ↗</Link></article>
+          <article><p className="editorial-kicker">Already participating?</p><h2>Your study, one place.</h2><p>Access assessments and study tools through your participant or research-team portal.</p><Link className="editorial-link" to="/sign-in">Participant & team sign in ↗</Link><Link className="editorial-small-link" to="/contact?subject=Study%20participation%20or%20technical%20support">Need help accessing a study?</Link></article>
+        </aside>
       </div>
-
-      {/* ── Featured News Cards ── */}
-      <section className="section section-muted">
-        <div className="container">
-          <div className="section-header">
-            <h2>Latest News</h2>
-            <p>Updates on our activities, achievements, and contributions to the medical research community.</p>
-          </div>
-          <div className="news-grid">
-            {[
-              {title:'🚀 Introducing Bayan — Free Medical Board Exam Prep',date:'March 2026',summary:'MedResearch Academy proudly launches Bayan, a free AI-powered medical board exam preparation platform for residents in Oman and the region.',link:'https://www.bayan.edu.om', highlight: true},
-              {title:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan',date:'March 2026',summary:'Dr. Al Alawi was featured as a guest on the Oman TV program "Nabt Jinan" during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
-              {title:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center',date:'December 2025',summary:'Dr. Omar Al Taie was awarded First Place for best scientific research at the 7th Annual Research Forum of the National Heart Center.',link:'https://x.com/OMSB_OM/status/2005151473563557933'},
-            ].map(item => (
-              <div className={`card news-home-card${item.highlight && isRecent('2026-03-01T00:00:00+04:00') ? ' news-home-card--highlight' : ''}`} key={item.title}>
-                <div className="card-body">
-                  <div className="news-date">📅 {item.date}</div>
-                  <div className="news-title">{item.title}</div>
-                  <div className="news-summary">{item.summary}</div>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{marginTop:16}}>Explore: {item.title.replace(/^[^A-Za-z]+/, '')} ↗</a>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="load-more-wrap">
-            <Link to="/news" className="btn btn-outline">View All News →</Link>
-          </div>
-        </div>
+      <section className="editorial-section" aria-labelledby="research-title">
+        <div className="editorial-section-heading"><div><p className="editorial-kicker">Our work</p><h2 id="research-title">Questions we are studying</h2></div><Link className="editorial-link" to="/active-research">All studies ↗</Link></div>
+        <Link className="editorial-study" to="/active-research/resident-burnout"><span className="editorial-kicker">Resident wellbeing</span><div><h3>Burnout during residency</h3><p>Following residents over time to understand wellbeing, sleep and the experience of training.</p></div><span aria-hidden="true">↗</span></Link>
+        <Link className="editorial-study" to="/active-research/thalassemia-cardiac"><span className="editorial-kicker">Clinical research</span><div><h3>Cardiac health in thalassemia</h3><p>Study information for participants and clinical teams working on thalassemia and cardiac complications.</p></div><span aria-hidden="true">↗</span></Link>
+        <p className="editorial-footnote">Eligibility and participation arrangements are specific to each study. Please consult the study team.</p>
       </section>
-
-      <section className="section" style={{background:'var(--primary)',color:'white',textAlign:'center'}}>
-        <div className="container" style={{maxWidth:700}}>
-          <p style={{fontSize:'1.4rem',fontStyle:'italic',fontFamily:'var(--font-serif)',color:'rgba(255,255,255,0.9)',marginBottom:32,lineHeight:1.6}}>
-            "Research is the engine of medical progress. We are here to help you start your engine."
-          </p>
-          <Link to="/contact" className="btn btn-accent btn-lg">Join Our Community →</Link>
-        </div>
-      </section>
-    </Layout>
-  );
+      <div className="editorial-desk editorial-section">
+        <section aria-labelledby="reading-title"><p className="editorial-kicker">From the research desk</p><h2 id="reading-title">A paper to read</h2><article className="editorial-citation"><p className="editorial-citation-meta">Medical education · 2026</p><h3><a href="https://pubmed.ncbi.nlm.nih.gov/41873391/" target="_blank" rel="noopener noreferrer">Mixed-Methods Evaluation of Programmatic Interventions on Academic Performance and Resident Perspectives in Internal Medicine Residency</a></h3><p>Al Alawi AM, Al Busaidi S, Kashoub M, et al.</p><p><cite>Advances in Medical Education and Practice.</cite> 2026;17:583981.</p><a className="editorial-link" href="https://pubmed.ncbi.nlm.nih.gov/41873391/" target="_blank" rel="noopener noreferrer">Read on PubMed ↗</a></article><Link className="editorial-small-link" to="/resources">Browse publications and research resources</Link></section>
+        <section className="editorial-updates" aria-labelledby="updates-title"><p className="editorial-kicker">Noticeboard</p><h2 id="updates-title">Around the academy</h2><article><time dateTime="2026-03">March 2026</time><h3><a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer">Bayan: medical board exam preparation</a></h3><p>A learning resource for residents preparing for their board examinations.</p></article><article><time dateTime="2026-03">March 2026</time><h3><a href="https://www.youtube.com/watch?v=SnowxT9f9r4" target="_blank" rel="noopener noreferrer">A conversation on Oman TV</a></h3><p>Dr. Abdullah Al Alawi on the Nabt Jinan programme.</p></article><Link className="editorial-link" to="/news">News archive ↗</Link></section>
+      </div>
+      <section className="editorial-people editorial-section" aria-labelledby="people-title"><div><p className="editorial-kicker">The people behind the work</p><h2 id="people-title">Teaching. Mentoring.<br />Working alongside you.</h2><Link className="editorial-link" to="/about">About the academy ↗</Link></div><div>{[['/images/dr-alawi.jpg','Dr. Abdullah Al Alawi','Founder & Lead Mentor'],['/mohamed-alrawahi.png','Dr. Mohamed Al Rawahi','Co-Founder & Senior Mentor']].map(([image,name,role]) => <div className="editorial-person" key={name}><img src={image} alt={name} width="76" height="88" loading="lazy" /><div><h3>{name}</h3><p>{role}</p></div></div>)}</div></section>
+      <section className="editorial-contact"><h2>Have a clinical question worth exploring?</h2><Link className="editorial-link" to="/contact?subject=Collaboration%20inquiry">Talk to us about it ↗</Link></section>
+    </div>
+  </Layout>;
 }
