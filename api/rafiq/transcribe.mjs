@@ -1,4 +1,17 @@
-import { timingSafeEqual } from 'node:crypto';
+// Best-effort per-instance throttling, not authentication or a global billing cap.
+const requests = new Map();
+const WINDOW_MS = 60000;
+function tooManyRequests(req) {
+  const now = Date.now();
+  for (const [key, value] of requests) if (value.until <= now) requests.delete(key);
+  const ip = req.headers['x-vercel-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+  const key = String(ip).slice(0, 128);
+  if (!requests.has(key)) {
+    if (requests.size >= 10000) return true;
+    requests.set(key, { count: 0, until: now + WINDOW_MS });
+  }
+  return ++requests.get(key).count > 10;
+}
 const MAX_AUDIO = 4 * 1024 * 1024;
 const audioTypes = new Map([['audio/webm','webm'],['audio/wav','wav'],['audio/x-wav','wav'],['audio/mpeg','mp3'],['audio/mp4','mp4'],['audio/x-m4a','m4a']]);
 
@@ -10,12 +23,6 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
-  const expected = process.env.RAFIQ_TEST_ACCESS_CODE;
-  if (!expected) return res.status(503).json({ error: 'AI testing is not configured.' });
-  const supplied = req.headers['x-rafiq-access-code'];
-  const a = Buffer.from(typeof supplied === 'string' ? supplied : '');
-  const b = Buffer.from(expected);
-  if (a.length !== b.length || !timingSafeEqual(a, b)) return res.status(401).json({ error: 'A valid tester access code is required.' });
   const apiKey = process.env.OPENAI_API_KEY;
   const model = process.env.TRANSCRIPTION_MODEL || 'gpt-4o-mini-transcribe';
 
@@ -24,6 +31,10 @@ export default async function handler(req, res) {
 
   const mime = (req.headers['content-type'] || '').split(';')[0];
   if (!audioTypes.has(mime)) return res.status(415).json({ error: 'استخدم ملف WAV أو MP3 أو MP4 أو M4A أو WebM.' });
+  if (tooManyRequests(req)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({ error: 'Too many requests. Please wait one minute.' });
+  }
 
   try {
     const chunks = [];
