@@ -45,6 +45,14 @@ for (const title of ['Medad','SmartBlock','Death certification course','ABG & ac
   assert(resources.includes("title:'"+title+"'"));
 }
 assert(!read('src/pages/News.tsx').includes('Free for All Residents'));
+const news=read('src/pages/News.tsx');
+for(const source of ['DeHmkOqDBDq','Daw3WxGDG7Y','Abdullah-Al-Alawi.aspx','1993221279902785756','DUWBgJQjAXI','DSetInHjBib','DSM_IRxDOqA']) assert(news.includes(source));
+assert(news.includes("dateSort:'2026-02-24'"));
+assert(!news.includes("link:'https://www.omandaily.om'"));
+const newsIds=[...news.matchAll(/\{id:(\d+),cat:/g)].map(match=>match[1]);
+assert.equal(new Set(newsIds).size,newsIds.length);
+assert.equal(newsIds.length,16);
+assert(read('src/pages/Home.tsx').includes('DeHmkOqDBDq'));
 assert(read('src/pages/About.tsx').includes('page-hero-light'));
 assert(read('src/pages/Lectures.tsx').includes("background:'#ffffff'"));
 console.log('Public website: event expiry/Oman boundaries, news freshness, research copy, portal routing, contact accessibility and resource fallbacks passed.');
