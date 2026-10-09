@@ -19,7 +19,7 @@ const STUDIES: StudyCardData[] = [
     slug: 'resident-burnout',
     title: "The Association Between Healthcare Workers' Burnout and Biophysical Parameters",
     shortDescription: 'A multi-center prospective cohort using the Copenhagen Burnout Inventory (CBI), PHQ-9, GAD-7, ISI, and WHOOP wearable biosensors to quantify the relationship between burnout severity and objective biophysical markers (HRV, sleep, autonomic tone). 70+ residents enrolled across three hospitals in Muscat.',
-    status: 'recruiting',
+    status: 'follow_up',
     ethicsIds: ['MREC #3190', 'Royal Hospital EC'],
     pi: 'Dr. Mohamed Al Rawahi',
     coPi: 'Dr. Abdullah M. Al Alawi',
@@ -54,12 +54,12 @@ const STUDIES: StudyCardData[] = [
   {
     slug: 'thalassemia-cardiac',
     title: 'Multi-Modal Cardiac Assessment in Transfusion-Dependent Beta Thalassemia',
-    shortDescription: 'A prospective study of ~120 adult transfusion-dependent beta thalassemia patients at Sultan Qaboos University Hospital. Combines novel MMP biomarkers (MMP-2, MMP-9, TIMP-1), home polysomnography for OSA prevalence, AI-based ECG prediction, and AI-enabled seismocardiography with conventional imaging (Echo, Cardiac T2* MRI) to detect early myocardial iron overload.',
+    shortDescription: 'A prospective study targeting approximately 120 transfusion-dependent beta thalassemia patients aged 12 years and older at Sultan Qaboos University Hospital. Combines MMP biomarkers, home polysomnography, ECG and seismocardiography with conventional cardiac imaging. Eligibility and consent requirements are confirmed by the study team.',
     status: 'recruiting',
     ethicsIds: ['MREC #3938', 'SQU-EC/096/2026'],
     pi: 'Dr. Mohammed Al Rawahi',
     studyType: 'Prospective Cohort Study',
-    targetPopulation: 'Adult TDT Patients at SQUH (Oman)',
+    targetPopulation: 'TDT patients aged 12+ at SQUH (Oman)',
     icon: '🫀',
   },
   {
@@ -67,7 +67,7 @@ const STUDIES: StudyCardData[] = [
     title: 'Rafiq: AI-Powered Arabic Reading Support for Children with Dyslexia',
     shortDescription: 'A technology development study building an AI-driven Arabic reading error classification and intervention system for children with dyslexia. Features a 25-component AI engine including phonological/visual error classification, risk scoring, adaptive exercises, and cross-session trend analysis — submitted to the Kuwait Dyslexia Association AI Innovation Award 2026.',
     status: 'data_analysis',
-    ethicsIds: ['KDA Innovation Award 2026'],
+    ethicsIds: [],
     pi: 'Dr. Abdullah M. Al Alawi',
     studyType: 'Technology Development & Innovation',
     targetPopulation: 'Arabic-Speaking Children with Dyslexia',
@@ -90,7 +90,7 @@ export default function ActiveResearch() {
           </div>
           <h1 style={{fontSize:'clamp(1.8rem,5vw,3rem)',marginBottom:16,fontFamily:'var(--font-serif)'}}>Active Research Studies</h1>
           <p style={{color:'rgba(255,255,255,0.75)',maxWidth:620,margin:'0 auto',fontSize:'1.05rem',lineHeight:1.7}}>
-            Participate in research that shapes medical education policy and clinician well-being in Oman and the region. All studies are ethically approved and follow rigorous research standards.
+            Explore research and development projects in Oman. See each study for its scope, ethics information and participation requirements; award submissions are not ethics approvals. Confirm current recruitment availability with the study team.
           </p>
         </div>
       </section>
@@ -98,7 +98,7 @@ export default function ActiveResearch() {
       {/* ── Study portfolio ───────────────────────────────────────────── */}
       <section className="section">
         <div className="container" style={{maxWidth:1200}}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(380px,1fr))',gap:28,marginBottom:56}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(min(100%,380px),1fr))',gap:28,marginBottom:56}}>
             {STUDIES.map(study => <StudyCard key={study.slug} study={study} />)}
           </div>
 

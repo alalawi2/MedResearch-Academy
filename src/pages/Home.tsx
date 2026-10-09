@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { isRecent } from '../lib/public-content';
 import Layout from '../components/Layout';
 
 export default function Home() {
@@ -10,10 +11,10 @@ export default function Home() {
             <div className="animate-in">
               <div className="hero-badge"><span></span>Research Training & Education</div>
               <h1>Empowering the Next Generation of <em>Medical Researchers</em></h1>
-              <p>MedResearch Academy is a premier platform dedicated to spreading research knowledge, fostering innovation, and building research capacity in Oman and beyond. Led by Dr. Abdullah M. Al Alawi and Dr. Mohamed Al Rawahi.</p>
+              <p>Practical research training, mentorship and collaborative studies for medical students, residents and healthcare professionals in Oman.</p>
               <div className="hero-btns">
                 <Link to="/programs" className="btn btn-accent btn-lg">Explore Programs →</Link>
-                <Link to="/about" className="btn btn-outline-white btn-lg">Our Mission</Link>
+                <Link to="/sign-in" className="btn btn-outline-white btn-lg">Participant & team sign in</Link>
               </div>
             </div>
             <div className="hero-images">
@@ -30,6 +31,13 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="section" aria-label="Find your starting point"><div className="container public-grid">
+        {[
+          ['Learn', 'Build research skills through programs, lectures and practical resources.', '/programs', 'Explore learning opportunities'],
+          ['Participate', 'Find study information, eligibility and access for enrolled participants.', '/active-research', 'Explore research studies'],
+          ['Collaborate', 'Discuss mentorship, research partnerships or a project idea.', '/contact?subject=Collaboration%20inquiry', 'Contact the academy'],
+        ].map(([title, description, path, label]) => <article className="public-card" key={title}><h2>{title}</h2><p>{description}</p><Link className="btn btn-outline" to={path}>{label} →</Link></article>)}
+      </div></section>
       <section className="stats">
         <div className="container">
           <div className="stats-grid">
@@ -86,7 +94,7 @@ export default function Home() {
                 {text:'🚀 Launch of Medad: AI Clinical Documentation for Omani Healthcare', date:'Dec 2025', link:'https://www.medad.om/'},
                 {text:'🏆 UMC Congratulates Dr. Aisha Al Huraizi Team on National Research Award', date:'Dec 2024', link:'https://x.com/UMC_OMAN/status/1866122329937350820'},
               ]).map((item, i) => (
-                <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" className="ticker-item">
+                <a key={i} aria-hidden={i >= 6 ? true : undefined} tabIndex={i >= 6 ? -1 : undefined} href={item.link} target="_blank" rel="noopener noreferrer" className="ticker-item">
                   <span className="ticker-dot"></span>
                   <span className="ticker-text">{item.text}</span>
                   <span className="ticker-date">{item.date}</span>
@@ -111,12 +119,12 @@ export default function Home() {
               {title:'📺 Dr. Al Alawi Featured on Oman TV — Nabt Jinan',date:'March 2026',summary:'Dr. Al Alawi was featured as a guest on the Oman TV program "Nabt Jinan" during Ramadan 1447H, highlighting inspiring Omani personalities.',link:'https://www.youtube.com/watch?v=SnowxT9f9r4'},
               {title:'🏆 Dr. Omar Al Taie Wins First Place — National Heart Center',date:'December 2025',summary:'Dr. Omar Al Taie was awarded First Place for best scientific research at the 7th Annual Research Forum of the National Heart Center.',link:'https://x.com/OMSB_OM/status/2005151473563557933'},
             ].map(item => (
-              <div className={`card news-home-card${item.highlight ? ' news-home-card--highlight' : ''}`} key={item.title}>
+              <div className={`card news-home-card${item.highlight && isRecent('2026-03-01T00:00:00+04:00') ? ' news-home-card--highlight' : ''}`} key={item.title}>
                 <div className="card-body">
                   <div className="news-date">📅 {item.date}</div>
                   <div className="news-title">{item.title}</div>
                   <div className="news-summary">{item.summary}</div>
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{marginTop:16}}>Read More →</a>
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{marginTop:16}}>Explore: {item.title.replace(/^[^A-Za-z]+/, '')} ↗</a>
                 </div>
               </div>
             ))}

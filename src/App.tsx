@@ -1,73 +1,77 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
-import About from './pages/About';
-import News from './pages/News';
-import Programs from './pages/Programs';
-import Lectures from './pages/Lectures';
-import Resources from './pages/Resources';
-import WallOfImpact from './pages/WallOfImpact';
-import ActiveResearch from './pages/ActiveResearch';
-import ResidentBurnout from './pages/studies/ResidentBurnout';
-import ResidencyParenthood from './pages/studies/ResidencyParenthood';
-import SmartBlock from './pages/studies/SmartBlock';
-import CognitiveShifts from './pages/studies/CognitiveShifts';
-import ShiftStudyLogin from './pages/studies/ShiftStudyLogin';
-import ShiftStudyDashboard from './pages/studies/ShiftStudyDashboard';
-import ShiftStudyAssessment from './pages/studies/ShiftStudyAssessment';
-import ShiftStudyInvestigator from './pages/studies/ShiftStudyInvestigator';
-import ShiftStudyEditor from './pages/studies/ShiftStudyEditor';
-import Thalassemia from './pages/studies/Thalassemia';
-import RafiqReading from './pages/studies/RafiqReading';
-import ThalassemiaOverview from './pages/dashboard/thalassemia/Overview';
-import ThalassemiaPatientList from './pages/dashboard/thalassemia/PatientList';
-import ThalassemiaPatientNew from './pages/dashboard/thalassemia/PatientNew';
-import ThalassemiaPatientDetail from './pages/dashboard/thalassemia/PatientDetail';
-import ThalassemiaForm from './pages/dashboard/thalassemia/ThalassemiaForm';
-import ThalassemiaExport from './pages/dashboard/thalassemia/Export';
-import Contact from './pages/Contact';
-import Surveys from './pages/Surveys';
-import SurveyTake from './pages/SurveyTake';
-import SurveySubmit from './pages/SurveySubmit';
-import Events from './pages/Events';
-import Privacy from './pages/Privacy';
-import EnrollWhoop from './pages/EnrollWhoop';
-import Login from './pages/dashboard/Login';
+const SignIn = lazy(() => import('./pages/SignIn'));
+const About = lazy(() => import('./pages/About'));
+const News = lazy(() => import('./pages/News'));
+const Programs = lazy(() => import('./pages/Programs'));
+const Lectures = lazy(() => import('./pages/Lectures'));
+const Resources = lazy(() => import('./pages/Resources'));
+const WallOfImpact = lazy(() => import('./pages/WallOfImpact'));
+const ActiveResearch = lazy(() => import('./pages/ActiveResearch'));
+const ResidentBurnout = lazy(() => import('./pages/studies/ResidentBurnout'));
+const ResidencyParenthood = lazy(() => import('./pages/studies/ResidencyParenthood'));
+const SmartBlock = lazy(() => import('./pages/studies/SmartBlock'));
+const CognitiveShifts = lazy(() => import('./pages/studies/CognitiveShifts'));
+const ShiftStudyLogin = lazy(() => import('./pages/studies/ShiftStudyLogin'));
+const ShiftStudyDashboard = lazy(() => import('./pages/studies/ShiftStudyDashboard'));
+const ShiftStudyAssessment = lazy(() => import('./pages/studies/ShiftStudyAssessment'));
+const ShiftStudyInvestigator = lazy(() => import('./pages/studies/ShiftStudyInvestigator'));
+const ShiftStudyEditor = lazy(() => import('./pages/studies/ShiftStudyEditor'));
+const Thalassemia = lazy(() => import('./pages/studies/Thalassemia'));
+const RafiqReading = lazy(() => import('./pages/studies/RafiqReading'));
+const ThalassemiaOverview = lazy(() => import('./pages/dashboard/thalassemia/Overview'));
+const ThalassemiaPatientList = lazy(() => import('./pages/dashboard/thalassemia/PatientList'));
+const ThalassemiaPatientNew = lazy(() => import('./pages/dashboard/thalassemia/PatientNew'));
+const ThalassemiaPatientDetail = lazy(() => import('./pages/dashboard/thalassemia/PatientDetail'));
+const ThalassemiaForm = lazy(() => import('./pages/dashboard/thalassemia/ThalassemiaForm'));
+const ThalassemiaExport = lazy(() => import('./pages/dashboard/thalassemia/Export'));
+const Contact = lazy(() => import('./pages/Contact'));
+const Surveys = lazy(() => import('./pages/Surveys'));
+const SurveyTake = lazy(() => import('./pages/SurveyTake'));
+const SurveySubmit = lazy(() => import('./pages/SurveySubmit'));
+const Events = lazy(() => import('./pages/Events'));
+const Privacy = lazy(() => import('./pages/Privacy'));
+const EnrollWhoop = lazy(() => import('./pages/EnrollWhoop'));
+const Login = lazy(() => import('./pages/dashboard/Login'));
 import DashboardLayout from './components/DashboardLayout';
-import Overview from './pages/dashboard/Overview';
-import WhoopCoverage from './pages/dashboard/WhoopCoverage';
-import Residents from './pages/dashboard/Residents';
-import ResidentDetail from './pages/dashboard/ResidentDetail';
-import DataEntry from './pages/dashboard/DataEntry';
-import Enrollment from './pages/dashboard/Enrollment';
-import Exports from './pages/dashboard/Exports';
-import BulkImport from './pages/dashboard/BulkImport';
-import SendLinks from './pages/dashboard/SendLinks';
-import ReviewQueue from './pages/dashboard/ReviewQueue';
-import ReviewDetail from './pages/dashboard/ReviewDetail';
-import SurveyManager from './pages/dashboard/SurveyManager';
-import SetPassword from './pages/dashboard/SetPassword';
-import NotFound from './pages/NotFound';
+const Overview = lazy(() => import('./pages/dashboard/Overview'));
+const WhoopCoverage = lazy(() => import('./pages/dashboard/WhoopCoverage'));
+const Residents = lazy(() => import('./pages/dashboard/Residents'));
+const ResidentDetail = lazy(() => import('./pages/dashboard/ResidentDetail'));
+const DataEntry = lazy(() => import('./pages/dashboard/DataEntry'));
+const Enrollment = lazy(() => import('./pages/dashboard/Enrollment'));
+const Exports = lazy(() => import('./pages/dashboard/Exports'));
+const BulkImport = lazy(() => import('./pages/dashboard/BulkImport'));
+const SendLinks = lazy(() => import('./pages/dashboard/SendLinks'));
+const ReviewQueue = lazy(() => import('./pages/dashboard/ReviewQueue'));
+const ReviewDetail = lazy(() => import('./pages/dashboard/ReviewDetail'));
+const SurveyManager = lazy(() => import('./pages/dashboard/SurveyManager'));
+const SetPassword = lazy(() => import('./pages/dashboard/SetPassword'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 import ResidentLayout from './components/ResidentLayout';
 import HelpChatbot from './components/HelpChatbot';
-import ResidentLogin from './pages/resident/ResidentLogin';
-import ResidentDashboard from './pages/resident/ResidentDashboard';
-import QuestionnaireForm from './pages/resident/QuestionnaireForm';
-import WeeklyCheckin from './pages/resident/WeeklyCheckin';
-import EventLog from './pages/resident/EventLog';
-import DemographicsForm from './pages/resident/DemographicsForm';
-import BaselineAssessment from './pages/resident/BaselineAssessment';
-import ResearcherPortal from './pages/ResearcherPortal';
-import ResidentSetPassword from './pages/resident/SetPassword';
+const ResidentLogin = lazy(() => import('./pages/resident/ResidentLogin'));
+const ResidentDashboard = lazy(() => import('./pages/resident/ResidentDashboard'));
+const QuestionnaireForm = lazy(() => import('./pages/resident/QuestionnaireForm'));
+const WeeklyCheckin = lazy(() => import('./pages/resident/WeeklyCheckin'));
+const EventLog = lazy(() => import('./pages/resident/EventLog'));
+const DemographicsForm = lazy(() => import('./pages/resident/DemographicsForm'));
+const BaselineAssessment = lazy(() => import('./pages/resident/BaselineAssessment'));
+const ResearcherPortal = lazy(() => import('./pages/ResearcherPortal'));
+const ResidentSetPassword = lazy(() => import('./pages/resident/SetPassword'));
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <HelpChatbot />
+        <Suspense fallback={<main className="container section" role="status">Loading page…</main>}>
         <Routes>
           {/* ── Public pages ── */}
           <Route path="/" element={<Home />} />
+          <Route path="/sign-in" element={<SignIn />} />
           <Route path="/about" element={<About />} />
           <Route path="/news" element={<News />} />
           <Route path="/programs" element={<Programs />} />
@@ -138,6 +142,7 @@ export default function App() {
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

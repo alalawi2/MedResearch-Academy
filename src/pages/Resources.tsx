@@ -2,362 +2,74 @@ import Layout from '../components/Layout';
 import { useState, useEffect } from 'react';
 
 interface Article { title: string; authors: string; journal: string; year: string; link: string; }
+const resources = [
+  {title:'JournalReady', category:'Research & writing', status:'Beta', description:'Tools for research questions, sample-size planning, statistics and analysis, references and manuscript preparation. Review generated outputs with a qualified researcher.', links:[['Open JournalReady','https://journal-ready.vercel.app/'],['Start a project','https://journal-ready.vercel.app/author/projects']]},
+  {title:'Research lectures', category:'Research & writing', status:'Library', description:'Recorded teaching on research methods, analysis and scientific writing.', links:[['Browse lectures','/lectures']]},
+  {title:'Virtual Research Series', category:'Research & writing', status:'Program information', description:'A structured 16-week research curriculum. Contact the academy for the next cohort details.', links:[['View curriculum','/programs']]},
+  {title:'Bayan', category:'Exam preparation', status:'Web platform', description:'Medical board exam preparation, question practice and learning resources for residents.', links:[['Open Bayan','https://www.bayan.edu.om/']]},
+  {title:'Bayan Mobile', category:'Exam preparation', status:'Beta', description:'Mobile question practice and review. Use the web version while checking mobile availability with the team.', links:[['Use web version','https://www.bayan.edu.om/'],['Ask about mobile access','/contact?subject=Bayan%20platform']]},
+  {title:'Pre-operative preparation guide', category:'Clinical tools', status:'Web resource', description:'A perioperative reference with preparation checklists. Check the source guidance and local protocols before clinical use.', links:[['Open interactive guide','https://www.bayan.edu.om/periop-consult']]},
+  {title:'PreOp mobile app', category:'Clinical tools', status:'App store links', description:'Perioperative reference tools covering risk assessment, medication planning and handoffs. Store availability may vary.', links:[['iPhone listing','https://apps.apple.com/app/id6789968249'],['Android listing','https://play.google.com/store/apps/details?id=com.bayanai.preop'],['Product information','https://www.bayan.edu.om/preop']]},
+  {title:'OHealth', category:'Open data', status:'Web platform', description:'Oman health-data visualizations, regional comparisons and planning tools. Refer to dataset dates and methodology when interpreting outputs.', links:[['Open OHealth','https://ohealth.medresearch-academy.om/']]},
+  {title:'OLearn', category:'Open data', status:'Web platform', description:'Oman education-data exploration covering enrollment, schools and workforce statistics.', links:[['Open OLearn','https://olearn-sandy.vercel.app/']]},
+];
+const categories = ['All','Research & writing','Clinical tools','Exam preparation','Open data'];
 
 export default function Resources() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const [query,setQuery] = useState('');
+  const [category,setCategory] = useState('All');
+  const [articles,setArticles] = useState<Article[]>([]);
+  const [loading,setLoading] = useState(true);
   useEffect(() => {
-    fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=Al+Alawi+AM[Author]&retmax=6&sort=date&retmode=json')
-      .then(r => r.json())
-      .then(async data => {
-        const ids = data.esearchresult?.idlist || [];
-        if (!ids.length) { setLoading(false); return; }
-        const summary = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids.join(',')}&retmode=json`);
-        const sData = await summary.json();
-        const result = ids.map((id: string) => {
-          const item = sData.result[id];
-          return {
-            title: item.title,
-            authors: item.authors?.slice(0,3).map((a: any) => a.name).join(', ') + (item.authors?.length > 3 ? ' et al.' : ''),
-            journal: item.source,
-            year: item.pubdate?.split(' ')[0] || '',
-            link: `https://pubmed.ncbi.nlm.nih.gov/${id}/`
-          };
-        });
-        setArticles(result);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  return (
-    <Layout>
-      <section className="page-hero" style={{background:'var(--bg)',color:'var(--text)',borderBottom:'1px solid var(--border)'}}>
-        <div className="container">
-          <h1 style={{color:'var(--primary)'}}>Resources</h1>
-          <p style={{color:'var(--text-muted)'}}>Explore our clinical tools, latest research publications, and educational resources.</p>
-        </div>
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    let mounted = true;
+    async function load() {
+      try {
+        const response = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=Al+Alawi+AM[Author]&retmax=6&sort=date&retmode=json',{signal:controller.signal});
+        if(!response.ok) throw new Error('Publications unavailable');
+        const data = await response.json();
+        const ids: string[] = data.esearchresult?.idlist || [];
+        if(!ids.length) return;
+        const summary = await fetch('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='+ids.join(',')+'&retmode=json',{signal:controller.signal});
+        if(!summary.ok) throw new Error('Publications unavailable');
+        const values = await summary.json();
+        if(mounted) setArticles(ids.filter(id=>values.result?.[id]?.title).map(id=>{
+          const item=values.result[id];
+          return {title:item.title,authors:(item.authors||[]).slice(0,3).map((a:{name:string})=>a.name).join(', '),journal:item.source,year:item.pubdate?.split(' ')[0]||'',link:'https://pubmed.ncbi.nlm.nih.gov/'+id+'/'};
+        }));
+      } catch { /* Keep the direct PubMed link available when the service fails. */ }
+      finally { clearTimeout(timeout); if(mounted) setLoading(false); }
+    }
+    void load();
+    return ()=>{mounted=false;clearTimeout(timeout);controller.abort();};
+  },[]);
+  const filtered=resources.filter(r=>(category==='All'||r.category===category)&&(r.title+' '+r.description+' '+r.category).toLowerCase().includes(query.trim().toLowerCase()));
+  return <Layout>
+    <section className="page-hero centered"><div className="container"><h1>Resource library</h1><p>Find research, writing, clinical and learning tools in one place.</p></div></section>
+    <section className="section"><div className="container">
+      <div className="public-notice">External resources open in a new tab and have their own privacy terms. Do not upload identifiable patient or participant information without the required authorization. Educational tools do not replace clinical judgment.</div>
+      <div className="resource-filters">
+        <label>Search resources<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Try statistics, writing or exam…" /></label>
+        <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
+      </div>
+      <p role="status">{filtered.length} resource{filtered.length===1?'':'s'} found</p>
+      <div className="public-grid">
+        {filtered.map(r=><article className="public-card" key={r.title}>
+          <span className="badge badge-primary">{r.category}</span><h2>{r.title}</h2><p><small>{r.status}</small></p><p>{r.description}</p>
+          <div className="resource-links">{r.links.map(([label,url])=><a className="btn btn-outline" href={url} key={url} target={url.startsWith('https:')?'_blank':undefined} rel={url.startsWith('https:')?'noopener noreferrer':undefined}>{label}{url.startsWith('https:')?' ↗':' →'}</a>)}</div>
+        </article>)}
+      </div>
+      {!filtered.length&&<div className="public-notice">No matching resources. <button className="btn btn-outline" onClick={()=>{setQuery('');setCategory('All');}}>Clear filters</button></div>}
+      <p style={{marginTop:20,fontSize:14}}>Directory descriptions updated 9 October 2026. This is not a clinical-content validation date; check each resource for its own version and references.</p>
+      <section style={{marginTop:48}} aria-labelledby="publications-heading">
+        <h2 id="publications-heading">Publications on PubMed</h2>
+        <p>Latest matches for the author search “Al Alawi AM”. Check author affiliations to confirm attribution.</p>
+        {loading?<p role="status">Loading publications…</p>:articles.length?
+          <div className="public-grid">{articles.map(a=><article className="public-card" key={a.link}><p>{a.year} · {a.journal}</p><h3>{a.title}</h3><p>{a.authors}</p><a href={a.link} target="_blank" rel="noopener noreferrer">Read publication on PubMed ↗</a></article>)}</div>:
+          <p role="status">The publication feed is unavailable or returned no results. The direct PubMed search below remains available.</p>}
+        <a className="btn btn-outline" href="https://pubmed.ncbi.nlm.nih.gov/?term=Al+Alawi+AM" target="_blank" rel="noopener noreferrer" style={{marginTop:20}}>Search publications on PubMed ↗</a>
       </section>
-
-      <section className="section">
-        <div className="container" style={{maxWidth:960}}>
-
-          {/* Pre-op Guide — periop-consult */}
-          <div className="resource-card">
-            <img src="/images/preop-guide-banner.png" alt="Pre-Operative Guide" className="resource-img" onError={e => (e.currentTarget.style.display='none')} />
-            <div className="resource-body">
-              <span className="badge badge-accent" style={{marginBottom:16,display:'inline-block'}}>Featured Clinical Resource</span>
-              <h2 style={{fontSize:'1.8rem',marginBottom:12}}>Comprehensive Pre-Operative Patient Preparation Guide</h2>
-              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>Access the most recent and comprehensive evidence-based resource designed to guide medical professionals through optimal patient preparation for surgical procedures. This interactive tool provides step-by-step protocols, safety checklists, and best practices.</p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20,marginBottom:28,borderTop:'1px solid var(--border)',paddingTop:24}}>
-                {[['Evidence-Based','Latest clinical guidelines and research'],['Interactive Checklists','Step-by-step preparation protocols'],['Risk Mitigation','Minimize perioperative complications']].map(([t,d]) => (
-                  <div key={t}><div style={{fontWeight:600,marginBottom:4}}>{t}</div><div style={{fontSize:13,color:'var(--text-muted)'}}>{d}</div></div>
-                ))}
-              </div>
-              <a href="https://www.bayan.edu.om/periop-consult" target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg">Access Interactive Guide →</a>
-            </div>
-          </div>
-
-
-          {/* Bayan */}
-          <div className="bayan-card" style={{marginBottom:32}}>
-            <div className="bayan-glow-1"></div>
-            <div className="bayan-glow-2"></div>
-            <div style={{position:'absolute',top:20,right:20,zIndex:10}}>
-              <span className="badge badge-green-live" style={{fontSize:13,padding:'6px 14px'}}><span style={{width:8,height:8,background:'white',borderRadius:'50%',display:'block'}} className="animate-pulse"></span>Now Live</span>
-            </div>
-            <div className="bayan-content">
-              <div>
-                <div style={{marginBottom:20}}>
-                  <img src="/images/bayan_logo_final_v2.png" alt="Bayan" style={{height:72,objectFit:'contain',marginBottom:16}} onError={e => (e.currentTarget.style.display='none')} />
-                  <span className="badge" style={{background:'rgba(200,151,42,0.2)',color:'var(--accent-light)',display:'block',marginBottom:12,width:'fit-content'}}>AI-Powered Board Exam Preparation — Free</span>
-                  <h2 style={{fontFamily:'var(--font-serif)',fontSize:'1.8rem',color:'white',marginBottom:8}}>Bayan: Master Internal Medicine. <span style={{color:'var(--accent-light)'}}>Pass Your Board Exam.</span></h2>
-                </div>
-                <p style={{color:'rgba(255,255,255,0.7)',marginBottom:20,lineHeight:1.7}}>Free AI-powered medical board exam prep built by MedResearch Academy for residents in Oman. Thousands of physician-reviewed clinical vignettes based on the latest guidelines.</p>
-                <div className="exam-tags" style={{marginBottom:20}}>
-                  {['🇴🇲 OMSB','🏥 Arab Board','🇬🇧 MRCP(UK)','🇺🇸 ABIM','🇺🇸 USMLE','🇦🇪 DHA/HAAD','🇶🇦 QCHP','🇸🇦 SMLE','🇦🇺 RACP','+ more'].map(e => <span key={e} className="exam-tag">{e}</span>)}
-                </div>
-                <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-accent btn-lg">Launch Bayan Free →</a>
-              </div>
-              <div className="bayan-features">
-                {[['🧠','Adaptive Learning','AI adjusts difficulty in real time'],['📚','Knowledge Library','Clinical articles with key terms'],['🃏','Flashcards','Spaced repetition for retention'],['📈','Analytics','Detailed performance tracking'],['📅','Study Planner','Weekly schedule & goals'],['🏆','Leaderboard','Compete with fellow residents']].map(([icon,title,desc]) => (
-                  <div key={title as string} className="bayan-feature">
-                    <div className="icon">{icon}</div>
-                    <p>{title}</p>
-                    <small>{desc}</small>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bayan-stats">
-              <div><div className="bayan-stat-num">10+</div><div className="bayan-stat-label">Board Exams</div></div>
-              <div><div className="bayan-stat-num">3-Tier</div><div className="bayan-stat-label">Editorial Review</div></div>
-              <div><div className="bayan-stat-num">14</div><div className="bayan-stat-label">Specialties</div></div>
-              <div><div className="bayan-stat-num">Free</div><div className="bayan-stat-label">No subscription</div></div>
-            </div>
-          </div>
-
-          {/* PreOp App */}
-          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #0B1120 0%, #162350 50%, #1a4ff5 100%)',borderRadius:16,overflow:'hidden',color:'white'}}>
-            <div className="resource-body" style={{padding:32}}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-                <div style={{width:48,height:48,borderRadius:12,background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{fontSize:24,fontWeight:800}}>P</span>
-                </div>
-                <div>
-                  <span style={{fontSize:'1.5rem',fontWeight:800}}>PreOp</span>
-                  <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.6)',letterSpacing:1.5}}>PERIOPERATIVE MEDICINE</div>
-                </div>
-                <span className="badge" style={{background:'rgba(255,255,255,0.15)',color:'white',marginLeft:12}}>Free App</span>
-              </div>
-              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'white'}}>Perioperative Medicine — At Your Fingertips</h2>
-              <p style={{color:'rgba(255,255,255,0.7)',marginBottom:24,lineHeight:1.8}}>
-                Comprehensive perioperative medicine reference app for anesthesiologists, surgeons, and internists. 18 clinical tools built on ACC/AHA 2024, ESC 2022, ASRA 2025, and ADA 2026 guidelines. Works fully offline. No account required.
-              </p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
-                {[
-                  ['14 Calculators','RCRI, STOP-BANG, Caprini, CHA₂DS₂-VASc, MELD, SOFA, APACHE II'],
-                  ['39 Medications','Hold, resume, bridge timing for anticoagulants, diabetes, cardiac meds'],
-                  ['Neuraxial Timing','ASRA 2025 5th Edition anticoagulant intervals'],
-                  ['Airway Assessment','Composite difficult airway prediction scoring'],
-                  ['Consult Notes','One-tap structured perioperative consultation'],
-                  ['Post-Op & Handoff','VTE prophylaxis, monitoring, SBAR templates'],
-                ].map(([title, desc]) => (
-                  <div key={title} style={{background:'rgba(255,255,255,0.08)',borderRadius:10,padding:16,border:'1px solid rgba(255,255,255,0.1)'}}>
-                    <div style={{fontWeight:700,fontSize:13,color:'white',marginBottom:6}}>{title}</div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
-                <a href="https://apps.apple.com/app/id6789968249" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'white',color:'#0B1120',border:'none',fontWeight:700}}>Download for iPhone</a>
-                <a href="https://play.google.com/store/apps/details?id=com.bayanai.preop" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'white',color:'#0B1120',border:'none',fontWeight:700}}>Get it on Google Play</a>
-                <a href="https://www.bayan.edu.om/preop" target="_blank" rel="noopener noreferrer" style={{color:'rgba(255,255,255,0.7)',fontSize:13,marginLeft:8}}>Learn more →</a>
-              </div>
-            </div>
-          </div>
-
-          {/* Bayan Mobile App */}
-          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #060A14 0%, #0C1530 100%)',borderRadius:16,overflow:'hidden',color:'white',border:'2px solid #151F35'}}>
-            <div className="resource-body" style={{padding:32}}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-                <div style={{width:48,height:48,borderRadius:12,background:'#1a4ff5',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{fontSize:22,fontWeight:800,color:'white'}}>B</span>
-                </div>
-                <div>
-                  <span style={{fontSize:'1.5rem',fontWeight:800}}>Bayan Mobile</span>
-                  <div style={{fontSize:10,fontWeight:700,color:'rgba(255,255,255,0.5)',letterSpacing:1.5}}>MEDICAL QUESTION BANK</div>
-                </div>
-                <span className="badge" style={{background:'rgba(26,79,245,0.2)',color:'#6B8AFF',marginLeft:12}}>Beta</span>
-              </div>
-              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'white'}}>5,000+ Medical Questions — Practice Anywhere</h2>
-              <p style={{color:'rgba(255,255,255,0.6)',marginBottom:24,lineHeight:1.8}}>
-                The Bayan question bank on your phone. Practice for OMSB, Arab Board, MRCP, USMLE, SCFHS, OEN, and NCLEX with adaptive question selection, detailed explanations with PubMed references, clinical images, and offline mode.
-              </p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
-                {[
-                  ['Question Bank','5,000+ physician-reviewed clinical vignettes by specialty'],
-                  ['Smart Review','Review wrong answers with full explanations and references'],
-                  ['Flashcards','Quick concept recall with topic-based cards'],
-                ].map(([title, desc]) => (
-                  <div key={title} style={{background:'rgba(255,255,255,0.05)',borderRadius:10,padding:16,border:'1px solid rgba(255,255,255,0.08)'}}>
-                    <div style={{fontWeight:700,fontSize:13,color:'white',marginBottom:6}}>{title}</div>
-                    <div style={{fontSize:12,color:'rgba(255,255,255,0.4)',lineHeight:1.5}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid rgba(255,255,255,0.1)',paddingTop:20}}>
-                {[['5,000+','Questions'],['14','Specialties'],['3','Tracks'],['Free','For Oman']].map(([num, label]) => (
-                  <div key={label} style={{textAlign:'center'}}>
-                    <div style={{fontSize:'1.6rem',fontWeight:800,color:'#1a4ff5'}}>{num}</div>
-                    <div style={{fontSize:11,color:'rgba(255,255,255,0.4)',fontWeight:600,letterSpacing:0.5}}>{label}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
-                <a href="https://testflight.apple.com/join/bayan" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a4ff5',color:'white',border:'none',fontWeight:700}}>Join TestFlight (iOS)</a>
-                <a href="https://www.bayan.edu.om" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg" style={{color:'rgba(255,255,255,0.7)',borderColor:'rgba(255,255,255,0.2)'}}>Use Web Version →</a>
-              </div>
-            </div>
-          </div>
-
-          {/* JournalReady */}
-          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #f7f8fa 0%, #eef1f6 100%)',border:'2px solid #e2e5ea',borderRadius:16,overflow:'hidden'}}>
-            <div className="resource-body" style={{padding:32}}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #1a3a5c, #0d2540)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{color:'#c8972a',fontSize:24,fontWeight:700}}>J</span>
-                </div>
-                <div>
-                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>Journal<span style={{color:'#c8972a'}}>Ready</span></span>
-                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>BY MEDRESEARCH ACADEMY</div>
-                </div>
-                <span className="badge" style={{background:'rgba(200,151,42,0.15)',color:'#8a6515',marginLeft:12}}>Beta</span>
-              </div>
-              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>From Research Idea to Published Paper — One Platform</h2>
-              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
-                JournalReady is the AI-powered publishing assistant for academic medicine. 23 specialist tools guide you through every stage of the research lifecycle — from structuring your first PICO question to formatting the final manuscript for submission.
-              </p>
-
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
-                {[
-                  ['Research Question Builder','Structure ideas with PICO/FINER frameworks, AI-guided feasibility assessment'],
-                  ['Sample Size Calculator','Wizard mode for beginners — answers 4 plain-language questions, auto-selects the right test'],
-                  ['Manuscript Formatter','Format to any journal (800+ styles), citation-manager-aware, compliance checking'],
-                  ['Reference Linker','Paste plain-text refs → auto-link via CrossRef DOI → export to EndNote/Zotero/Mendeley'],
-                  ['Journal Finder','Realistic matching by study design, sample size, and quality tier — not just topic'],
-                  ['Stats Analysis','Full pipeline: t-test, ANOVA, regression, survival analysis, ML models via Railway backend'],
-                ].map(([title, desc]) => (
-                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #e2e5ea'}}>
-                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
-                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #e2e5ea',paddingTop:20}}>
-                {[['23','AI Tools'],['6','Workflow Stages'],['800+','Journal Styles'],['Free','For Oman']].map(([num, label]) => (
-                  <div key={label} style={{textAlign:'center'}}>
-                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#c8972a'}}>{num}</div>
-                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-                <a href="https://journal-ready.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a3a5c',color:'white',border:'none'}}>Open JournalReady →</a>
-                <a href="https://journal-ready.vercel.app/author/projects" target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-lg">Start a Research Project</a>
-              </div>
-
-              <div style={{marginTop:20,padding:16,background:'rgba(26,58,92,0.04)',borderRadius:10,border:'1px dashed #c8972a33'}}>
-                <div style={{fontSize:12,fontWeight:700,color:'#1a3a5c',marginBottom:8}}>Who is JournalReady for?</div>
-                <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.6}}>
-                  <strong>Residents writing their first paper</strong> — the wizard modes ask plain-language questions so you don&apos;t need to know which statistical test to use. <strong>Senior researchers</strong> — skip to any tool (manuscript formatter, reference auditor, journal finder) without creating a project. <strong>Supervisors</strong> — the Reference Linker converts residents&apos; plain-text citations into proper EndNote/Zotero libraries in one click.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* OHealth */}
-          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #f0f7f4 0%, #e8f4ec 100%)',border:'2px solid #c8e6d0',borderRadius:16,overflow:'hidden'}}>
-            <div className="resource-body" style={{padding:32}}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #1a5c3a, #0d4028)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{color:'#4ade80',fontSize:22,fontWeight:700}}>O</span>
-                </div>
-                <div>
-                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>O<span style={{color:'#16a34a'}}>Health</span></span>
-                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>OMAN HEALTH INTELLIGENCE</div>
-                </div>
-                <span className="badge" style={{background:'rgba(34,197,94,0.15)',color:'#16a34a',marginLeft:12}}>Live</span>
-              </div>
-              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>Oman's Open Health Data — Visualized & Analyzed</h2>
-              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
-                AI-powered health intelligence platform built on NCSI open government data. Interactive maps, capacity forecasting, equity analysis, and disease surveillance across all 11 governorates — empowering evidence-based health planning.
-              </p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
-                {[
-                  ['Interactive Health Map','Click any governorate for instant statistics'],
-                  ['Capacity Predictor','AI forecasts hospital occupancy trends'],
-                  ['Disease Surveillance','27 diseases with climate correlation'],
-                ].map(([title, desc]) => (
-                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #c8e6d0'}}>
-                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
-                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #c8e6d0',paddingTop:20}}>
-                {[['98','Hospitals'],['9,706','Beds'],['11','Governorates'],['5.36M','Population']].map(([num, label]) => (
-                  <div key={label} style={{textAlign:'center'}}>
-                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#16a34a'}}>{num}</div>
-                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-                <a href="https://ohealth.medresearch-academy.om" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#1a5c3a',color:'white',border:'none'}}>Launch OHealth →</a>
-                <a href="/active-research/ohealth" className="btn btn-outline btn-lg">Learn More</a>
-              </div>
-            </div>
-          </div>
-
-          {/* OLearn */}
-          <div className="resource-card" style={{marginBottom:32,background:'linear-gradient(135deg, #eef2ff 0%, #e8eaff 100%)',border:'2px solid #c7d2fe',borderRadius:16,overflow:'hidden'}}>
-            <div className="resource-body" style={{padding:32}}>
-              <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
-                <div style={{width:48,height:48,borderRadius:12,background:'linear-gradient(135deg, #4338ca, #3730a3)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <span style={{color:'#a5b4fc',fontSize:22,fontWeight:700}}>O</span>
-                </div>
-                <div>
-                  <span style={{fontFamily:'Georgia, serif',fontSize:'1.5rem',fontWeight:700,color:'#1a3a5c'}}>O<span style={{color:'#4f46e5'}}>Learn</span></span>
-                  <div style={{fontSize:10,fontWeight:700,color:'#8a9ab5',letterSpacing:1.5}}>OMAN EDUCATION INTELLIGENCE</div>
-                </div>
-                <span className="badge" style={{background:'rgba(79,70,229,0.15)',color:'#4f46e5',marginLeft:12}}>Live</span>
-              </div>
-              <h2 style={{fontSize:'1.6rem',marginBottom:12,color:'#1a3a5c'}}>Oman's Open Education Data — Visualized & Analyzed</h2>
-              <p style={{color:'var(--text-muted)',marginBottom:24,lineHeight:1.8}}>
-                Education intelligence platform built exclusively on datasets from the National Open Data Portal (opendata.gov.om). Enrollment trends, school mapping, workforce Omanization, and research output — empowering evidence-based education planning.
-              </p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:28}}>
-                {[
-                  ['Higher Education Dashboard','26-year enrollment trends with gender analysis'],
-                  ['Schools Explorer','1,270 government schools across 11 governorates'],
-                  ['Workforce & Omanization','Staff trends and Omanization rates by branch'],
-                ].map(([title, desc]) => (
-                  <div key={title} style={{background:'white',borderRadius:10,padding:16,border:'1px solid #c7d2fe'}}>
-                    <div style={{fontWeight:700,fontSize:13,color:'#1a3a5c',marginBottom:6}}>{title}</div>
-                    <div style={{fontSize:12,color:'var(--text-muted)',lineHeight:1.5}}>{desc}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:28,borderTop:'1px solid #c7d2fe',paddingTop:20}}>
-                {[['~17,000','SQU Students'],['6,500+','UTAS Graduates'],['1,270','Schools'],['4,510','UTAS Staff']].map(([num, label]) => (
-                  <div key={label} style={{textAlign:'center'}}>
-                    <div style={{fontFamily:'Georgia, serif',fontSize:'1.6rem',fontWeight:700,color:'#4f46e5'}}>{num}</div>
-                    <div style={{fontSize:11,color:'#8a9ab5',fontWeight:600,letterSpacing:0.5}}>{label}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
-                <a href="https://olearn-sandy.vercel.app" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{background:'#4f46e5',color:'white',border:'none'}}>Launch OLearn →</a>
-                <span style={{fontSize:11,color:'#8a9ab5',fontStyle:'italic'}}>Built exclusively on opendata.gov.om datasets — Open Data Lab 2026</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Publications */}
-          <div>
-            <h2 style={{fontSize:'1.8rem',marginBottom:8}}>Latest Publications</h2>
-            <p style={{color:'var(--text-muted)',marginBottom:28}}>Recent peer-reviewed publications from our team, fetched live from PubMed.</p>
-            {loading ? (
-              <div style={{textAlign:'center',padding:'40px 0',color:'var(--text-muted)'}}>Loading publications from PubMed...</div>
-            ) : articles.length > 0 ? (
-              <div style={{display:'flex',flexDirection:'column',gap:16}}>
-                {articles.map((a, i) => (
-                  <div key={i} className="card">
-                    <div className="card-body" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:20}}>
-                      <div>
-                        <div style={{fontSize:13,color:'var(--text-muted)',marginBottom:6}}>{a.year} · {a.journal}</div>
-                        <div style={{fontWeight:600,marginBottom:4,lineHeight:1.4}}>{a.title}</div>
-                        <div style={{fontSize:13,color:'var(--text-muted)'}}>{a.authors}</div>
-                      </div>
-                      <a href={a.link} target="_blank" rel="noopener noreferrer" className="btn btn-outline btn-sm" style={{flexShrink:0}}>PubMed →</a>
-                    </div>
-                  </div>
-                ))}
-                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al+Alawi+AM" target="_blank" rel="noopener noreferrer" className="btn btn-outline" style={{width:'fit-content'}}>View All Publications →</a>
-              </div>
-            ) : (
-              <div style={{textAlign:'center',padding:'32px',background:'var(--bg-muted)',borderRadius:12}}>
-                <p style={{color:'var(--text-muted)',marginBottom:16}}>Publications loading — view directly on PubMed</p>
-                <a href="https://pubmed.ncbi.nlm.nih.gov/?term=Al+Alawi+AM" target="_blank" rel="noopener noreferrer" className="btn btn-primary">View on PubMed →</a>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-    </Layout>
-  );
+    </div></section>
+  </Layout>;
 }

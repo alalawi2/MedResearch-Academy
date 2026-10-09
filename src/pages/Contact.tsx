@@ -1,16 +1,23 @@
 import Layout from '../components/Layout';
 import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export default function Contact() {
+  const [params] = useSearchParams();
+  const requested = params.get('subject') || '';
+  const subjects = ['Joining a program','Research mentorship','Collaboration inquiry','Bayan platform','Study participation or technical support','Privacy or withdrawal request','General inquiry'];
+  const selected = requested === 'Virtual Research Series Inquiry' ? 'Joining a program' : subjects.includes(requested) ? requested : '';
   const [status, setStatus] = useState<'idle'|'sending'|'sent'|'error'>('idle');
-  const [form, setForm] = useState({ name:'', email:'', subject:'', message:'' });
+  const [form, setForm] = useState({ name:'', email:'', subject:selected, message:requested === 'Virtual Research Series Inquiry' ? 'I would like information about the next Virtual Research Series cohort, including dates, fees and certificate requirements.' : '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === 'sending') return;
     setStatus('sending');
     try {
       const res = await fetch('https://formspree.io/f/mojavboe', {
         method:'POST',
+        signal: AbortSignal.timeout(15000),
         headers:{'Content-Type':'application/json','Accept':'application/json'},
         body: JSON.stringify(form),
       });
@@ -31,7 +38,7 @@ export default function Contact() {
 
       <section className="section">
         <div className="container" style={{maxWidth:960}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1.6fr',gap:40,alignItems:'start'}}>
+          <div className="contact-grid">
 
             {/* Contact info */}
             <div>
@@ -72,7 +79,7 @@ export default function Contact() {
               <p style={{color:'var(--text-muted)',fontSize:14,marginBottom:28}}>We typically respond within 24–48 hours.</p>
 
               {status === 'sent' ? (
-                <div style={{textAlign:'center',padding:'48px 24px'}}>
+                <div role="status" style={{textAlign:'center',padding:'48px 24px'}}>
                   <div style={{fontSize:56,marginBottom:16}}>✅</div>
                   <h3 style={{color:'var(--primary)',marginBottom:8}}>Message Sent!</h3>
                   <p style={{color:'var(--text-muted)',fontSize:14}}>Thank you for reaching out. We'll get back to you within 24–48 hours.</p>
@@ -80,11 +87,11 @@ export default function Contact() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:18}}>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                  <div className="contact-fields">
                     {['name','email'].map(field => (
                       <div key={field}>
-                        <label style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>{field === 'name' ? 'Full Name' : 'Email Address'}</label>
-                        <input
+                        <label htmlFor={field} style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>{field === 'name' ? 'Full Name' : 'Email Address'}</label>
+                        <input id={field} autoComplete={field === 'name' ? 'name' : 'email'} maxLength={200}
                           type={field === 'email' ? 'email' : 'text'}
                           required
                           value={(form as any)[field]}
@@ -97,8 +104,8 @@ export default function Contact() {
                   </div>
 
                   <div>
-                    <label style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Subject</label>
-                    <select
+                    <label htmlFor="subject" style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Subject</label>
+                    <select id="subject"
                       value={form.subject}
                       onChange={e => setForm(f => ({...f, subject: e.target.value}))}
                       required
@@ -109,13 +116,15 @@ export default function Contact() {
                       <option>Research mentorship</option>
                       <option>Collaboration inquiry</option>
                       <option>Bayan platform</option>
+                      <option>Study participation or technical support</option>
+                      <option>Privacy or withdrawal request</option>
                       <option>General inquiry</option>
                     </select>
                   </div>
 
                   <div>
-                    <label style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Message</label>
-                    <textarea
+                    <label htmlFor="message" style={{display:'block',fontSize:12,fontWeight:700,color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.05em',marginBottom:6}}>Message</label>
+                    <textarea id="message" maxLength={5000} aria-describedby="contact-privacy"
                       required
                       rows={5}
                       value={form.message}
@@ -126,11 +135,12 @@ export default function Contact() {
                   </div>
 
                   {status === 'error' && (
-                    <div style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'12px 16px',fontSize:13,color:'#b91c1c'}}>
+                    <div role="alert" style={{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'12px 16px',fontSize:13,color:'#b91c1c'}}>
                       Something went wrong. Please email us directly at <a href="mailto:info@medresearch-academy.om" style={{color:'#b91c1c',fontWeight:600}}>info@medresearch-academy.om</a>
                     </div>
                   )}
 
+                  <p id="contact-privacy" style={{fontSize:14}}>This form sends your name, email and message through Formspree to the academy. Do not include patient identifiers, passwords, assessment answers or medical documents. For access problems, name the study and describe the issue without sensitive details. <Link to="/privacy">Read the privacy notice</Link>. This is not an emergency or clinical advice service.</p>
                   <button type="submit" className="btn btn-primary btn-lg" disabled={status === 'sending'} style={{width:'100%'}}>
                     {status === 'sending' ? 'Sending…' : 'Send Message →'}
                   </button>

@@ -61,13 +61,13 @@ export default function ResidentBurnout() {
         <div className="container" style={{maxWidth:860}}>
           <h2 style={{fontSize:'1.8rem',color:'var(--primary)',marginBottom:20}}>Background & Rationale</h2>
           <p style={{color:'var(--text-muted)',marginBottom:16,lineHeight:1.8,fontSize:'1.02rem'}}>
-            Burnout among healthcare professionals has reached crisis proportions globally. In 2021, the prevalence among U.S. physicians was documented at <strong style={{color:'var(--text)'}}>62.8%</strong> — a sharp rise from 38.2% in 2020. In the Middle East, rates range from <strong style={{color:'var(--text)'}}>40% to 60%</strong>. Residents, with their long hours, intense patient care responsibilities, and steep learning curves, are disproportionately affected.
+            This study examines residents’ reported burnout alongside workload, sleep and recovery measurements. Its purpose is to investigate associations over time, not to diagnose burnout from wearable data.
           </p>
           <p style={{color:'var(--text-muted)',marginBottom:16,lineHeight:1.8,fontSize:'1.02rem'}}>
-            A 2020 study by Al Subhi et al. found that <strong style={{color:'var(--text)'}}>16.6% of OMSB residents experienced burnout</strong> — 13.9% in surgical, 19.0% in medical, and 12.8% in diagnostic specialties. Yet all existing assessments rely on self-report questionnaires, which are subjective and retrospective.
+            Questionnaires and wearable measurements provide different kinds of information. Responses reflect the participant’s experience, while wearable summaries describe recorded physiological patterns. Neither should be interpreted without context.
           </p>
           <p style={{color:'var(--text-muted)',lineHeight:1.8,fontSize:'1.02rem'}}>
-            Emerging evidence links burnout to measurable <strong style={{color:'var(--text)'}}>biophysical changes</strong> — reduced heart rate variability (HRV), altered respiratory patterns, and disturbed sleep architecture. This study is the <strong style={{color:'var(--text)'}}>first in the region</strong> to objectively quantify this link using continuous wearable monitoring.
+            The analysis will account for repeated observations, rotation schedules and missing data. Changes in heart rate variability or sleep are not specific to burnout, and the study does not establish causation from those changes alone.
           </p>
         </div>
       </section>
@@ -119,8 +119,8 @@ export default function ResidentBurnout() {
             {[
               {icon:'📝',title:'Study Design',desc:'Multi-center, prospective, pilot cohort study. 12-month data collection across SQUH, Royal Hospital, and Armed Forces Hospital.'},
               {icon:'👥',title:'Sample',desc:'Convenience sample of 70+ OMSB residents — internal medicine and general surgery, spanning PGY-1 to PGY-5.'},
-              {icon:'⌚',title:'WHOOP Wearable',desc:'Continuous 24/7 monitoring of HRV, RHR, SpO2, skin temperature, respiratory rate, sleep stages, and daily strain.'},
-              {icon:'📊',title:'Copenhagen Burnout Inventory',desc:'CBI — 22 items measuring personal burnout, work-related burnout, and patient-related burnout. Administered monthly at the end of each rotation block.'},
+              {icon:'⌚',title:'WHOOP Wearable',desc:'Available WHOOP measurements include HRV, resting heart rate, SpO2, skin temperature, respiratory rate, sleep and daily strain. Availability depends on recording and synchronization; these are not continuous clinical monitoring.'},
+              {icon:'📊',title:'Copenhagen Burnout Inventory',desc:'CBI — 19 items measuring personal, work-related and patient-related burnout. Questionnaires are linked to academic-year rotation blocks.'},
               {icon:'🧠',title:'PHQ-9 · GAD-7 · ISI',desc:'Depression screening (PHQ-9, 9 items), anxiety screening (GAD-7, 7 items), and insomnia severity assessment (ISI, 7 items). Administered monthly alongside the CBI.'},
               {icon:'📅',title:'Rotation Log',desc:'At end of each 4-week block: calls worked, call type (24h vs shift), weekly hours, sleep hours, rotation type and site.'},
             ].map(card => (
@@ -170,12 +170,11 @@ export default function ResidentBurnout() {
             <div style={{position:'absolute',left:8,top:0,bottom:0,width:2,background:'var(--border)'}}></div>
             {[
               {date:'July 2024',title:'Ethical Approvals Secured',desc:'MREC #3190 (SQU) and Royal Hospital Research Ethics Committee approvals obtained.',done:true},
-              {date:'January 2025',title:'Funding Confirmed',desc:'Grant awarded by the Ministry of Higher Education, Research, and Innovation (MoHERI).',done:true},
-              {date:'March 2025',title:'Recruitment & Device Distribution',desc:'70+ WHOOP devices distributed to consenting OMSB residents across three sites.',done:true},
-              {date:'March 2025 – March 2026',title:'Continuous Data Collection',desc:'Continuous biophysical monitoring with monthly CBI, PHQ-9, GAD-7, and ISI assessments tied to rotation blocks.',done:true,active:true},
-              {date:'April – June 2026',title:'Data Processing & Quality Control',desc:'WHOOP API extraction, pseudonymization, data validation, and linkage to rotation metadata.',done:false},
-              {date:'July – August 2026',title:'Analysis & Interpretation',desc:'Statistical modeling (SPSS + multivariate regression) to test primary hypothesis and secondary objectives.',done:false},
-              {date:'September 2026',title:'Dissemination',desc:'Manuscript submission, conference presentations, and policy briefing to OMSB leadership.',done:false},
+              {date:'Individual enrollment',title:'Baseline & WHOOP Connection',desc:'Participants begin on different dates and may join during different academic blocks. The recorded enrollment date anchors follow-up.',done:true},
+              {date:'12 months from enrollment',title:'Ongoing Data Collection',desc:'Each participant is followed for one year from enrollment, with wearable imports and block-linked assessments. Reconnecting WHOOP does not restart this period.',done:true,active:true},
+              {date:'Throughout follow-up',title:'Data Processing & Quality Control',desc:'Check synchronization, missing data, questionnaire completeness and links to the correct academic-year block.',done:true,active:true},
+              {date:'After sufficient follow-up and quality checks',title:'Analysis & Interpretation',desc:'Evaluate the study objectives using a reviewed statistical analysis plan.',done:false},
+              {date:'Dates to be confirmed',title:'Dissemination',desc:'Manuscript preparation and presentations follow analysis and study-team review. No submission date is announced here.',done:false},
             ].map((m,i) => (
               <div key={i} style={{position:'relative',marginBottom:24,paddingLeft:24}}>
                 <div style={{position:'absolute',left:-4,top:4,width:18,height:18,borderRadius:'50%',background:m.done ? (m.active ? 'var(--accent)' : 'var(--primary)') : 'white',border:`3px solid ${m.done ? (m.active ? 'var(--accent-light)' : 'var(--primary)') : 'var(--border)'}`}}></div>

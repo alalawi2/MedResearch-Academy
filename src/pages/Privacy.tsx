@@ -6,13 +6,20 @@ export default function Privacy() {
       <section className="page-hero" style={{background:'var(--bg-muted)',color:'var(--text)',borderBottom:'1px solid var(--border)'}}>
         <div className="container">
           <h1 style={{color:'var(--primary)'}}>Privacy Policy</h1>
-          <p style={{color:'var(--text-muted)'}}>Last updated: April 2026</p>
+          <p style={{color:'var(--text-muted)'}}>Website contact information updated: 9 October 2026</p>
         </div>
       </section>
 
       <section className="section">
         <div className="container" style={{maxWidth:800}}>
           <div style={{lineHeight:1.85,color:'var(--text-muted)',fontSize:'1.02rem'}}>
+            <div className="public-notice">
+              <h2>Website inquiries and study participation</h2>
+              <p>The general contact form sends your name, email, selected subject and message through Formspree to the academy to handle your inquiry. Do not include patient identifiers, passwords, medical records or questionnaire answers.</p>
+              <p>Research participation follows the information sheet and consent process for the specific study. Contact the study team for access, withdrawal or retention questions; a general website inquiry is not enrollment or consent to research.</p>
+              <p>External resources and WhatsApp links have their own privacy terms. The WHOOP “cycle” endpoint refers to physiological activity/recovery cycles, not a menstrual-cycle record.</p>
+              <p>Wearable summaries and research questionnaires are not an emergency monitoring or diagnostic service.</p>
+            </div>
 
             <h2 style={{color:'var(--primary)',fontSize:'1.4rem',marginBottom:12,marginTop:0}}>1. Who We Are</h2>
             <p style={{marginBottom:20}}>
@@ -75,7 +82,9 @@ export default function Privacy() {
             <ul style={{paddingLeft:24,marginBottom:20}}>
               <li><strong>WHOOP:</strong> We access data via the WHOOP Developer API under their terms of service. We do not share your data with WHOOP beyond the standard API authentication.</li>
               <li><strong>Supabase:</strong> Our database provider, hosted in the Mumbai region. Data is encrypted in transit and at rest.</li>
-              <li><strong>Vercel:</strong> Our web hosting provider. No participant data is stored on Vercel servers.</li>
+              <li><strong>Vercel:</strong> Hosts the website and server-side functions that process authorized requests. Avoid including sensitive information in URLs or general contact messages.</li>
+              <li><strong>Formspree:</strong> Processes messages submitted through the general contact form.</li>
+              <li><strong>Resend:</strong> Processes platform notification emails, including study reminders.</li>
             </ul>
 
             <h2 style={{color:'var(--primary)',fontSize:'1.4rem',marginBottom:12}}>9. Ethical Oversight</h2>
