@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import {
   fetchPatient, fetchIdentifiers, fetchVisitSchedule, fetchModalityRows,
-  buildChecklist, INVESTIGATION_LABEL,
+  buildChecklist, INVESTIGATION_LABEL, DIAGNOSIS_LABEL,
   ThalPatient, ThalIdentifiers, VisitScheduleRow,
   LabRow, EcgRow, EchoRow, T2mriRow, PolysomnographyRow, ScgRow, TransfusionRow, AdverseEventRow,
   ChecklistCell, Timepoint,
@@ -98,7 +98,7 @@ export default function ThalassemiaPatientDetail() {
               {ident && <span style={{fontSize:'0.8rem',color:'var(--text-muted)',marginLeft:12}}>&middot; {ident.full_name}</span>}
             </h1>
             <div style={{color:'var(--text-muted)',fontSize:13,marginTop:4}}>
-              {patient.diagnosis === 'major' ? 'Thalassemia Major' : patient.diagnosis === 'intermedia' ? 'Thalassemia Intermedia' : 'Diagnosis not set'}
+              {patient.diagnosis ? DIAGNOSIS_LABEL[patient.diagnosis] : 'Diagnosis not set'}
               {' \u00b7 '}Enrolled {patient.enrollment_date ?? '\u2014'}
               {patient.age_at_enrollment != null && ` \u00b7 Age ${patient.age_at_enrollment}`}
               {patient.sex != null && ` \u00b7 ${patient.sex === 1 ? 'M' : 'F'}`}
@@ -241,7 +241,7 @@ function DemographicsPanel({ patient, ident }: { patient: ThalPatient; ident: Th
       {ident && <InfoRow label="Full Name" value={ident.full_name} />}
       {ident && <InfoRow label="Date of birth" value={ident.date_of_birth} />}
       <InfoRow label="Enrollment date" value={patient.enrollment_date} />
-      <InfoRow label="Diagnosis" value={patient.diagnosis === 'major' ? 'Thalassemia Major' : patient.diagnosis === 'intermedia' ? 'Thalassemia Intermedia' : null} />
+      <InfoRow label="Diagnosis" value={patient.diagnosis ? DIAGNOSIS_LABEL[patient.diagnosis] : null} />
       <InfoRow label="Age at diagnosis" value={patient.age_at_diagnosis?.toString()} />
       <InfoRow label="Age at enrollment" value={patient.age_at_enrollment?.toString()} />
       <InfoRow label="Sex" value={patient.sex === 1 ? 'Male' : patient.sex === 0 ? 'Female' : null} />

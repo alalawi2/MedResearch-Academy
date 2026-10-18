@@ -6,7 +6,12 @@ export const THAL_STUDY_SLUG = 'thalassemia-cardiac';
 
 export type Timepoint = 'baseline' | '6mo' | '12mo' | 'unscheduled';
 export type VisitStatus = 'scheduled' | 'window_open' | 'overdue' | 'complete' | 'missed';
-export type Diagnosis = 'major' | 'intermedia';
+export type Diagnosis = 'major' | 'intermedia' | 'cda';
+export const DIAGNOSIS_LABEL: Record<Diagnosis, string> = {
+  major: 'Thalassemia Major',
+  intermedia: 'Thalassemia Intermedia',
+  cda: 'Congenital dyserythropoietic anemia (CDA)',
+};
 export type AeSeverity = 'mild' | 'moderate' | 'severe' | 'life_threatening' | 'fatal';
 
 export interface ThalPatient {

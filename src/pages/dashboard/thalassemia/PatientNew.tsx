@@ -114,7 +114,7 @@ export default function ThalassemiaPatientNew() {
         age_at_enrollment: form.age_at_enrollment ? Number(form.age_at_enrollment) : null,
         sex: form.sex === '' ? null : Number(form.sex) as 0 | 1 | null,
         bmi: form.bmi ? Number(form.bmi) : null,
-        diagnosis: (form.diagnosis || null) as 'major' | 'intermedia' | null,
+        diagnosis: (form.diagnosis || null) as 'major' | 'intermedia' | 'cda' | null,
         age_at_diagnosis: form.age_at_diagnosis ? Number(form.age_at_diagnosis) : null,
         transfusion_frequency: form.transfusion_frequency || null,
         chelation_therapy: serializeChelation(chelation) || null,
@@ -224,6 +224,7 @@ export default function ThalassemiaPatientNew() {
                 <option value="">—</option>
                 <option value="major">Thalassemia Major</option>
                 <option value="intermedia">Thalassemia Intermedia</option>
+                <option value="cda">Congenital dyserythropoietic anemia (CDA)</option>
               </select>
             </Field>
             <Field label="Age at Diagnosis">
