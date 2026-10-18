@@ -87,7 +87,7 @@ export default function ThalassemiaPatientList() {
                   <Td>{p.enrollment_date ?? '—'}</Td>
                   <Td>{p.age_at_enrollment ?? '—'}</Td>
                   <Td>{p.sex === 1 ? 'M' : p.sex === 0 ? 'F' : '—'}</Td>
-                  <Td>{p.diagnosis ? (p.diagnosis === 'major' ? 'TM' : 'TI') : '—'}</Td>
+                  <Td>{p.diagnosis ? ({ major: 'TM', intermedia: 'TI', cda: 'CDA' }[p.diagnosis]) : '—'}</Td>
                   <Td>{p.bmi ?? '—'}</Td>
                   <Td>
                     <span style={{
