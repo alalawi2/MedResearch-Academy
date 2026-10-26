@@ -528,6 +528,7 @@ export default function QuestionnaireForm() {
   // Missed blocks
   const [missedBlocks, setMissedBlocks] = useState<CurrentBlockInfo[]>([]);
   const [selectedMissedBlock, setSelectedMissedBlock] = useState<CurrentBlockInfo | null>(null);
+  const [statusCheckFailed, setStatusCheckFailed] = useState(false);
 
   // Scores after submission
   const [who5Result, setWho5Result] = useState<WHO5Result | null>(null);
@@ -550,29 +551,29 @@ export default function QuestionnaireForm() {
 
     async function checkBlocks() {
       // Get all submitted block numbers + academic years for this resident
-      const { data: submitted } = await supabase
+      const { data: submitted, error: statusError } = await supabase
         .from('block_assessments')
         .select('block_number, academic_year, assessment_date')
         .eq('resident_id', residentProfile!.id)
         .limit(100);
+
+      if (statusError) {
+        setStatusCheckFailed(true);
+        setError('Unable to verify your saved assessments. Please reload the page; do not repeat a completed questionnaire.');
+        setCheckingStatus(false);
+        return;
+      }
 
       // Track submitted as "block-year" keys for accurate dedup across academic years
       const submittedKeys = new Set(
         (submitted ?? []).map(a => `${a.block_number}-${a.academic_year || '2025-2026'}`).filter(Boolean)
       );
 
-      // Find missed blocks
-      // Use enrollment_date, but cap at the start of the CURRENT academic year
-      // so all blocks in the current AY are always visible (even if enrolled mid-year)
+      // Preserve all eligible blocks across academic years.
       const rawEnroll = residentProfile!.enrollment_date
         ? new Date(residentProfile!.enrollment_date)
         : new Date('2026-04-01');
-      // If enrolled before current AY started, use AY start (Sep 1) as effective enrollment
-      const nowForEnroll = new Date();
-      const currentAYStart = nowForEnroll.getMonth() >= 8
-        ? new Date(nowForEnroll.getFullYear(), 8, 1)
-        : new Date(nowForEnroll.getFullYear() - 1, 8, 1);
-      const enrollDate = rawEnroll < currentAYStart ? currentAYStart : rawEnroll;
+      const enrollDate = rawEnroll;
       const pastBlocks = getPastBlocksSinceEnrollment(enrollDate);
       const missed = pastBlocks.filter(b => !submittedKeys.has(`${b.block}-${b.academicYear}`));
       setMissedBlocks(missed);
@@ -900,6 +901,7 @@ export default function QuestionnaireForm() {
   }
 
   // Helper: missed blocks banner
+  if (statusCheckFailed) return <div role="alert">{error}<button onClick={() => window.location.reload()}>Retry</button></div>;
   function renderMissedBlocksBanner() {
     if (missedBlocks.length === 0) return null;
     return (

@@ -341,6 +341,8 @@ export default function ResidentLayout() {
     );
   }
 
+  if (!user) return <Navigate to="/resident/login" replace />;
+
   // Staff members who land on resident pages → redirect to admin dashboard
   if (!residentProfile && staff) {
     return <Navigate to="/dashboard" replace />;
@@ -351,10 +353,10 @@ export default function ResidentLayout() {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-muted)', padding: 24 }}>
         <div style={{ maxWidth: 500, background: 'white', borderRadius: 16, padding: 32, border: '1px solid #e2e8f0' }}>
           <div style={{ fontSize: 40, marginBottom: 12, textAlign: 'center' }}>&#9888;&#65039;</div>
-          <h2 style={{ color: '#0f766e', margin: '0 0 12px', textAlign: 'center' }}>WHOOP Not Connected</h2>
+          <h2 style={{ color: '#0f766e', margin: '0 0 12px', textAlign: 'center' }}>Participant profile unavailable</h2>
           <p style={{ fontSize: 14, color: '#334155', lineHeight: 1.7, marginBottom: 16 }}>
             Signed in as <strong>{user?.email}</strong>, but no participant record found.
-            You need to <strong>connect your WHOOP device first</strong> before you can access the dashboard.
+            Please sign out and sign in with your enrolled email. If this continues, contact the study coordinator. This message does not establish that your WHOOP connection is missing.
           </p>
           <a href="/enroll/whoop" style={{ display: 'block', textAlign: 'center', padding: '14px 24px', borderRadius: 10, background: '#0f766e', color: 'white', fontWeight: 700, fontSize: 15, textDecoration: 'none', marginBottom: 12 }}>
             Connect WHOOP & Enroll

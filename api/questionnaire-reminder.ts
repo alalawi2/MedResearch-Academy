@@ -422,6 +422,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     current_block_reminders: 0,
     missed_block_reminders: 0,
     coordinator_reports: 0,
+    failed_participants: [] as string[],
+    failed_reports: 0,
   };
 
   // Per-coordinator data for combined report
@@ -433,6 +435,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pastBlocks = allBlocks.filter(b => b.end < todayUTC);
 
   for (const p of participants as Participant[]) {
+    try {
     if (!/^RES-\d+$/.test(p.study_participant_id)) continue;
     if (!p.email) continue;
 
@@ -569,15 +572,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         coordNames.set(ce, p.coordinator_name || 'Coordinator');
         coordMissedBlocks.get(ce)!.push({
           name: p.full_name || 'Unknown', phone: p.phone,
-          missedBlocks: missedPast.map(b => `Block ${b.block}`),
+          missedBlocks: missedPast.map(b => `Block ${b.block} (${b.academicYear})`),
         });
       }
+    }
+    } catch {
+      summary.failed_participants.push(p.study_participant_id);
     }
   }
 
   // ── Send coordinator reports ──
   const allCoordEmails = new Set([...Array.from(coordCurrentOverdue.keys()), ...Array.from(coordMissedBlocks.keys())]);
   for (const ce of Array.from(allCoordEmails)) {
+    try {
     const currentOverdue = coordCurrentOverdue.get(ce) || [];
     const missed = coordMissedBlocks.get(ce) || [];
     const coordName = coordNames.get(ce) || 'Coordinator';
@@ -592,19 +599,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
     if(!dryRun&&coordinatorLogs.has(ce))checked(await supabase.from('questionnaire_reminders').insert(coordinatorLogs.get(ce)!));
     summary.coordinator_reports++;
+    } catch { summary.failed_reports++; }
   }
 
   // ── Send daily team report ──
-  await sendEmail(
+  try { await sendEmail(
     TEAM_EMAILS,
     `Burnout Study — Daily Report (${todayStr})`,
     dailyTeamReportHtml(todayStr, participants as Participant[], submittedByResident, allBlocks, currentBlock),
     undefined,
     `team-questionnaires-${todayStr}`,
-  );
+  ); } catch { summary.failed_reports++; }
 
-  return res.json({
-    success: true,
+  const success = !summary.failed_participants.length && !summary.failed_reports;
+  return res.status(success ? 200 : 503).json({
+    success,
     dry_run:dryRun,
     ...(dryRun?{sent:0,preview}:{}),
     ...summary,

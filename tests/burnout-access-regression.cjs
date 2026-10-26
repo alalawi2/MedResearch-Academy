@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const ctx={exports:{},Date};vm.runInNewContext(ts.transpileModule(fs.readFileSync('shared/burnout-calendar.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,ctx);
+const blocks=ctx.exports.getPastBlocksSinceEnrollment(new Date('2026-06-20T00:00:00Z'),new Date('2026-10-26T08:00:00Z'));
+assert(blocks.some(b=>b.block===11&&b.academicYear==='2025-2026'));
+assert(blocks.some(b=>b.block===2&&b.academicYear==='2026-2027'));
+assert(!blocks.some(b=>b.block===3&&b.academicYear==='2026-2027'));
+const form=fs.readFileSync('src/pages/resident/QuestionnaireForm.tsx','utf8');assert(!form.includes('currentAYStart'));assert(form.includes('if (statusCheckFailed)'));assert(form.includes('error: statusError'));
+assert(fs.readFileSync('src/components/ResidentLayout.tsx','utf8').includes('if (!user) return <Navigate to="/resident/login" replace />'));
+const api=fs.readFileSync('api/questionnaire-reminder.ts','utf8');const compiled=ts.transpileModule(api,{reportDiagnostics:true,compilerOptions:{module:ts.ModuleKind.CommonJS}});assert.equal(compiled.diagnostics.filter(d=>d.category===ts.DiagnosticCategory.Error).length,0);assert(api.includes('failed_participants.push'));assert(api.includes('res.status(success ? 200 : 503)'));
+console.log('Burnout cross-year access, logged-out routing, fail-closed status checks and notification failure reporting passed.');
