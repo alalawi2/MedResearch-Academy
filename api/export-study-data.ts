@@ -71,6 +71,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .order('id'));
 
   // 8. Weekly checkins
+  const summaries = await allRows(()=>supabase.from('whoop_daily_summaries').select('resident_id,date,version,metrics,quality,calculated_at').order('resident_id').order('date').order('version'));
+  const bodySnapshots = await allRows(()=>supabase.from('whoop_body_snapshots').select('resident_id,observed_at,height_meter,weight_kilogram,max_heart_rate').order('resident_id').order('observed_at'));
   const checkins = await allRows(()=>supabase
     .from('weekly_checkins')
     .select('resident_id, week_start, hours_worked, on_call_count, call_type, call_busyness, sleep_rating, stress_level')
@@ -109,6 +111,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     block_assessments: deId(assessments),
     whoop_aggregated: deId(whoop),
     whoop_daily: deId(daily),
+    whoop_daily_v2: deId(summaries).map(({metrics,...row}:any)=>({...row,metrics:Object.fromEntries(Object.entries(metrics).filter(([key])=>!['cycle_id','sleep_id'].includes(key)))})),
+    whoop_body_snapshots: deId(bodySnapshots),
     weekly_checkins: deId(checkins),
     counts: {
       participants: parts.filter((p:any)=>/^RES-\d+$/.test(p.study_participant_id)).length,
@@ -119,6 +123,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       block_assessments: deId(assessments).length,
       whoop_aggregated: deId(whoop).length,
       whoop_daily: deId(daily).length,
+      whoop_daily_v2: deId(summaries).length,
+      whoop_body_snapshots: deId(bodySnapshots).length,
       weekly_checkins: deId(checkins).length,
     },
   };

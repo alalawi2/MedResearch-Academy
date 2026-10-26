@@ -1,6 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
-import {normalizeWhoop,studyWindow} from '../../shared/whoop-normalize.js';
+import {studyWindow} from '../../shared/whoop-normalize.js';
+import {summarizeWhoop,nextWhoopWindow} from '../../shared/whoop-summary.js';
 import {coverageWindow,assessCoverage} from '../../shared/whoop-coverage.js';
 const PATHS:Record<string,string>={cycle:'/cycle',sleep:'/activity/sleep',recovery:'/recovery',workout:'/activity/workout'};
 const DAY=86400000;
@@ -36,7 +37,9 @@ async function materialize(db:any,p:any,bounds:{start:Date,end:Date}){
   const {data}=checked(await db.from('whoop_source_records').select('kind,payload').eq('resident_id',p.id).order('kind').order('source_id').range(offset,offset+999)) as any;
   records.push(...data);if(data.length<1000)break;
  }
- const rows=normalizeWhoop(records,bounds.start,bounds.end);
+ const summaries=summarizeWhoop(records,bounds.start,bounds.end);
+ const rows=summaries.map(s=>s.metrics).filter(r=>r.sleep_id||r.cycle_id);
+ for(let i=0;i<summaries.length;i+=100)checked(await db.rpc('save_whoop_summaries',{rid:p.id,rows_json:summaries.slice(i,i+100)}));
  for(let i=0;i<rows.length;i+=100)checked(await db.rpc('merge_whoop_days',{rid:p.id,rows_json:rows.slice(i,i+100)}));
  // Keep the existing summary dashboards working. Source events remain in the archive.
  const window=coverageWindow(p.enrollment_date);
@@ -80,13 +83,29 @@ export async function runSync(db:any,maxSeconds=150){
    try{
     await update({last_attempt:new Date().toISOString()});
     if(job.status==='window_complete'){
-     const through=new Date(job.completed_through);
-     const caughtUp=through.getTime()>=bounds.end.getTime()-DAY;
-     const start=caughtUp?new Date(Math.max(bounds.start.getTime(),bounds.end.getTime()-14*DAY)):through;
-     Object.assign(job,{window_start:start.toISOString(),window_end:new Date(Math.min(bounds.end.getTime(),start.getTime()+28*DAY)).toISOString(),next_token:null,status:'pending'});
-     await update({window_start:job.window_start,window_end:job.window_end,next_token:null,status:'pending'});
+     const next=nextWhoopWindow(job,bounds);Object.assign(job,next);await update(next);
     }
     if(!tokens.has(p.id))tokens.set(p.id,await accessToken(db,p.id));
+    // Current body measurements have no historical measurement timestamp.
+    // Observe weekly, only while the participant's consent window is ongoing.
+    if(Date.now()-bounds.end.getTime()<60000){
+     const {data:bodyState}=checked(await db.from('whoop_body_sync_state').select('next_attempt').eq('resident_id',p.id).maybeSingle()) as any;
+     if(!bodyState||Date.parse(bodyState.next_attempt)<=Date.now()){
+      try{
+       const body=await request('https://api.prod.whoop.com/developer/v2/user/measurement/body',{headers:{Authorization:'Bearer '+tokens.get(p.id)}});
+       const values:any={resident_id:p.id,observed_at:new Date().toISOString()};
+       for(const field of ['height_meter','weight_kilogram','max_heart_rate']){
+        if(typeof body[field]!=='number'||!Number.isFinite(body[field])||body[field]<=0)throw new Error('invalid_body_measurement');
+        values[field]=body[field];
+       }
+       checked(await db.from('whoop_body_snapshots').insert(values));
+       checked(await db.from('whoop_body_sync_state').upsert({resident_id:p.id,last_success:values.observed_at,next_attempt:new Date(Date.now()+7*DAY).toISOString(),error:null}));
+      }catch(e:any){
+       checked(await db.from('whoop_body_sync_state').upsert({resident_id:p.id,next_attempt:new Date(Date.now()+DAY).toISOString(),error:String(e.message).slice(0,200)}));
+       // A denied optional scope must not interrupt sleep/recovery collection.
+      }
+     }
+    }
     let pages=0;
     do{
      if(Date.now()>deadline-30000)break;
@@ -110,7 +129,12 @@ export async function runSync(db:any,maxSeconds=150){
     }while(job.next_token&&pages<8);
     const days=await materialize(db,p,bounds);
     const caughtUp=!job.next_token&&new Date(job.window_end).getTime()>=bounds.end.getTime()-1000;
-    await update({next_attempt:new Date(Date.now()+(caughtUp?6*3600000:0)).toISOString()});
+    const reconciliation:any={};
+    if(job.reconcile_mode&&!job.next_token){
+     reconciliation.reconcile_cursor=caughtUp?bounds.start.toISOString():job.window_end;
+     reconciliation.reconcile_due_at=new Date(Date.now()+DAY).toISOString();
+    }
+    await update({...reconciliation,next_attempt:new Date(Date.now()+(!job.next_token&&(caughtUp||job.reconcile_mode)?6*3600000:0)).toISOString()});
     results.push({resident:p.study_participant_id,kind:job.kind,pages,derived_days:days,status:caughtUp?'current':'backfilling'});
    }catch(e:any){
     const error=String(e.message??'sync_failed').slice(0,200);

@@ -1,0 +1,26 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+function load(path,imports={}){const ctx={exports:{},require:n=>imports[n]};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,ctx);return ctx.exports}
+const normal=load('shared/whoop-normalize.ts');
+const {summarizeWhoop,nextWhoopWindow}=load('shared/whoop-summary.ts',{'./whoop-normalize.js':normal});
+const start=new Date('2026-05-01T00:00Z'),end=new Date('2026-05-20T00:00Z');
+const sleep=(id,nap,from,to,min)=>({kind:'sleep',payload:{id,nap,start:from,end:to,score_state:'SCORED',score:{stage_summary:{total_light_sleep_time_milli:min*60000,total_slow_wave_sleep_time_milli:0,total_rem_sleep_time_milli:0}}}});
+const main=sleep('main',false,'2026-05-02T00:00Z','2026-05-02T06:00Z',330);
+const nap=sleep('nap',true,'2026-05-02T10:00Z','2026-05-02T11:00Z',45);
+const w={kind:'workout',payload:{id:'w',start:'2026-05-02T12:00Z',end:'2026-05-02T13:00Z',score_state:'SCORED',score:{strain:8,kilojoule:500}}};
+let row=summarizeWhoop([main,nap,w,w],start,end)[0];
+assert.equal(row.metrics.total_sleep_min,330);assert.equal(row.metrics.all_sleep_min,375);assert.equal(row.metrics.nap_sleep_min,45);
+assert.equal(row.metrics.observed_workout_count,1);assert.equal(row.metrics.workout_duration_min,60);assert.equal(row.metrics.workout_kilojoules,500);
+assert.equal(row.metrics.daily_strain,undefined);
+const overlap=sleep('overlap',true,'2026-05-02T05:00Z','2026-05-02T07:00Z',90);
+row=summarizeWhoop([main,nap,overlap],start,end)[0];assert.equal(row.quality.sleep_overlap,true);assert.equal(row.metrics.all_sleep_min,null);
+const short=sleep('short',false,'2026-05-02T15:00Z','2026-05-02T16:00Z',55);
+assert.equal(summarizeWhoop([main,short],start,end)[0].metrics.total_sleep_min,330);
+assert.equal(JSON.stringify(summarizeWhoop([main,nap,w],start,end)),JSON.stringify(summarizeWhoop([w,nap,main],start,end)));
+assert.equal(summarizeWhoop([main],new Date('2026-05-03'),end).length,0);
+const corrected=JSON.parse(JSON.stringify(main));corrected.payload.updated_at='2026-05-03T00:00Z';corrected.payload.score.stage_summary.total_light_sleep_time_milli=300*60000;
+assert.equal(summarizeWhoop([corrected,main],start,end)[0].metrics.total_sleep_min,300);
+const job={completed_through:end.toISOString(),reconcile_mode:false};
+let next=nextWhoopWindow(job,{start,end},+end);assert.equal(next.reconcile_mode,true);assert.equal(next.window_start,start.toISOString());
+next=nextWhoopWindow({...job,reconcile_mode:true},{start,end},+end);assert.equal(next.reconcile_mode,false);assert.equal(next.window_start,new Date(+end-14*86400000).toISOString());
+next=nextWhoopWindow({...job,completed_through:'2026-05-05T00:00:00Z'},{start,end},+end);assert.equal(next.reconcile_mode,false);assert.equal(next.window_start,'2026-05-05T00:00:00.000Z');
+console.log('WHOOP v2: deduplication, corrections, naps, workouts, overlap, deterministic selection, consent and historical scheduling passed.');
