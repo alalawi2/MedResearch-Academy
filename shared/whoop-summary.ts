@@ -44,6 +44,9 @@ export function summarizeWhoop(records:Event[],start:Date,end:Date){
   if(primary)chosen.push({kind:'sleep',payload:primary});
   if(recovery)chosen.push(recovery);
   const metrics=normalizeWhoop(chosen,start,end).find(r=>r.date===date)??{date};
+  // Recovery can refer to a cycle beginning on the previous date. Do not
+  // relabel a different cycle's strain with the recovery's cycle identifier.
+  if(cycle)metrics.cycle_id=String(cycle.id);
   const sleepOverlap=overlaps(sleeps),workoutOverlap=overlaps(workouts);
   const sum=(list:any[],value:(p:any)=>any,invalid:boolean)=>!list.length||invalid||list.some(p=>!scored(p)||!finite(value(p)))?null:list.reduce((s,p)=>s+value(p),0);
   return {date,metrics:{...metrics,
@@ -55,6 +58,7 @@ export function summarizeWhoop(records:Event[],start:Date,end:Date){
    // Per-event strain retained; never sum workouts or add them to cycle strain.
    workout_strains:workouts.filter(scored).map(p=>p.score.strain).filter(finite),
   },quality:{sleep_overlap:sleepOverlap,workout_overlap:workoutOverlap,multiple_cycles:cycles.length>1,
+   recovery_matches_daily_cycle:recovery&&cycle?String(recovery.payload.cycle_id)===String(cycle.id):null,
    unscored_sleep_count:sleeps.filter(p=>!scored(p)).length,unscored_workout_count:workouts.filter(p=>!scored(p)).length,
    counts_are_observed:true},source_ids:[...events.map(r=>r.kind+':'+r.payload.id),...(recovery?['recovery:'+recovery.payload.cycle_id]:[])].sort()};
  });
