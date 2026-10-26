@@ -12,6 +12,8 @@ function check(r){if(r.error)throw Error(r.error.message);return r.data}
  const stats={participants:0,source_events:0,summary_days:0,nap_events:0,workout_events:0,overlapping_sleep_days:0,overlapping_workout_days:0,changed_main_sleep_days:0,written:process.argv.includes('--write')};
  for(const p of people){
   if(!/^RES-\d+$/.test(p.study_participant_id)||!p.enrollment_date)continue;
+  const selected=process.argv.find(a=>a.startsWith('--participants='))?.split('=')[1].split(',');
+  if(selected&&!selected.includes(p.study_participant_id))continue;
   const records=[];
   for(let offset=0;;offset+=1000){const data=check(await db.from('whoop_source_records').select('kind,payload').eq('resident_id',p.id).order('kind').order('source_id').range(offset,offset+999));records.push(...data);if(data.length<1000)break}
   const {start,end}=normal.studyWindow(p.enrollment_date,p.withdrawal_date);
