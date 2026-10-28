@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { availableWeeks, omanMonday, shiftDate } from '../../../shared/weekly-log';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -15,15 +16,6 @@ interface CheckinData {
   sleep_rating: number;
   stress_level: number;
   created_at?: string;
-}
-
-function getMonday(d: Date): Date {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  date.setDate(date.getDate() + diff);
-  date.setHours(0, 0, 0, 0);
-  return date;
 }
 
 function formatDate(dateStr: string): string {
@@ -105,9 +97,11 @@ export default function WeeklyCheckin() {
   const navigate = useNavigate();
   const { residentProfile } = useAuth();
 
-  const today = new Date();
-  const monday = getMonday(today);
-  const weekStartStr = monday.toISOString().split('T')[0];
+  const weeks = availableWeeks(residentProfile?.enrollment_date ?? null);
+  const [selectedWeek,setSelectedWeek] = useState('');
+  const weekStartStr = selectedWeek || weeks[0] || omanMonday();
+  const loadSequence = useRef(0);
+  const [loadFailed,setLoadFailed] = useState(false);
 
   const [hoursWorked, setHoursWorked] = useState(60);
   const [onCallCount, setOnCallCount] = useState<number | null>(null);
@@ -125,17 +119,29 @@ export default function WeeklyCheckin() {
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(async () => {
-    if (!residentProfile) return;
+    const sequence=++loadSequence.current;
+    if (!residentProfile) {setLoading(false);setLoadFailed(true);return;}
     setLoading(true);
+    setLoadFailed(false);setError(null);setSuccess(false);setIsEditing(false);
+    try {
 
     // Check for existing checkin this week
-    const { data: existing } = await supabase
+    const { data: existing, error: readError } = await supabase
       .from('weekly_checkins')
       .select('id, study_id, resident_id, week_start, hours_worked, on_call_count, call_type, call_busyness, sleep_rating, stress_level, created_at')
       .eq('resident_id', residentProfile.id)
       .eq('week_start', weekStartStr)
       .limit(1)
       .maybeSingle();
+    if(sequence!==loadSequence.current)return;
+    if(readError)throw readError;
+    setExistingCheckin(existing);
+    setHoursWorked(existing?.hours_worked ?? 60);
+    setOnCallCount(existing?.on_call_count ?? null);
+    setCallType(existing?.call_type ?? null);
+    setCallBusyness(existing?.call_busyness ?? null);
+    setSleepRating(existing?.sleep_rating ?? null);
+    setStressLevel(existing?.stress_level ?? null);
 
     if (existing) {
       setExistingCheckin(existing);
@@ -148,34 +154,34 @@ export default function WeeklyCheckin() {
     }
 
     // Load past 4 weeks
-    const fourWeeksAgo = new Date(monday);
-    fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28);
-    const { data: past } = await supabase
+    const { data: past, error: pastError } = await supabase
       .from('weekly_checkins')
       .select('id, study_id, resident_id, week_start, hours_worked, on_call_count, call_type, call_busyness, sleep_rating, stress_level, created_at')
       .eq('resident_id', residentProfile.id)
-      .gte('week_start', fourWeeksAgo.toISOString().split('T')[0])
+      .gte('week_start', shiftDate(weekStartStr,-28))
       .lt('week_start', weekStartStr)
       .order('week_start', { ascending: false })
       .limit(4);
 
+    if(sequence!==loadSequence.current)return;
+    if(pastError)throw pastError;
     setPastCheckins(past || []);
-    setLoading(false);
+    }catch {if(sequence===loadSequence.current){setLoadFailed(true);setError('Unable to check your saved logs. Please retry before submitting.');}}
+    finally {if(sequence===loadSequence.current)setLoading(false);}
   }, [residentProfile, weekStartStr]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const isFormValid =
-    onCallCount !== null &&
-    callType !== null &&
-    sleepRating !== null &&
-    stressLevel !== null &&
-    (onCallCount === 0 || callBusyness !== null);
+  const missing = [onCallCount===null?'number of on-calls':null,
+    callType===null||(onCallCount!==null&&onCallCount>0&&callType==='none')?'call type':null,
+    onCallCount!==null&&onCallCount>0&&callBusyness===null?'call busyness':null,
+    sleepRating===null?'sleep rating':null,stressLevel===null?'stress level':null].filter(Boolean);
+  const isFormValid = missing.length===0&&!loadFailed&&weeks.includes(weekStartStr);
 
   async function handleSubmit() {
-    if (!residentProfile || !isFormValid) return;
+    if (!residentProfile || !isFormValid || submitting) return;
 
     setSubmitting(true);
     setError(null);
@@ -192,29 +198,31 @@ export default function WeeklyCheckin() {
       stress_level: stressLevel!,
     };
 
+    try {
     let err;
     if (existingCheckin?.id) {
       const { error: updateErr } = await supabase
         .from('weekly_checkins')
         .update(payload)
-        .eq('id', existingCheckin.id);
+        .eq('id', existingCheckin.id).eq('resident_id',residentProfile.id).select('id').single();
       err = updateErr;
     } else {
       const { error: insertErr } = await supabase
         .from('weekly_checkins')
-        .insert(payload);
+        .insert(payload).select('id').single();
       err = insertErr;
     }
 
     if (err) {
-      setError(err.message);
+      setError(err.code==='23505'?'A log already exists for this week. Refresh the page to load and edit it.':`Unable to save: ${err.message}`);
     } else {
-      setSuccess(true);
       setIsEditing(false);
       await loadData();
+      setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     }
-    setSubmitting(false);
+    }catch {setError('Connection interrupted. Your answers are still here. Retry when connected.');}
+    finally {setSubmitting(false);}
   }
 
   if (loading) {
@@ -231,6 +239,8 @@ export default function WeeklyCheckin() {
   }
 
   const showForm = !existingCheckin || isEditing;
+
+  if(loadFailed)return <div role="alert"><p>{error || 'Your resident profile could not be loaded.'}</p><button onClick={loadData}>Retry loading</button></div>;
 
   return (
     <div>
@@ -258,6 +268,15 @@ export default function WeeklyCheckin() {
       <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 4, lineHeight: 1.6 }}>
         Week of {formatWeekRange(weekStartStr)}
       </p>
+      <label style={labelStyle}>Choose week
+        <select aria-label="Choose week" disabled={submitting} value={weekStartStr} onChange={e=>{
+          if(showForm&&onCallCount!==null&&!window.confirm('Switch weeks? Unsaved changes will be discarded.'))return;
+          setLoading(true);setSelectedWeek(e.target.value);
+        }} style={{display:'block',padding:12,marginTop:8,maxWidth:'100%',color:'#173b55',background:'white'}}>
+          {weeks.map(w=><option key={w} value={w}>{formatWeekRange(w)}{w===omanMonday()?' (current week)':''}</option>)}
+        </select>
+      </label>
+      <p>You can complete or edit a previous week from your study enrollment onward. Enter the calls actually worked during the selected week.</p>
       <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>
         Quick 2-minute check-in on your week.
       </p>
@@ -431,6 +450,7 @@ export default function WeeklyCheckin() {
               {CALL_TYPES.map((t) => (
                 <button
                   key={t.value}
+                  disabled={onCallCount===0&&t.value!=='none'||onCallCount!==null&&onCallCount>0&&t.value==='none'}
                   onClick={() => setCallType(t.value)}
                   style={pillStyle(callType === t.value)}
                 >
@@ -507,6 +527,7 @@ export default function WeeklyCheckin() {
           </div>
 
           {/* Submit */}
+          {missing.length>0&&<p role="status" style={{color:'#7c2d12'}}>To save, please answer: {missing.join(', ')}.</p>}
           <button
             onClick={handleSubmit}
             disabled={!isFormValid || submitting}

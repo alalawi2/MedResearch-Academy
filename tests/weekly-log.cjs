@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+const ctx={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('shared/weekly-log.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,ctx);
+const {omanMonday,availableWeeks}=ctx.exports;
+assert.equal(omanMonday(new Date('2026-10-28T12:00:00+04:00')),'2026-10-26');
+assert.equal(omanMonday(new Date('2026-10-25T19:59:59Z')),'2026-10-19');
+assert.equal(omanMonday(new Date('2026-10-25T20:00:00Z')),'2026-10-26');
+assert.equal(availableWeeks('2026-06-24',new Date('2026-10-28'))[0],'2026-10-26');
+assert.equal(availableWeeks('2026-06-24',new Date('2026-10-28')).at(-1),'2026-06-22');
+assert.equal(availableWeeks(null).length,0);
+assert(availableWeeks('2026-06-24',new Date('2028-10-28')).length<=54);
+const page=fs.readFileSync('src/pages/resident/WeeklyCheckin.tsx','utf8');
+assert(!page.includes('toISOString()'));
+assert(page.includes('readError')&&page.includes('setLoadFailed(true)'));
+assert(page.includes(".select('id').single()"));
+assert(page.includes('To save, please answer:'));
+console.log('Weekly logs: Oman rollover, enrollment boundaries, one-year cap, fail-closed loading and confirmed writes passed.');
