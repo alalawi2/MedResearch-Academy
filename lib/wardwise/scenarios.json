@@ -1,0 +1,320 @@
+[
+  {
+    "id": "reassure",
+    "title": "Reassure an anxious patient",
+    "category": "Patient care",
+    "icon": "heart-outline",
+    "level": "Foundation",
+    "description": "Make space for worry, explain the next step, and check understanding.",
+    "person": "Alex Morgan",
+    "role": "An anxious patient",
+    "facts": [
+      "Alex is waiting for a routine blood test.",
+      "The team has not provided a result or a waiting time.",
+      "Your task is communication practice, not clinical advice."
+    ],
+    "turns": [
+      {
+        "line": "I’m really nervous. I don’t like needles. Is this going to hurt?",
+        "goal": "Acknowledge the worry without promising an outcome.",
+        "example": "I can hear that you’re worried. We can take this one step at a time. What worries you most?",
+        "cues": [
+          "worried",
+          "nervous",
+          "understand",
+          "hear",
+          "difficult"
+        ],
+        "phrase": "I can hear that you’re worried. What concerns you most?"
+      },
+      {
+        "line": "I’m worried I might faint. Can you tell me what happens next?",
+        "goal": "Explain that you will check with the team; avoid inventing clinical details.",
+        "example": "Thank you for telling me. I’ll let the team know how you’re feeling and check the next step with them.",
+        "cues": [
+          "team",
+          "check",
+          "let",
+          "tell",
+          "ask"
+        ],
+        "phrase": "Let me check that with the team for you."
+      },
+      {
+        "line": "Okay. There’s a lot to take in.",
+        "goal": "Invite a question and check understanding in a supportive way.",
+        "example": "Of course. What would you like me to go over again? Could you tell me in your own words what we agreed?",
+        "cues": [
+          "question",
+          "own words",
+          "go over",
+          "understand",
+          "clear"
+        ],
+        "phrase": "What would you like me to go over again?"
+      }
+    ]
+  },
+  {
+    "id": "handover",
+    "title": "Give a clear handover",
+    "category": "Teamwork",
+    "icon": "swap-horizontal-outline",
+    "level": "Intermediate",
+    "description": "Organise a concise update and ask for confirmation.",
+    "person": "Jamie Chen",
+    "role": "The incoming nurse",
+    "facts": [
+      "Fictional patient: Taylor, room 4.",
+      "Taylor has asked when the team will visit.",
+      "No visit time has been confirmed. Do not add clinical findings."
+    ],
+    "turns": [
+      {
+        "line": "I’m taking over. Could you give me a quick update?",
+        "goal": "Identify the patient and state the known situation.",
+        "example": "This is about Taylor in room 4. Taylor has asked when the team will visit.",
+        "cues": [
+          "taylor",
+          "room 4",
+          "asked"
+        ],
+        "phrase": "This is about Taylor in room 4."
+      },
+      {
+        "line": "Has a visit time been confirmed?",
+        "goal": "Make the uncertainty explicit.",
+        "example": "No visit time has been confirmed. I haven’t given Taylor a time.",
+        "cues": [
+          "not",
+          "no",
+          "confirmed",
+          "unknown"
+        ],
+        "phrase": "That has not been confirmed yet."
+      },
+      {
+        "line": "What needs following up?",
+        "goal": "State the request and close the loop.",
+        "example": "Could you check the visit time with the team and update Taylor? Can I confirm you’ll follow that up?",
+        "cues": [
+          "check",
+          "confirm",
+          "update",
+          "follow"
+        ],
+        "phrase": "Can I confirm who will follow that up?"
+      }
+    ]
+  },
+  {
+    "id": "clarify",
+    "title": "Ask for clarification",
+    "category": "Teamwork",
+    "icon": "chatbubbles-outline",
+    "level": "Foundation",
+    "description": "Speak up when a message is unclear or incomplete.",
+    "person": "Sam Patel",
+    "role": "A colleague",
+    "facts": [
+      "A colleague asks you to prepare a room.",
+      "The room number and timing are missing.",
+      "Confirm the details rather than making assumptions."
+    ],
+    "turns": [
+      {
+        "line": "Could you get the room ready, please?",
+        "goal": "Ask for the missing room number politely.",
+        "example": "Of course. Could you clarify which room you mean?",
+        "cues": [
+          "which",
+          "room",
+          "clarify"
+        ],
+        "phrase": "Could you clarify which room you mean?"
+      },
+      {
+        "line": "Room six, please.",
+        "goal": "Check the timing.",
+        "example": "Thank you. When does room six need to be ready?",
+        "cues": [
+          "when",
+          "time",
+          "ready"
+        ],
+        "phrase": "When does it need to be ready?"
+      },
+      {
+        "line": "Before the team arrives at two.",
+        "goal": "Read back the agreed details.",
+        "example": "Just to confirm: room six, ready before two. Is that correct?",
+        "cues": [
+          "six",
+          "two",
+          "confirm",
+          "correct"
+        ],
+        "phrase": "Just to confirm, have I understood that correctly?"
+      }
+    ]
+  },
+  {
+    "id": "family",
+    "title": "Respond to a worried relative",
+    "category": "Patient care",
+    "icon": "people-outline",
+    "level": "Intermediate",
+    "description": "Show empathy while respecting privacy and uncertainty.",
+    "person": "Robin Ellis",
+    "role": "A worried relative",
+    "facts": [
+      "Robin asks about a fictional patient.",
+      "You have no confirmed update to share.",
+      "Check identity and consent through the appropriate local process."
+    ],
+    "turns": [
+      {
+        "line": "Nobody is telling me anything. What is going on?",
+        "goal": "Acknowledge the concern without becoming defensive.",
+        "example": "I can hear how worrying this is. Thank you for telling me.",
+        "cues": [
+          "worry",
+          "worried",
+          "hear",
+          "understand"
+        ],
+        "phrase": "I can hear how worrying this is for you."
+      },
+      {
+        "line": "Can you just tell me the results?",
+        "goal": "Explain that privacy and consent must be checked.",
+        "example": "Before sharing any information, I need to check identity and consent with the team.",
+        "cues": [
+          "consent",
+          "privacy",
+          "identity",
+          "check"
+        ],
+        "phrase": "I need to check consent before sharing information."
+      },
+      {
+        "line": "So what can you do?",
+        "goal": "Offer a clear next communication step.",
+        "example": "I can ask the team who can provide an update. What is the best way for them to contact you?",
+        "cues": [
+          "team",
+          "ask",
+          "update",
+          "contact"
+        ],
+        "phrase": "I can ask the team who can provide an update."
+      }
+    ]
+  },
+  {
+    "id": "explain",
+    "title": "Make an explanation clearer",
+    "category": "Patient care",
+    "icon": "bulb-outline",
+    "level": "Foundation",
+    "description": "Use plain language and a friendly understanding check.",
+    "person": "Casey Brown",
+    "role": "A patient seeking clarity",
+    "facts": [
+      "Casey received a leaflet about an appointment.",
+      "The appointment time is 10 am at reception.",
+      "No treatment instructions are part of this exercise."
+    ],
+    "turns": [
+      {
+        "line": "I don’t understand this appointment letter.",
+        "goal": "Invite the patient to identify what is confusing.",
+        "example": "Of course. Which part would you like us to go through together?",
+        "cues": [
+          "which",
+          "part",
+          "together",
+          "go through"
+        ],
+        "phrase": "Which part would you like us to go through together?"
+      },
+      {
+        "line": "Where do I go, and when?",
+        "goal": "Share the two supplied facts simply.",
+        "example": "Please come to reception at 10 am for your appointment.",
+        "cues": [
+          "reception",
+          "10",
+          "ten"
+        ],
+        "phrase": "Please come to reception at 10 am."
+      },
+      {
+        "line": "I think I’ve got it now.",
+        "goal": "Check understanding without testing or blaming.",
+        "example": "Just so I know I explained it clearly, could you tell me where you’ll go and at what time?",
+        "cues": [
+          "tell",
+          "where",
+          "time",
+          "clearly"
+        ],
+        "phrase": "Just so I know I explained it clearly, could you tell me the next step?"
+      }
+    ]
+  },
+  {
+    "id": "boundary",
+    "title": "Handle a difficult request",
+    "category": "Confidence",
+    "icon": "shield-checkmark-outline",
+    "level": "Intermediate",
+    "description": "Set a respectful boundary and offer a practical next step.",
+    "person": "Drew Wilson",
+    "role": "A frustrated patient",
+    "facts": [
+      "Drew asks for an appointment time you cannot confirm.",
+      "The booking team holds the appointment schedule.",
+      "Acknowledge frustration without promising a date."
+    ],
+    "turns": [
+      {
+        "line": "I need you to guarantee I’ll be seen tomorrow.",
+        "goal": "Acknowledge the need without making a guarantee.",
+        "example": "I understand that the timing matters to you. I can’t confirm tomorrow’s appointment.",
+        "cues": [
+          "understand",
+          "matter",
+          "cannot",
+          "can’t",
+          "confirm"
+        ],
+        "phrase": "I understand that the timing matters to you."
+      },
+      {
+        "line": "Why can’t you just sort it out?",
+        "goal": "Explain your boundary simply and respectfully.",
+        "example": "The booking team manages the schedule. I don’t have a confirmed time to give you.",
+        "cues": [
+          "booking",
+          "team",
+          "schedule",
+          "confirmed"
+        ],
+        "phrase": "I don’t have a confirmed time to give you."
+      },
+      {
+        "line": "What am I supposed to do then?",
+        "goal": "Offer a useful next communication step.",
+        "example": "I can help you contact the booking team to ask about available appointments.",
+        "cues": [
+          "contact",
+          "booking",
+          "help",
+          "ask"
+        ],
+        "phrase": "I can help you contact the right team."
+      }
+    ]
+  }
+]

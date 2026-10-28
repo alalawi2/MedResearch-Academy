@@ -34,6 +34,13 @@ export default function Home() {
         <section className="editorial-updates" aria-labelledby="updates-title"><p className="editorial-kicker">Noticeboard</p><h2 id="updates-title">Around the academy</h2><article><time dateTime="2026-10">October 2026</time><h3><a href="https://www.instagram.com/im.omsb/p/DeHmkOqDBDq/" target="_blank" rel="noopener noreferrer">Internal Medicine Research Day 2026</a></h3><p>Research Day moments shared by the OMSB Internal Medicine programme.</p></article><article><time dateTime="2026-02-24">24 February 2026</time><h3><a href="https://www.youtube.com/watch?v=SnowxT9f9r4" target="_blank" rel="noopener noreferrer">A conversation on Oman TV</a></h3><p>Dr. Abdullah Al Alawi on the Nabt Jinan programme.</p></article><Link className="editorial-link" to="/news">News archive ↗</Link></section>
       </div>
       <section className="editorial-people editorial-section" aria-labelledby="people-title"><div><p className="editorial-kicker">The people behind the work</p><h2 id="people-title">Teaching. Mentoring.<br />Working alongside you.</h2><Link className="editorial-link" to="/about">About the academy ↗</Link></div><div>{[['/images/dr-alawi.jpg','Dr. Abdullah Al Alawi','Founder & Lead Mentor'],['/mohamed-alrawahi.png','Dr. Mohamed Al Rawahi','Co-Founder & Senior Mentor']].map(([image,name,role]) => <div className="editorial-person" key={name}><img src={image} alt={name} width="76" height="88" loading="lazy" /><div><h3>{name}</h3><p>{role}</p></div></div>)}</div></section>
+      <section className="editorial-section" aria-labelledby="wardwise-title">
+        <p className="editorial-kicker">Tools in development</p>
+        <h2 id="wardwise-title">Wardwise: practise the words before the shift.</h2>
+        <p>Short workplace English rehearsals for nurses. Explore a fictional handover, try a clearer response, and keep useful phrases for later practice.</p>
+        <p className="editorial-footnote">Free beta. No subscription or in-app purchase required. Store release is being prepared.</p>
+        <a className="editorial-link" href="/solutions/wardwise">Explore Wardwise & its practice notes ↗</a>
+      </section>
       <section className="editorial-contact"><h2>Have a clinical question worth exploring?</h2><Link className="editorial-link" to="/contact?subject=Collaboration%20inquiry">Talk to us about it ↗</Link></section>
     </div>
   </Layout>;

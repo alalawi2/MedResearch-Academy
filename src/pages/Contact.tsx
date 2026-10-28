@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 export default function Contact() {
   const [params] = useSearchParams();
   const requested = params.get('subject') || '';
-  const subjects = ['Joining a program','Research mentorship','Collaboration inquiry','Bayan platform','Study participation or technical support','Privacy or withdrawal request','General inquiry'];
+  const subjects = ['Joining a program','Research mentorship','Collaboration inquiry','Bayan platform','Wardwise pilot','Study participation or technical support','Privacy or withdrawal request','General inquiry'];
   const selected = requested === 'Virtual Research Series Inquiry' ? 'Joining a program' : subjects.includes(requested) ? requested : '';
   const [status, setStatus] = useState<'idle'|'sending'|'sent'|'error'>('idle');
   const [form, setForm] = useState({ name:'', email:'', subject:selected, message:requested === 'Virtual Research Series Inquiry' ? 'I would like information about the next Virtual Research Series cohort, including dates, fees and certificate requirements.' : '' });
@@ -112,13 +112,7 @@ export default function Contact() {
                       style={{width:'100%',padding:'10px 14px',borderRadius:8,border:'1px solid var(--border)',fontSize:14,outline:'none',background:'white',fontFamily:'var(--font-sans)'}}
                     >
                       <option value="">Select a subject…</option>
-                      <option>Joining a program</option>
-                      <option>Research mentorship</option>
-                      <option>Collaboration inquiry</option>
-                      <option>Bayan platform</option>
-                      <option>Study participation or technical support</option>
-                      <option>Privacy or withdrawal request</option>
-                      <option>General inquiry</option>
+                      {subjects.map(subject => <option key={subject}>{subject}</option>)}
                     </select>
                   </div>
 

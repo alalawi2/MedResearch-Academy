@@ -70,9 +70,35 @@
     },
     "api/rafiq/transcribe.mjs": {
       "maxDuration": 60
+    },
+    "api/wardwise/transcribe.mjs": {
+      "maxDuration": 60
+    },
+    "api/wardwise/conversation.mjs": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
+    {
+      "source": "/solutions/wardwise/support",
+      "destination": "/solutions/wardwise/support/index.html"
+    },
+    {
+      "source": "/solutions/wardwise/privacy",
+      "destination": "/solutions/wardwise/privacy/index.html"
+    },
+    {
+      "source": "/solutions/wardwise",
+      "destination": "/solutions/wardwise/index.html"
+    },
+    {
+      "source": "/solutions/wardwise/guides/handover-english",
+      "destination": "/solutions/wardwise/guides/handover-english/index.html"
+    },
+    {
+      "source": "/solutions/wardwise/guides/clarifying-instructions",
+      "destination": "/solutions/wardwise/guides/clarifying-instructions/index.html"
+    },
     {
       "source": "/whoop/callback",
       "destination": "/api/whoop/callback"
