@@ -32,4 +32,17 @@ test('short-lived native QA credentials require explicit server opt-in and expir
  assert.equal(allowedVoiceAccess(mint(now+3600001),enabled,now),false);
  assert.equal(allowedVoiceAccess(mint(now+60000).replace('0123456789abcdef','fedcba9876543210'),enabled,now),false);
  assert.equal(allowedVoiceAccess(env.WARDWISE_BETA_ACCESS_TOKEN,env,now),true);
+ const review={...env,WARDWISE_GOOGLE_REVIEW_TOKEN:'separate-review-code',WARDWISE_GOOGLE_REVIEW_EXPIRES_AT:new Date(now+60000).toISOString()};
+ assert.equal(allowedVoiceAccess('separate-review-code',review,now),true);
+ assert.equal(allowedVoiceAccess('separate-review-code',review,now+60000),false);
+ assert.equal(allowedVoiceAccess('separate-review-code',{...review,WARDWISE_GOOGLE_REVIEW_TOKEN:undefined},now),false);
+ assert.equal(allowedVoiceAccess(env.WARDWISE_BETA_ACCESS_TOKEN,review,now+60000),true);
+});
+test('public practice reserves a bounded free use before generating',async()=>{
+ let calls=0;let bucket='';
+ const h=createHandler({env,generate:async()=>{calls++;return {line:'Could you clarify?',audioBase64:'fixture'};},reserve:async(id,kind)=>{assert.match(id,/^wardwise_[a-z0-9]{32,}$/);bucket=kind;return null;}});
+ const req=Readable.from([Buffer.from(JSON.stringify({scenarioId:'handover',history:[{partner:'Please hand over.',learner:'I will check.'}]}))]);
+ req.method='POST';req.headers={'x-wardwise-install':'wardwise_1234567890123456789012345678901234567890','x-wardwise-consent':'fictional-adaptive-dialogue-v1','content-type':'application/json'};
+ const res={setHeader(){},on(){},off(){},status(n){this.statusCode=n;return this;},json(x){this.body=x;return this;}};
+ await h(req,res);assert.equal(res.statusCode,200);assert.equal(bucket,'conversation');assert.equal(calls,1);
 });

@@ -1,4 +1,5 @@
 import { allowedVoiceAccess } from '../../lib/wardwise/access.mjs';
+import { reserveFreeUse } from '../../lib/wardwise/free-quota.mjs';
 import { createHash } from 'node:crypto';
 import { parseBuffer } from 'music-metadata';
 
@@ -8,26 +9,30 @@ const ALLOWED_TYPES = new Set(['audio/mp4', 'audio/m4a', 'audio/x-m4a', 'audio/m
 const digest = value => createHash('sha256').update(value).digest();
 
 // Private beta credential, never an OpenAI key and never embedded in the app.
-export function createHandler({ env = process.env, upstream = fetch, metadata = parseBuffer, now = Date.now } = {}) {
+export function createHandler({ env = process.env, upstream = fetch, metadata = parseBuffer, now = Date.now, reserve = reserveFreeUse } = {}) {
   const budget = new Map();
   return async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
-    const expected = env.WARDWISE_BETA_ACCESS_TOKEN;
-    if (!expected || !env.OPENAI_API_KEY) return res.status(503).json({ error: 'Voice transcription is not configured.' });
+    if (!env.OPENAI_API_KEY) return res.status(503).json({ error: 'Voice transcription is not configured.' });
     const token = String(req.headers.authorization || '').replace(/^Bearer /, '');
-    if (!allowedVoiceAccess(token, env, now())) return res.status(401).json({ error: 'Check your private voice access code in Settings.' });
+    const privateAccess = allowedVoiceAccess(token, env, now());
+    const installId = String(req.headers['x-wardwise-install'] || '');
+    if (token && !privateAccess) return res.status(401).json({ error: 'This access code is not valid. Remove it in Settings to use free daily practice.' });
+    if (!privateAccess && !/^[A-Za-z0-9_-]{32,96}$/.test(installId)) return res.status(401).json({ error: 'Update Wardwise to use free daily practice.' });
     if (req.headers['x-wardwise-consent'] !== 'fictional-practice-audio-v1') return res.status(403).json({ error: 'Please consent before sending a recording.' });
     const mime = String(req.headers['content-type'] || '').split(';')[0].toLowerCase();
     if (!ALLOWED_TYPES.has(mime)) return res.status(415).json({ error: 'Use an M4A, MP3, WAV or WebM recording.' });
     const time = now();
     // Per-instance guard only. Private beta access is the authorization boundary.
     for (const [key, entry] of budget) if (entry.until <= time) budget.delete(key);
-    const key = digest(token).toString('hex');
-    const entry = budget.get(key) || { count: 0, until: time + 3600000 };
-    if (entry.count >= 60) return res.status(429).json({ error: 'Voice beta allowance reached. Please try again later or type your response.' });
-    entry.count++; budget.set(key, entry);
+    if (privateAccess) {
+      const key = digest(token).toString('hex');
+      const entry = budget.get(key) || { count: 0, until: time + 3600000 };
+      if (entry.count >= 60) return res.status(429).json({ error: 'Voice beta allowance reached. Please try again later or type your response.' });
+      entry.count++; budget.set(key, entry);
+    }
     try {
       const chunks = []; let size = 0;
       for await (const chunk of req) {
@@ -42,6 +47,10 @@ export function createHandler({ env = process.env, upstream = fetch, metadata = 
       catch { return res.status(400).json({ error: 'This recording could not be read. Please record again.' }); }
       const duration = info.format.duration;
       if (!Number.isFinite(duration) || duration < 0.3 || duration > 46) return res.status(400).json({ error: 'Record between 1 and 45 seconds of speech.' });
+      if (!privateAccess) {
+        const blocked = await reserve(installId, 'transcription', env);
+        if (blocked) return res.status(blocked.status).json({ error: blocked.error });
+      }
       const form = new FormData();
       const extension = mime.includes('webm') ? 'webm' : mime.includes('wav') ? 'wav' : mime.includes('mpeg') ? 'mp3' : 'm4a';
       form.set('file', new Blob([bytes], { type: mime }), `practice.${extension}`);
