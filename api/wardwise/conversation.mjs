@@ -30,7 +30,7 @@ export function createHandler({env=process.env,generate=generatePartner,now=Date
    if(privateAccess){const t=now(),key=hash(token).toString('hex');for(const[k,v]of budget)if(v.until<=t)budget.delete(k);const b=budget.get(key)||{count:0,until:t+3600000};
    if(b.count>=60)return res.status(429).json({error:'AI beta allowance reached. Continue with guided practice or try later.'});b.count++;budget.set(key,b);}
    else {const blocked=await reserve(installId,'conversation',env);if(blocked)return res.status(blocked.status).json({error:blocked.error});}
-   const result=await generate({apiKey:env.OPENAI_API_KEY,scenario:sc,history,signal:controller.signal});
+   const result=await generate({apiKey:env.OPENAI_API_KEY,scenario:sc,history,signal:controller.signal,diagnostic:(code)=>console.error('wardwise_provider_error',String(code||'unknown').slice(0,60))});
    return res.status(200).json({...result,provider:'OpenAI',final:history.length===3});
   }catch{return res.status(502).json({error:'Your partner could not reply. Your words are kept here. Retry, or continue with guided practice.'});}
   finally{res.off?.('close',closed);}
