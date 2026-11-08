@@ -23,3 +23,17 @@ test('free quota fails closed and gives a useful daily-limit message',async()=>{
  assert.equal(denied.status,429);
  assert.match(denied.error,/tomorrow/);
 });
+
+test('failed cloud use returns the reserved allowance without exposing install ID',async()=>{
+ const { releaseFailedFreeUse } = await import('../lib/wardwise/free-quota.mjs');
+ let called=false;
+ const ok=await releaseFailedFreeUse(installId,'conversation',env,async params=>{
+  called=true;
+  assert.match(params.p_install_hash,/^[a-f0-9]{64}$/);
+  assert.ok(!JSON.stringify(params).includes(installId));
+  assert.equal(params.p_bucket,'conversation');
+  return {data:true,error:null};
+ });
+ assert.equal(called,true);
+ assert.equal(ok,true);
+});

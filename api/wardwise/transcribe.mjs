@@ -1,5 +1,5 @@
 import { allowedVoiceAccess } from '../../lib/wardwise/access.mjs';
-import { reserveFreeUse } from '../../lib/wardwise/free-quota.mjs';
+import { reserveFreeUse, releaseFailedFreeUse } from '../../lib/wardwise/free-quota.mjs';
 import { createHash } from 'node:crypto';
 import { parseBuffer } from 'music-metadata';
 
@@ -33,6 +33,7 @@ export function createHandler({ env = process.env, upstream = fetch, metadata = 
       if (entry.count >= 60) return res.status(429).json({ error: 'Voice beta allowance reached. Please try again later or type your response.' });
       entry.count++; budget.set(key, entry);
     }
+    let reservedFree = false;
     try {
       const chunks = []; let size = 0;
       for await (const chunk of req) {
@@ -50,6 +51,7 @@ export function createHandler({ env = process.env, upstream = fetch, metadata = 
       if (!privateAccess) {
         const blocked = await reserve(installId, 'transcription', env);
         if (blocked) return res.status(blocked.status).json({ error: blocked.error });
+        reservedFree = true;
       }
       const form = new FormData();
       const extension = mime.includes('webm') ? 'webm' : mime.includes('wav') ? 'wav' : mime.includes('mpeg') ? 'mp3' : 'm4a';
@@ -60,11 +62,12 @@ export function createHandler({ env = process.env, upstream = fetch, metadata = 
         method: 'POST', headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}` }, body: form,
         signal: AbortSignal.timeout(45000),
       });
-      if (!response.ok) return res.status(502).json({ error: 'Transcription is temporarily unavailable. Your recording is still on this screen; retry or type your words.' });
+      if (!response.ok) { if (reservedFree) await releaseFailedFreeUse(installId, 'transcription', env); return res.status(502).json({ error: 'Transcription is temporarily unavailable. Your recording is still on this screen; retry or type your words.' }); }
       const result = await response.json();
-      if (typeof result.text !== 'string' || !result.text.trim() || result.text.length > 5000) return res.status(422).json({ error: 'No clear speech was found. Please try again or type your response.' });
+      if (typeof result.text !== 'string' || !result.text.trim() || result.text.length > 5000) { if (reservedFree) await releaseFailedFreeUse(installId, 'transcription', env); return res.status(422).json({ error: 'No clear speech was found. Please try again or type your response.' }); }
       return res.status(200).json({ text: result.text.trim(), provider: 'OpenAI', requiresConfirmation: true });
     } catch (error) {
+      if (reservedFree) await releaseFailedFreeUse(installId, 'transcription', env);
       return res.status(error?.name === 'TimeoutError' ? 504 : 500).json({ error: 'Transcription could not finish. Retry or type your response.' });
     }
   };
