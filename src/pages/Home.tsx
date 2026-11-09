@@ -5,10 +5,10 @@ export default function Home() {
   return <Layout>
     <div className="editorial-home container">
       <header className="editorial-intro">
-        <p className="editorial-kicker">Medical education & research · Oman</p>
-        <h1>Research belongs <br />in everyday medicine.</h1>
+        <p className="editorial-kicker">Research. Education. Innovation. · Oman</p>
+        <h1>From clinical questions <br />to research and innovation.</h1>
         <div className="editorial-intro-bottom">
-          <p>We help medical students, residents and clinicians turn clinical questions into research—through teaching, mentorship and collaborative studies.</p>
+          <p>We help medical students, residents and clinicians turn clinical questions into rigorous research and practical solutions—through education, mentorship and collaboration.</p>
           <Link to="/programs" className="editorial-link">Find a learning opportunity ↗</Link>
         </div>
       </header>
@@ -23,6 +23,13 @@ export default function Home() {
           <article><p className="editorial-kicker">Already participating?</p><h2>Your study, one place.</h2><p>Access assessments and study tools through your participant or research-team portal.</p><Link className="editorial-link" to="/sign-in">Participant & team sign in ↗</Link><Link className="editorial-small-link" to="/contact?subject=Study%20participation%20or%20technical%20support">Need help accessing a study?</Link></article>
         </aside>
       </div>
+      <section className="editorial-section" aria-labelledby="innovation-title">
+        <p className="editorial-kicker">Research into practice</p>
+        <h2 id="innovation-title">Learn, investigate, build—and evaluate.</h2>
+        <p>MedResearch Academy is our non-profit educational initiative. Bayan AI Technologies is the technology business founded by Dr. Abdullah Al Alawi. Explore its solutions and research projects, with each project's readiness and evidence considered separately.</p>
+        <a className="editorial-link" href="https://bayanai.tech/" target="_blank" rel="noopener noreferrer">Explore technology solutions ↗</a>
+        <p className="editorial-footnote">Product demonstrations are not independent evidence of effectiveness. Participation in academy research does not require purchasing a product.</p>
+      </section>
       <section className="editorial-section" aria-labelledby="research-title">
         <div className="editorial-section-heading"><div><p className="editorial-kicker">Our work</p><h2 id="research-title">Questions we are studying</h2></div><Link className="editorial-link" to="/active-research">All studies ↗</Link></div>
         <Link className="editorial-study" to="/active-research/resident-burnout"><span className="editorial-kicker">Resident wellbeing</span><div><h3>Burnout during residency</h3><p>Following residents over time to understand wellbeing, sleep and the experience of training.</p></div><span aria-hidden="true">↗</span></Link>

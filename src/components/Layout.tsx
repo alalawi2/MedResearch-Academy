@@ -57,7 +57,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="footer-grid">
             <div className="footer-brand">
               <img src="/images/logo_transparent.png" alt="MedResearch Academy" className="footer-logo" style={{height:"70px",width:"auto",objectFit:"contain",marginBottom:"12px"}} />
-              <p>A non-profit initiative dedicated to advancing medical research in Oman and beyond through open education, mentorship, and community service.</p>
+              <p>Research. Education. Innovation. A non-profit educational initiative helping healthcare professionals develop research skills, generate evidence and explore practical solutions.</p>
             </div>
             <div>
               <h4>Quick Links</h4>
@@ -79,6 +79,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <h4>Connect</h4>
               <div className="footer-links">
                 <a href="https://www.linkedin.com/in/abdullah-al-alawi-4" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href="https://www.youtube.com/channel/UC3ZCsfUsoKGmvgJvrF6HWAw" target="_blank" rel="noopener noreferrer">YouTube · Learn & research</a>
+                <a href="https://bayanai.tech/" target="_blank" rel="noopener noreferrer">Bayan AI Technologies · Solutions</a>
+                <a href="https://www.bayan.edu.om/" target="_blank" rel="noopener noreferrer">Bayan · Medical learning</a>
                 <a href="https://x.com/Medresearch_om" target="_blank" rel="noopener noreferrer">X (Twitter)</a>
                 <a href="https://www.researchgate.net/profile/Abdullah-Al-Alawi-4" target="_blank" rel="noopener noreferrer">ResearchGate</a>
                 <a href="mailto:info@medresearch-academy.om">Email</a>

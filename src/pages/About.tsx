@@ -6,7 +6,7 @@ export default function About() {
       <section className="page-hero page-hero-light" style={{background:'var(--bg-muted)',color:'var(--text)',borderBottom:'1px solid var(--border)'}}>
         <div className="container">
           <h1 style={{color:'var(--primary)'}}>About MedResearch Academy</h1>
-          <p>Our mission is to serve the community by building a robust research ecosystem in Oman. As a non-profit initiative, we are dedicated to equipping healthcare professionals with the skills, mentorship, and open-access resources needed to conduct world-class research.</p>
+          <p>Our mission is to help healthcare professionals turn clinical questions into rigorous research, practical innovations and better care—through education, mentorship and collaboration. MedResearch Academy is a non-profit educational initiative based in Oman.</p>
         </div>
       </section>
 
@@ -15,7 +15,7 @@ export default function About() {
           <h2 style={{fontSize:'2rem',marginBottom:24,color:'var(--primary)'}}>Our Vision</h2>
           <p style={{color:'var(--text-muted)',marginBottom:16,lineHeight:1.8}}>At MedResearch Academy, we believe that research is not just an academic exercise but a vital tool for improving patient care and health outcomes. We envision a future where every healthcare professional in Oman is empowered to contribute to the global body of medical knowledge.</p>
           <p style={{color:'var(--text-muted)',marginBottom:16,lineHeight:1.8}}>Our academy provides a structured pathway for research development, offering comprehensive training programs in research methodology, biostatistics, scientific writing, and critical appraisal. We bridge the gap between theoretical knowledge and practical application.</p>
-          <p style={{color:'var(--text-muted)',lineHeight:1.8}}>Through mentorship and collaboration, we aim to foster a culture of inquiry and innovation. Whether you are a medical student taking your first steps in research or a seasoned clinician looking to refine your skills, MedResearch Academy is your partner in academic excellence.</p>
+          <p style={{color:'var(--text-muted)',lineHeight:1.8}}>We connect learning, research and responsible innovation. Our founder, Dr. Abdullah Al Alawi, also founded <a href="https://bayanai.tech/" target="_blank" rel="noopener noreferrer">Bayan AI Technologies</a>, the technology business behind a portfolio of healthcare and education solutions. The academy's educational mission is distinct from product promotion: demonstrations, research prototypes and independently evaluated findings should be clearly identified.</p>
 
           <div className="separator"></div>
 
