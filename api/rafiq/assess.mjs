@@ -21,7 +21,9 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (req.headers['x-rafiq-consent'] !== CONSENT_VERSION) return res.status(403).json({ error: 'Guardian consent is required' });
   if (!enabled) return res.status(503).json({ error: 'Speech assessment is not enabled' });
-  if (req.headers['content-type']?.split(';')[0] !== 'audio/wav') return res.status(415).json({ error: '16 kHz mono PCM WAV required' });
+  // iOS identifies native WAV files as audio/x-wav; Expo preserves that MIME type.
+  const mime = req.headers['content-type']?.split(';')[0].trim().toLowerCase();
+  if (!['audio/wav', 'audio/x-wav', 'audio/wave', 'audio/vnd.wave'].includes(mime)) return res.status(415).json({ error: '16 kHz mono PCM WAV required' });
   const story = passages.find(p => p.id === req.headers['x-rafiq-story']);
   const sentenceValue = req.headers['x-rafiq-sentence'];
   if (!story || !/^\d{1,2}$/.test(sentenceValue || '')) return res.status(400).json({ error: 'Invalid story or sentence' });
