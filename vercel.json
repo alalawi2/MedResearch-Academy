@@ -76,6 +76,9 @@
     },
     "api/wardwise/conversation.mjs": {
       "maxDuration": 60
+    },
+    "api/rafiq/assess.mjs": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
