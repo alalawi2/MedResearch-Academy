@@ -34,11 +34,11 @@ await page.waitForTimeout(1600);
 await page.getByLabel('Reviewer notes').fill('Synthetic reviewer correction for a numerical discrepancy.');
 await page.waitForTimeout(1700);assert.equal(review.notes,'Synthetic reviewer correction for a numerical discrepancy.');
 for(const label of ['Numerical accuracy','Clinically important omissions','Unsupported interpretations','Clinical safety']){await page.getByLabel(label).selectOption('No concern');await page.waitForTimeout(1500);}
-await page.screenshot({path:'/tmp/holter-review-desktop.png',fullPage:true});
+await page.evaluate(()=>{(document.activeElement instanceof HTMLElement)&&document.activeElement.blur();window.scrollTo({top:0,behavior:"instant"});});await page.screenshot({path:'/tmp/holter-review-desktop.png',fullPage:true});
 await page.reload();await page.getByRole('heading',{name:'XML measurements'}).waitFor();assert.equal(await page.getByLabel('Reviewer notes').inputValue(),review.notes);
 failSave=true;await page.getByLabel('Reviewer notes').fill('Unsaved synthetic change');await page.getByRole('alert').waitFor();assert.equal(await page.getByLabel('Assessment',{exact:true}).isDisabled(),true);assert.equal(await page.getByRole('button',{name:'Submit assessment',exact:true}).isDisabled(),true);
 failSave=false;await page.getByRole('button',{name:'Save now / retry'}).click();await page.waitForTimeout(500);assert.equal(review.notes,'Unsaved synthetic change');
 page.on('dialog',dialog=>dialog.accept());await page.getByRole('button',{name:'Submit assessment',exact:true}).click();await page.waitForTimeout(500);assert.equal(review.submitted,true);assert.equal(await page.getByLabel('Reviewer notes').isDisabled(),true);
-await page.setViewportSize({width:390,height:844});await page.screenshot({path:'/tmp/holter-review-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false);
+await page.setViewportSize({width:390,height:844});await page.evaluate(()=>{(document.activeElement instanceof HTMLElement)&&document.activeElement.blur();window.scrollTo({top:0,behavior:"instant"});});await page.screenshot({path:'/tmp/holter-review-mobile.png',fullPage:true});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false);
 assert.deepEqual(errors,[]);console.log('PASS: synthetic login, table, autosave, reload, save failure, retry, locked submission, responsive layout, no browser exceptions.');
 await browser.close();
