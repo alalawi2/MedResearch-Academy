@@ -4,6 +4,17 @@ import StudyCard, { StudyCardData } from '../components/StudyCard';
 // Study portfolio — add new studies by appending to this array.
 const STUDIES: StudyCardData[] = [
   {
+    slug: 'holter',
+    title: 'Holter Report Validation',
+    shortDescription: 'Private cardiologist review of blinded computer-generated Holter reports against XML measurements and original reports. This research pilot does not provide clinical sign-off.',
+    status: 'data_analysis',
+    ethicsIds: [],
+    pi: 'Dr. Mohamed Al Rawahi',
+    studyType: 'Retrospective report validation',
+    targetPopulation: 'Assigned study reviewers only',
+    icon: '♥',
+  },
+  {
     slug: 'smartblock',
     title: 'SmartBlock: AI-Enabled Rotation Scheduling for the OMSB Internal Medicine Residency Program',
     shortDescription: 'A three-phase mixed-methods study evaluating an AI-powered constraint optimization platform for generating equitable, curriculum-compliant rotation schedules across 3 training sites, 119 residents, and 13 blocks per academic year. Currently in system build and pilot phase.',

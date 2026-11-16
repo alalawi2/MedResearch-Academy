@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Home from './pages/Home';
 const SignIn = lazy(() => import('./pages/SignIn'));
@@ -9,6 +9,7 @@ const Programs = lazy(() => import('./pages/Programs'));
 const Lectures = lazy(() => import('./pages/Lectures'));
 const Resources = lazy(() => import('./pages/Resources'));
 const WallOfImpact = lazy(() => import('./pages/WallOfImpact'));
+const HolterReview = lazy(() => import('./pages/studies/HolterReview'));
 const ActiveResearch = lazy(() => import('./pages/ActiveResearch'));
 const ResidentBurnout = lazy(() => import('./pages/studies/ResidentBurnout'));
 const ResidencyParenthood = lazy(() => import('./pages/studies/ResidencyParenthood'));
@@ -62,11 +63,16 @@ const BaselineAssessment = lazy(() => import('./pages/resident/BaselineAssessmen
 const ResearcherPortal = lazy(() => import('./pages/ResearcherPortal'));
 const ResidentSetPassword = lazy(() => import('./pages/resident/SetPassword'));
 
+function StudyAwareHelp() {
+  const { pathname } = useLocation();
+  return pathname.startsWith('/active-research/holter') ? null : <HelpChatbot />;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <HelpChatbot />
+        <StudyAwareHelp />
         <Suspense fallback={<main className="container section" role="status">Loading page…</main>}>
         <Routes>
           {/* ── Public pages ── */}
@@ -78,6 +84,7 @@ export default function App() {
           <Route path="/lectures" element={<Lectures />} />
           <Route path="/resources" element={<Resources />} />
           <Route path="/wall-of-impact" element={<WallOfImpact />} />
+          <Route path="/active-research/holter" element={<HolterReview />} />
           <Route path="/active-research" element={<ActiveResearch />} />
           <Route path="/active-research/smartblock" element={<SmartBlock />} />
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />

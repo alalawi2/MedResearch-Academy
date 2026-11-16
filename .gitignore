@@ -25,3 +25,8 @@ dist-ssr
 supabase/.temp/
 .vercel
 .env*.local
+
+# Holter case material is local-only
+holter-local/private/
+*.sqlite*
+__pycache__/
