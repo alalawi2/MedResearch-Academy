@@ -6,6 +6,7 @@ export default function SignIn() {
     <section className="page-hero centered"><div className="container"><h1>Choose your portal</h1><p>Use the portal for your study and role. Each portal has its own access requirements.</p></div></section>
     <section className="section"><div className="container public-grid">
       {[
+        ['Holter study reviewer', 'Review blinded reports and record your research assessment in the separate Holter workspace.', '/active-research/holter', 'Holter review sign in'],
         ['Burnout study participant', 'Complete assessments and check your WHOOP connection.', '/resident/login', 'Participant sign in'],
         ['Cognitive shifts participant', 'Access your scheduled cognitive study assessments.', '/active-research/cognitive-shifts/login', 'Cognitive study sign in'],
         ['Study team', 'For authorized investigators, coordinators and data-entry staff, including thalassemia teams.', '/login', 'Team sign in'],
