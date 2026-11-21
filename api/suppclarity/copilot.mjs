@@ -78,7 +78,7 @@ export function createHandler({
         .json({
           error:
             blocked.status === 429
-              ? "The live-answer preview allowance is reached. Prepared answers and guides still work."
+              ? "The live-answer daily allowance is reached. Prepared answers and guides still work."
               : "Live answers are temporarily unavailable.",
         });
     try {

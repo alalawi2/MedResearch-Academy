@@ -35,7 +35,8 @@ name: Confirm, relaunch, inspect amount and erase a routine
     id: field-find-an-ingredient
 - inputText: Magnesium
 - hideKeyboard
-- tapOn: Magnesium
+- tapOn:
+    id: ingredient-magnesium
 - scrollUntilVisible:
     element:
       id: field-magnesium-amount-per-serving

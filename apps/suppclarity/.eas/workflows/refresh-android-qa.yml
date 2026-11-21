@@ -1,0 +1,8 @@
+name: Refresh Android QA JavaScript
+jobs:
+  android:
+    type: repack
+    params:
+      build_id: a19fa42d-e7fa-49a9-ada3-a39863226c38
+      profile: preview
+      js_bundle_only: true

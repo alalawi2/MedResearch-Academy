@@ -651,7 +651,8 @@ export default function ProductEntry() {
                       .map((n) => (
                         <Pressable
                           key={n}
-                          accessibilityRole="radio"
+                          testID={`ingredient-${n.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                          accessibilityRole="checkbox"
                           accessibilityState={{
                             checked: rows.some((r) => r.nutrient === n),
                           }}

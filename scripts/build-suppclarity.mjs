@@ -12,7 +12,7 @@ if(!existsSync(resolve(destination,'index.html')))throw new Error('Missing Expo 
 // SPA export uses the Academy subpath for router links and static assets.
 const index=resolve(destination,'index.html');
 let html=readFileSync(index,'utf8');
-html=html.replace('<title>SuppClarity</title>','<title>SuppClarity — Research Preview</title>');
+html=html.replace('<title>SuppClarity</title>','<title>SuppClarity — Supplement Education</title>');
 writeFileSync(index,html);
 
 writeFileSync(resolve(destination,'source-manifest.json'),JSON.stringify({sourceSha256:fingerprint(app),webBasePath:'/suppclarity'},null,2)+'\n');

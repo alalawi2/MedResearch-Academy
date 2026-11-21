@@ -209,7 +209,7 @@ export function ProductSearch({
           {result.onlineStatus === "searched"
             ? "We checked label records and the web but could not confirm your exact product. A photo of the name and brand or ingredient amounts can help."
             : result.onlineStatus === "allowance-reached"
-              ? "Online lookup has reached its preview allowance. You can still photograph the ingredients or enter them."
+              ? "Online lookup has reached its daily allowance. You can still photograph the ingredients or enter them."
               : "Online search could not finish, so we have not ruled out your product. Try again or use an ingredient photo."}
         </Notice>
       )}

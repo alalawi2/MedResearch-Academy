@@ -22,6 +22,16 @@ name: Local guides, search entry and privacy
     element: ".*muscles.*"
 - assertNotVisible: "Checking the guide evidence…"
 - takeScreenshot: screenshots/03-ask
+- scrollUntilVisible:
+    element: 'Report this answer'
+- tapOn: 'Report this answer'
+- scrollUntilVisible:
+    element: 'Offensive content'
+- assertVisible: 'Offensive content'
+- scrollUntilVisible:
+    element: 'Cancel report'
+    direction: UP
+- tapOn: 'Cancel report'
 - tapOn: 'Account(, tab.*)?'
 - scrollUntilVisible:
     element: 'Privacy'

@@ -30,7 +30,7 @@ No sign-in or payment is required. The main entry points are Find my product, a 
 
 Camera and photo access are requested only for label photos. A separate explicit checkbox precedes sending a photo to OpenAI. Typed search has an explicit Agree & find my product action with NIH/OpenAI disclosure. An explicit first-use prompt precedes sending an unprepared copilot question and up to two recent exchanges to OpenAI. Permission can be revoked in Your space; it resets each session. Prepared answers and guides are local. Profile and saved inventory are not sent to these AI services. External services: NIH DSLD (product search), OpenAI (photo transcription, public-page product discovery and optional copilot), Consensus (optional related research), Vercel (backend hosting) and Supabase (separate request-allowance counters and optional answer reports only).
 
-No HealthKit/Health Connect, wearable data, advertising SDK, tracking SDK, account creation or in-app purchases. Export opens the OS sharing UI only when chosen. Research-preview labeling is intentional: do not describe this app as clinically validated or a recruiting human-subjects study.
+No HealthKit/Health Connect, wearable data, advertising SDK, tracking SDK, account creation or in-app purchases. Export opens the OS sharing UI only when chosen. The release uses supplement-education wording and explicitly states its limits. Do not describe it as clinically validated or a recruiting human-subjects study. The browser is identified separately because its storage remains session-only.
 
 ## Privacy declarations to complete in the store consoles
 

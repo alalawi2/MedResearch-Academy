@@ -52,7 +52,7 @@ export default function Support() {
         <Copy>
           For an app problem, include your app version, phone model and the step
           that failed. Please avoid sending private medical details. This is a
-          development preview with no clinical validation claimed; it does not
+          general education app with no clinical validation claimed; it does not
           diagnose, prescribe or check all medicine interactions. For a health
           concern, contact an appropriate health professional. For an emergency,
           contact local emergency services.

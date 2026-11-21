@@ -1,0 +1,14 @@
+name: Refresh current QA apps
+jobs:
+  ios:
+    type: repack
+    params:
+      build_id: 8f07c962-e206-4341-b857-673466673c7d
+      profile: ios-simulator
+      js_bundle_only: true
+  android:
+    type: repack
+    params:
+      build_id: a19fa42d-e7fa-49a9-ada3-a39863226c38
+      profile: preview
+      js_bundle_only: true

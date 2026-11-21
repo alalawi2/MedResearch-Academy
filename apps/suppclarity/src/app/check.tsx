@@ -23,7 +23,7 @@ const baseQuestions: {
   {
     key: "screening",
     title: "Does any of this apply?",
-    hint: "Choose the closest answer. This preview does not check medicine interactions or health conditions.",
+    hint: "Choose the closest answer. This app does not check medicine interactions or health conditions.",
     options: [
       "I take medicines",
       "I have a health condition",
@@ -205,7 +205,7 @@ export default function Check() {
       {earlyLimit && (
         <Notice>
           Your personal assessment will be limited. You can still explore
-          sources and calculate quantities from your labels. This preview cannot
+          sources and calculate quantities from your labels. This app cannot
           tell you whether a supplement is suitable for your circumstances.
         </Notice>
       )}
@@ -218,7 +218,8 @@ export default function Check() {
         }}
       />
       <Copy kind="small" style={{ color: C.muted }}>
-        Progress is kept while this preview stays open. Reloading clears it.
+        Installed app: progress saves on your device. Browser preview: clears on
+        reload.
       </Copy>
     </Page>
   );

@@ -21,7 +21,7 @@ export default function About() {
           Results start with one next step. Reasons, dated sources and related
           Consensus research are available when you ask.
         </Copy>
-        <Copy kind="heading">What remains outside this preview</Copy>
+        <Copy kind="heading">What remains outside this app</Copy>
         <Copy>
           Diagnosis, individual treatment doses, medicine interaction screening,
           complete dietary assessment, secure accounts, payments and wearable
@@ -29,8 +29,9 @@ export default function About() {
         </Copy>
       </Card>
       <Notice>
-        This is a development preview, not a clinically validated service or a
-        recruiting study. No clinical validation or ethics approval is claimed.
+        This app provides general education and is not a medical device. It does
+        not diagnose or prescribe. It is not a recruiting study; no clinical
+        validation or ethics approval is claimed.
       </Notice>
       <Card>
         <Copy kind="heading">Your information</Copy>
