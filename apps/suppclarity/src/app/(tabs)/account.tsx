@@ -24,6 +24,7 @@ export default function Account() {
               key={x.label}
               accessibilityRole="radio"
               accessibilityState={{ checked: scale === x.value }}
+ aria-checked={scale === x.value}
               onPress={() => setScale(x.value)}
               style={[S.choice, scale === x.value && S.chosen]}
             >
