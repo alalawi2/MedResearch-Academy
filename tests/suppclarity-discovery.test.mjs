@@ -406,6 +406,36 @@ test("online quantities and caffeine warnings must agree with actual source text
   const result = verifiedSourceLabel(raw, source);
   assert.equal(result.ingredients[1].amount, 75);
   assert(!result.concerns.some((c) => c.includes("Contains caffeine (69mg")));
+  const b12 = {
+    ...label,
+    ingredients: [
+      {
+        name: "Vitamin B12",
+        amount: 2.5,
+        unit: "mcg",
+        reading: "clear",
+        labelText: "Cyanocobalamin (Vitamin B12) 2.5 micrograms",
+      },
+    ],
+  };
+  assert.equal(
+    verifiedSourceLabel(
+      b12,
+      "Each tablet contains: Cyanocobalamin (Vitamin B12) 2.5 micrograms",
+    ).ingredients[0].amount,
+    2.5,
+  );
+  const shifted = {
+    ...label,
+    ingredients: [
+      { ...label.ingredients[0], amount: 300, labelText: "Magnesium 1300mg" },
+    ],
+  };
+  assert.equal(
+    verifiedSourceLabel(shifted, "Each tablet contains Magnesium 1300mg")
+      .ingredients[0].amount,
+    null,
+  );
   const altered = structuredClone(raw);
   altered.ingredients[0].amount = 999;
   assert.equal(
