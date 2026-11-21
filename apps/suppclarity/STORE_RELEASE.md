@@ -44,6 +44,12 @@ Initial build has no paid entitlements, trial enrollment or checkout. Proposed p
 
 ## Account and artifact state
 
-Apple production build attempted non-interactively on November 22: remote signing credentials are not configured; EAS stopped before building. Existing Apple identity requires interactive verification to set up signing. A simulator build cannot be submitted to App Store Connect. EAS Submit upload is not the same as Apple review submission. Google upload was attempted and stopped because no Google service-account key is assigned for Play submissions. Console app creation, access, and declarations still need verification. The EAS hosted Maestro workflow was attempted but requires a paid Expo plan; local Maestro tests are the fallback, with no subscription purchased. Update this section with actual build/submission results after final checks.
+Apple production build attempted non-interactively on November 22: remote signing credentials are not configured; EAS stopped before building. Existing Apple identity requires interactive verification to set up signing. A simulator build cannot be submitted to App Store Connect. EAS Submit upload is not the same as Apple review submission. Google upload was attempted and stopped because no Google service-account key exists in the connected EAS account for Play submissions. Console app creation, access, and declarations still need verification. The EAS hosted Maestro workflow was attempted but requires a paid Expo plan; local Maestro tests are the fallback, with no subscription purchased. Update this section with actual build/submission results after final checks.
 
 Never commit service-account JSON, App Store Connect private keys, passwords, verification codes, signing credentials or private-device identifiers. Do not submit obsolete 0.2 preview/simulator binaries.
+
+## Secure account setup
+
+Open `release/Connect-Apple-and-build.command` in macOS Terminal to complete Apple verification and create a signed iOS release. Open `release/Connect-Google-Play.command` to connect a Google Play submission key locally. These helpers do not contain credentials and do not send verification codes through chat. Upload alone does not complete review submission or the store declarations.
+
+Final Android production job: `c4022d61-5c9c-42a4-9b13-169db9eef0c3`, app 0.6.0, source `8a8f9111d4992ddff96fa941f12f6c5e173f281b`. This job builds the AAB and a matching test APK together; its final status and native verification must be checked before upload. JavaScript repacks are QA artifacts and must not be submitted.

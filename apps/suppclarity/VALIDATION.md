@@ -1,4 +1,4 @@
-# Build validation — version 0.5
+# Build validation — SuppClarity
 
 21 November 2026. This revision adds minimal-photo product identification, sourced online fallback, optional ingredient intake references, and improved general/follow-up copilot answers.
 
@@ -44,7 +44,7 @@ Source-transcription follow-up: web search now identifies product pages without 
 
 ## Release 0.6 candidate
 
-Local checks: 46 app tests and 34 API tests pass, including encrypted-storage failure/recovery cases. Lint, TypeScript, Academy/Expo export build and source fingerprint pass. The hosted automated native workflow requires a paid Expo plan; no subscription was purchased. A local Maestro suite covers offline lookup entry, broad ingredient questions, manual confirmation, persistence across relaunch, optional dose context and erasure. Executed results will be recorded separately. An initial simulator candidate installed/launched on iOS 26.5 and its home screenshot was inspected. This is not a physical-camera accuracy test. Apple production signing and Play submission credentials remain missing.
+Local checks: 46 app tests and 38 API tests pass, including encrypted-storage failure/recovery cases. Lint, TypeScript, Academy/Expo export build and source fingerprint pass. The hosted automated native workflow requires a paid Expo plan; no subscription was purchased. A local Maestro suite covers offline lookup entry, broad ingredient questions, manual confirmation, persistence across relaunch, optional dose context and erasure. Executed results will be recorded separately. An initial simulator candidate installed/launched on iOS 26.5 and its home screenshot was inspected. This is not a physical-camera accuracy test. Apple production signing and Play submission credentials remain missing.
 
 ### Additional release checks
 
