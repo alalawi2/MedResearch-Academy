@@ -311,33 +311,38 @@ export default function ProductEntry() {
         </>
       ) : (
         <>
-          <View style={[S.row, { flexWrap: "wrap" }]}>
-            {["Search", "Photo", "Manual"].map((m) => (
-              <Pressable
-                key={m}
-                accessibilityRole="button"
-                accessibilityLabel={`${m} entry`}
-                accessibilityState={{ selected: method === m, disabled: busy }}
-                disabled={busy}
-                onPress={() => setMethod(m)}
-                style={[
-                  S.choice,
-                  { flex: 1, minWidth: 80, padding: 12 },
-                  method === m && S.chosen,
-                ]}
-              >
-                <Copy kind="small" style={{ textAlign: "center" }}>
-                  {m}
-                </Copy>
-              </Pressable>
-            ))}
-          </View>
+          {!label && (
+            <View style={[S.row, { flexWrap: "wrap" }]}>
+              {["Search", "Photo", "Manual"].map((m) => (
+                <Pressable
+                  key={m}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${m} entry`}
+                  accessibilityState={{
+                    selected: method === m,
+                    disabled: busy,
+                  }}
+                  disabled={busy}
+                  onPress={() => setMethod(m)}
+                  style={[
+                    S.choice,
+                    { flex: 1, minWidth: 80, padding: 12 },
+                    method === m && S.chosen,
+                  ]}
+                >
+                  <Copy kind="small" style={{ textAlign: "center" }}>
+                    {m}
+                  </Copy>
+                </Pressable>
+              ))}
+            </View>
+          )}
           {!!identityMessage && (
             <Copy kind="small" accessibilityLiveRegion="polite">
               {identityMessage}
             </Copy>
           )}
-          {method === "Search" && (
+          {method === "Search" && !label && (
             <ProductSearch
               key={searchKey}
               initialQuery={searchSeed}
@@ -385,7 +390,7 @@ export default function ProductEntry() {
               }}
             />
           )}
-          {method === "Photo" && (
+          {method === "Photo" && !label && (
             <Card>
               <Copy kind="heading">Start with a photo</Copy>
               <Copy kind="small" style={{ color: C.muted }}>
@@ -496,6 +501,30 @@ export default function ProductEntry() {
               secondary
               label="Search by name instead"
               onPress={() => setMethod("Search")}
+            />
+          )}
+          {label && (
+            <Button
+              secondary
+              label="Choose another product"
+              onPress={() => {
+                setLabel(undefined);
+                setPhoto(null);
+                setPhotoReading(undefined);
+                setConsent(false);
+                setName("");
+                setServing("");
+                setServingUnit("");
+                setTaken("");
+                setDays("");
+                setRows([blankRow("Vitamin D")]);
+                setManualOther("");
+                setError("");
+                setIdentityMessage("");
+                setSearchSeed("");
+                setSearchKey((k) => k + 1);
+                setMethod("Search");
+              }}
             />
           )}
           {label?.web && (

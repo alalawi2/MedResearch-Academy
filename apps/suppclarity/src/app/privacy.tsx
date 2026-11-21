@@ -57,14 +57,27 @@ export default function Privacy() {
         </Copy>
       </Card>
       <Card>
+        <Copy kind="heading">Reports you choose to send</Copy>
+        <Copy>
+          If you report an answer, we save that answer, your selected reason,
+          its source identifiers, the time and a keyed network hash in a
+          separate private feedback table. Your question, profile and product
+          inventory are not included. We ask before sending. Reports help us
+          review app quality and are kept for up to 31 days, with automatic
+          daily cleanup. They are not a request for medical care. Contact us for
+          a privacy request.
+        </Copy>
+      </Card>
+      <Card>
         <Copy kind="heading">Service records and retention</Copy>
         <Copy>
-          Our application does not save photos, copilot conversations or
-          questionnaire answers in its database. AI response storage is disabled
-          in our requests; OpenAI’s retention, abuse-monitoring and other
-          provider controls still apply. This does not promise zero retention.
-          OpenAI, Consensus, NIH and our hosting providers may process requests
-          in other countries, including the United States.
+          Apart from answer reports you choose to send, our application does not
+          save photos, copilot conversations or questionnaire answers in its
+          database. AI response storage is disabled in our requests; OpenAI’s
+          retention, abuse-monitoring and other provider controls still apply.
+          This does not promise zero retention. OpenAI, Consensus, NIH and our
+          hosting providers may process requests in other countries, including
+          the United States.
         </Copy>
         <Copy>
           To limit automated abuse and service costs, short-lived request

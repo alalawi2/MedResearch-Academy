@@ -29,6 +29,12 @@ Review found entries disappeared after reload, unclear online copilot consent an
 
 Meaningful checks cover failed writes preserving previous records, Unicode/chunk limits, rapid saves followed by clear, corrupt snapshots, erasure failures and malformed quantities. Native build/install/launch and on-device camera accuracy must be reported separately. Simulator fixtures do not establish real-bottle recognition accuracy. Release artifacts must come from the checked final source.
 
+## Cycle 3: native scenario checks and AI feedback
+
+Added reproducible local Maestro scenarios for native tab navigation, manual entry, restore after relaunch, erasure, a real manufacturer-name search and denied-camera recovery. First harness runs hit retained iOS deep-link permission dialogs and tab labels with accessibility suffixes; the flows were corrected to use normal in-app navigation and accessible tab labels. These failed runs are retained and are not claimed as passing device tests. The hosted Maestro run is unavailable on the current free Expo plan; no subscription was purchased.
+
+Google Play's AI policy review identified a missing in-app report control. Added an optional, explicitly consented answer report below the copilot response, with private service-only storage, bounded fields, per-network/global allowances and daily expiry. The displayed answer and reason are shared; the raw question, profile and inventory are excluded. The separate feedback table and scheduled deletion do not read or modify clinical/participant records. No report is sent automatically.
+
 ## Release review sources
 
 - [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), especially third-party AI permission and accurate health claims.

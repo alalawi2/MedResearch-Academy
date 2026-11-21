@@ -6,20 +6,25 @@ name: Local guides, search entry and privacy
     clearKeychain: true
 - assertVisible: "SuppClarity"
 - takeScreenshot: screenshots/01-guidance
-- openLink: suppclarity://products
+- tapOn: 'Products(, tab.*)?'
 - tapOn: "Add a product"
 - tapOn: "Search entry"
 - assertVisible: "Agree & find my product"
 - takeScreenshot: screenshots/02-search
-- openLink: suppclarity://ask
+- tapOn: 'Go back'
+- tapOn: 'Ask(, tab.*)?'
 - tapOn:
     id: field-your-supplement-question
 - inputText: magensium
-- tapOn: "Ask Clarity"
+- tapOn:
+    id: button-ask-clarity
 - scrollUntilVisible:
     element: ".*muscles.*"
 - assertNotVisible: "Checking the guide evidence…"
 - takeScreenshot: screenshots/03-ask
-- openLink: suppclarity://privacy
+- tapOn: 'Account(, tab.*)?'
+- scrollUntilVisible:
+    element: 'Privacy'
+- tapOn: 'Privacy'
 - assertVisible: "Your data, explained."
 - takeScreenshot: screenshots/04-privacy

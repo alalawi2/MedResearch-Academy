@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
@@ -112,6 +113,7 @@ export function Button({
 }) {
   return (
     <Pressable
+      testID={`button-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       aria-disabled={disabled}
@@ -160,6 +162,7 @@ export function Page({
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={S.scroll}
         >
           <View style={S.content}>
@@ -227,6 +230,9 @@ export function Field({
         value={value}
         onChangeText={onChange}
         keyboardType={number ? "decimal-pad" : "default"}
+        returnKeyType="done"
+        inputAccessoryViewButtonLabel="Done"
+        onSubmitEditing={Keyboard.dismiss}
         maxLength={maxLength ?? (number ? 12 : 100)}
         style={S.input}
         placeholderTextColor={C.muted}

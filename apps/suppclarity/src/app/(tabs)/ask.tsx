@@ -14,6 +14,7 @@ import {
   type GuideId,
 } from "../../knowledge";
 import { copilotAnswer } from "../../api";
+import { ReportAnswer } from "../../report-answer";
 import { useStore } from "../../store";
 export default function Ask() {
   const { resetKey } = useStore();
@@ -210,6 +211,13 @@ function AskSession() {
               <Copy selectable accessibilityLiveRegion="polite">
                 {reply.answer}
               </Copy>
+            )}
+            {reply.answer && (
+              <ReportAnswer
+                key={asked + reply.answer}
+                answer={reply.answer}
+                sourceIds={reply.sourceIds}
+              />
             )}
             {reply.choices.map((f) => (
               <Button

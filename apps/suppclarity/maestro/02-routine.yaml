@@ -4,7 +4,8 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - launchApp:
     clearState: true
     clearKeychain: true
-- openLink: suppclarity://product
+- tapOn: 'Products(, tab.*)?'
+- tapOn: 'Add a product'
 - tapOn: "Manual entry"
 - scrollUntilVisible:
     element:
@@ -52,17 +53,18 @@ name: Confirm, relaunch, inspect amount and erase a routine
     element: 'These details are correct'
 - tapOn: 'These details are correct'
 - assertVisible: Magnesium test routine
-- openLink: suppclarity://account
+- tapOn: 'Account(, tab.*)?'
 - scrollUntilVisible:
     element: 'Saved on this device.'
 - launchApp
-- openLink: suppclarity://products
+- tapOn: 'Products(, tab.*)?'
 - assertVisible: Magnesium test routine
 - takeScreenshot: screenshots/05-saved-routine
 - tapOn: 'Daily amount and details for Magnesium'
 - assertVisible: '300 mg'
 - takeScreenshot: screenshots/06-dose-context
-- openLink: suppclarity://account
+- tapOn: 'Go back'
+- tapOn: 'Account(, tab.*)?'
 - scrollUntilVisible:
     element: 'Clear my data'
 - tapOn: 'Clear my data'
@@ -71,10 +73,10 @@ name: Confirm, relaunch, inspect amount and erase a routine
       text: 'Clear my data'
       index: 0
 - tapOn: 'Clear my data'
-- openLink: suppclarity://account
+- tapOn: 'Account(, tab.*)?'
 - scrollUntilVisible:
     element: 'Saved on this device.'
 - launchApp
-- openLink: suppclarity://products
+- tapOn: 'Products(, tab.*)?'
 - assertVisible: 'A fresh start'
 - assertNotVisible: Magnesium test routine

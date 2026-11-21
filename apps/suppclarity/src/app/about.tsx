@@ -54,7 +54,9 @@ export default function About() {
           sent. Consensus receives a general research topic, never your answers
           or photo. We keep keyed hashes for short-lived request allowances,
           without storing the raw network address. External source links open
-          their own websites.
+          their own websites. If you choose to report an answer, that answer and
+          your reason are saved privately for up to 31 days; your question and
+          profile are not included.
         </Copy>
       </Card>
       <Button
