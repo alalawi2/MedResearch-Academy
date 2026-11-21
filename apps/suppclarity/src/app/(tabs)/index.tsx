@@ -175,7 +175,7 @@ export default function Home() {
               </Copy>
               <Copy kind="small" style={{ fontSize: 13, color: "#65558A" }}>
                 {products.length
-                  ? `${products.length} entries · ${repeated} overlaps`
+                  ? `${products.length} ${products.length === 1 ? "entry" : "entries"} · ${repeated} ${repeated === 1 ? "overlap" : "overlaps"}`
                   : "See your entries"}
               </Copy>
             </View>

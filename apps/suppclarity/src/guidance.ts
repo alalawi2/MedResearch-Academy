@@ -181,7 +181,7 @@ export function guidance(
       id: "overlap",
       priority: 3,
       title: "Check overlapping ingredients first",
-      text: `${overlaps.map((t) => t.nutrient).join(", ")} appears in more than one current product.`,
+      text: `${overlaps.map((t) => t.nutrient).join(", ")} ${overlaps.length === 1 ? "appears" : "appear"} in more than one current product.`,
       action: "Compare my entries",
       why: "Adding products can duplicate ingredients even when the names on the bottles differ.",
       limits:
