@@ -451,6 +451,8 @@ test("source retrieval rejects private addresses before connecting and removes e
   ])
     assert.equal(publicAddress(address), false, address);
   assert(publicAddress("8.8.8.8"));
+  assert(publicAddress("192.0.66.111"));
+  assert(publicAddress("198.51.101.1"));
   assert(publicAddress("2606:4700:4700::1111"));
   let connected = false;
   await assert.rejects(
@@ -504,4 +506,29 @@ test("source retrieval preserves a canonical trailing slash when following a saf
     "https://example.com/product/",
   ]);
   assert.equal(page.text, "Magnesium 300mg");
+});
+
+test("source serving phrases determine per-unit meaning instead of inferred daily directions", () => {
+  const one = verifiedSourceLabel(
+    {
+      ...label,
+      servingUnits: 2,
+      servingUnit: "tablets",
+      servingText: "2 tablets daily",
+    },
+    "Each tablet contains: Magnesium (from Magnesium Carbonate Hydrate) 300mg. Take 2 tablets daily.",
+  );
+  assert.equal(one.servingUnits, 1);
+  assert.equal(one.servingUnit, "tablet");
+  const two = verifiedSourceLabel(
+    { ...label, servingUnits: 1, servingText: "one tablet" },
+    "Serving Size: 2 capsules. Magnesium (from Magnesium Carbonate Hydrate) 300mg.",
+  );
+  assert.equal(two.servingUnits, 2);
+  assert.equal(two.servingUnit, "capsules");
+  const unknown = verifiedSourceLabel(
+    { ...label, servingText: "1 tablet" },
+    "Magnesium (from Magnesium Carbonate Hydrate) 300mg.",
+  );
+  assert.equal(unknown.servingUnits, null);
 });

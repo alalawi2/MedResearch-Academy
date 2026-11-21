@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { Page, Copy, Card, Button, Notice, C } from "../ui";
 import { nutrientCatalog, type Nutrient } from "../domain";
+import { doseMeaning } from "../dose-meaning";
 import { dailyReference } from "../daily-references";
 import { upperReference } from "../upper-references";
 import {
@@ -12,7 +13,7 @@ import {
 import { useStore } from "../store";
 export default function IngredientDetails() {
   const { name } = useLocalSearchParams<{ name?: string }>();
-  const { profile } = useStore();
+  const { profile, ingredientPreview } = useStore();
   const nutrient =
     name && Object.hasOwn(nutrientCatalog, name)
       ? (name as Nutrient)
@@ -28,10 +29,25 @@ export default function IngredientDetails() {
   const age = Number(profile.age);
   const reference = dailyReference(nutrient, age, profile.sexReference);
   const limit = upperReference(nutrient, age);
+  const special = Boolean(
+    (profile.context && profile.context !== "No special circumstances") ||
+    (profile.screening && profile.screening !== "None of these"),
+  );
+  const meaning =
+    ingredientPreview?.nutrient === nutrient
+      ? doseMeaning(ingredientPreview, age, profile.sexReference, special)
+      : undefined;
   return (
     <Page title="A LITTLE MORE DETAIL" back>
       <Copy kind="title">{nutrient}</Copy>
       <Copy>{g.summary}</Copy>
+      {meaning && (
+        <Card>
+          <Copy kind="small">{meaning.basis}</Copy>
+          <Copy kind="heading">{meaning.headline}</Copy>
+          <Copy>{meaning.text}</Copy>
+        </Card>
+      )}
       <Card>
         <Copy kind="heading">How much per day?</Copy>
         {reference ? (

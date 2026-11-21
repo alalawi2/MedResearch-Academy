@@ -1,3 +1,4 @@
+import type { IngredientContext } from "./dose-meaning";
 import React, { createContext, useContext, useState } from "react";
 import { emptyProfile, type Product, type Profile } from "./domain";
 type State = {
@@ -11,6 +12,8 @@ type State = {
   setScale: (n: number) => void;
   reset: () => void;
   resetKey: number;
+  ingredientPreview?: IngredientContext;
+  setIngredientPreview: (value: IngredientContext | undefined) => void;
 };
 const Context = createContext<State | null>(null);
 export function Store({ children }: { children: React.ReactNode }) {
@@ -18,9 +21,12 @@ export function Store({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [step, setStep] = useState(0);
   const [scale, setScale] = useState(1);
+  const [ingredientPreview, setIngredientPreview] =
+    useState<IngredientContext>();
   const [resetKey, setResetKey] = useState(0);
   const reset = () => {
     setResetKey((k) => k + 1);
+    setIngredientPreview(undefined);
     setProfile({ ...emptyProfile });
     setProducts([]);
     setStep(0);
@@ -38,6 +44,8 @@ export function Store({ children }: { children: React.ReactNode }) {
         setScale,
         reset,
         resetKey,
+        ingredientPreview,
+        setIngredientPreview,
       }}
     >
       {children}

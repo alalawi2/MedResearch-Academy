@@ -3,9 +3,10 @@ import { View, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Page, Copy, Button, Card, Notice, Icon, C, S } from "../../ui";
 import { useStore } from "../../store";
+import { ingredientContext } from "../../dose-meaning";
 import { totals, ingredientsOf } from "../../domain";
 export default function Products() {
-  const { products, setProducts } = useStore();
+  const { products, setProducts, setIngredientPreview } = useStore();
   const ts = totals(products);
   const [expanded, setExpanded] = useState<string[]>([]);
   const [allTotals, setAllTotals] = useState(false);
@@ -63,12 +64,22 @@ export default function Products() {
                     key={i.nutrient}
                     accessibilityRole="button"
                     accessibilityLabel={`Daily amount and details for ${i.nutrient}`}
-                    onPress={() =>
+                    onPress={() => {
+                      setIngredientPreview(
+                        ingredientContext(
+                          i.nutrient,
+                          i.amount,
+                          i.unit,
+                          p.taking === false ? "label-serving" : "use-day",
+                          p.taking === false ? 1 : p.unitsPerServing,
+                          p.taking === false ? 1 : p.unitsTaken,
+                        ),
+                      );
                       router.push({
                         pathname: "/ingredient",
                         params: { name: i.nutrient },
-                      })
-                    }
+                      });
+                    }}
                   >
                     <Copy style={{ textDecorationLine: "underline" }}>
                       {i.nutrient} · {i.amount} {i.unit} per serving
@@ -127,12 +138,20 @@ export default function Products() {
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Daily amount and details for ${t.nutrient}`}
-                    onPress={() =>
+                    onPress={() => {
+                      setIngredientPreview(
+                        ingredientContext(
+                          t.nutrient,
+                          t.amount,
+                          t.unit,
+                          "daily-average",
+                        ),
+                      );
                       router.push({
                         pathname: "/ingredient",
                         params: { name: t.nutrient },
-                      })
-                    }
+                      });
+                    }}
                   >
                     <Copy style={{ textDecorationLine: "underline" }}>
                       {t.nutrient}

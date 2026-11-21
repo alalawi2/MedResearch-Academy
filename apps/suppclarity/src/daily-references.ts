@@ -1,130 +1,147 @@
 import type { Nutrient } from "./domain.ts";
 import type { SourceId } from "./evidence.ts";
 export type ReferenceSex = "male" | "female" | "both";
-// US NIH ODS RDA: food + supplements combined, never an extra dose or measured gap.
+type Range = { min: number; max?: number; male: number; female: number };
+type Reference = {
+  unit: string;
+  source: SourceId;
+  ranges: Range[];
+  note?: string;
+};
+// US NIH ODS RDAs for total intake, not extra supplemental doses. Pregnancy/breastfeeding are outside this table.
+const table: Partial<Record<Nutrient, Reference>> = {
+  Magnesium: {
+    unit: "mg",
+    source: "magnesiumNIH",
+    ranges: [
+      { min: 18, max: 18, male: 410, female: 360 },
+      { min: 19, max: 30, male: 400, female: 310 },
+      { min: 31, male: 420, female: 320 },
+    ],
+  },
+  "Vitamin B12": {
+    unit: "mcg",
+    source: "b12NIH",
+    ranges: [{ min: 18, male: 2.4, female: 2.4 }],
+  },
+  "Vitamin D": {
+    unit: "mcg",
+    source: "dNIH",
+    ranges: [
+      { min: 18, max: 70, male: 15, female: 15 },
+      { min: 71, male: 20, female: 20 },
+    ],
+  },
+  "Vitamin B6": {
+    unit: "mg",
+    source: "b6NIH",
+    ranges: [
+      { min: 18, max: 18, male: 1.3, female: 1.2 },
+      { min: 19, max: 50, male: 1.3, female: 1.3 },
+      { min: 51, male: 1.7, female: 1.5 },
+    ],
+  },
+  Calcium: {
+    unit: "mg",
+    source: "calciumNIH",
+    ranges: [
+      { min: 18, max: 18, male: 1300, female: 1300 },
+      { min: 19, max: 50, male: 1000, female: 1000 },
+      { min: 51, max: 70, male: 1000, female: 1200 },
+      { min: 71, male: 1200, female: 1200 },
+    ],
+  },
+  Iron: {
+    unit: "mg",
+    source: "ironNIH",
+    ranges: [
+      { min: 18, max: 18, male: 11, female: 15 },
+      { min: 19, max: 50, male: 8, female: 18 },
+      { min: 51, male: 8, female: 8 },
+    ],
+  },
+  Zinc: {
+    unit: "mg",
+    source: "zincNIH",
+    ranges: [
+      { min: 18, max: 18, male: 11, female: 9 },
+      { min: 19, male: 11, female: 8 },
+    ],
+  },
+  "Vitamin C": {
+    unit: "mg",
+    source: "vitaminCNIH",
+    ranges: [
+      { min: 18, max: 18, male: 75, female: 65 },
+      { min: 19, male: 90, female: 75 },
+    ],
+    note: "People who smoke need an additional 35 mg/day.",
+  },
+  Iodine: {
+    unit: "mcg",
+    source: "iodineNIH",
+    ranges: [{ min: 18, male: 150, female: 150 }],
+  },
+  Selenium: {
+    unit: "mcg",
+    source: "seleniumNIH",
+    ranges: [{ min: 18, male: 55, female: 55 }],
+  },
+};
 export function dailyReference(
   nutrient: Nutrient,
   age?: number,
   sex: ReferenceSex = "both",
-): { lines: string[]; source: SourceId } | null {
+) {
   if (typeof age === "number" && Number.isFinite(age) && age > 0 && age < 18)
     return null;
-  const a = Number.isInteger(age) && age! >= 18 ? age! : 0;
-  const pair = (male: number, female: number, unit: string, group: string) =>
-    `${group}${group ? ": " : ""}${sex === "male" ? `Male reference ${male}` : sex === "female" ? `Female reference ${female}` : `Male ${male}; female ${female}`} ${unit}/day.`;
-  const value = (amount: number, unit: string, group: string) =>
-    `${group}: ${amount} ${unit}/day.`;
-  switch (nutrient) {
-    case "Magnesium":
-      return {
-        lines:
-          a === 18
-            ? [pair(410, 360, "mg", "Age 18")]
-            : a >= 31
-              ? [pair(420, 320, "mg", "Ages 31+")]
-              : a >= 19
-                ? [pair(400, 310, "mg", "Ages 19–30")]
-                : [
-                    pair(400, 310, "mg", "Ages 19–30"),
-                    pair(420, 320, "mg", "Ages 31+"),
-                    pair(410, 360, "mg", "Age 18"),
-                  ],
-        source: "magnesiumNIH",
-      };
-    case "Vitamin B12":
-      return { lines: [value(2.4, "mcg", "Ages 18+")], source: "b12NIH" };
-    case "Vitamin D":
-      return {
-        lines:
-          a >= 71
-            ? ["Ages 71+: 20 mcg (800 IU)/day."]
-            : a >= 18
-              ? ["Ages 18–70: 15 mcg (600 IU)/day."]
-              : [
-                  "Ages 18–70: 15 mcg (600 IU)/day.",
-                  "Ages 71+: 20 mcg (800 IU)/day.",
-                ],
-        source: "dNIH",
-      };
-    case "Vitamin B6":
-      return {
-        lines:
-          a === 18
-            ? [pair(1.3, 1.2, "mg", "Age 18")]
-            : a >= 51
-              ? [pair(1.7, 1.5, "mg", "Ages 51+")]
-              : a >= 19
-                ? [value(1.3, "mg", "Ages 19–50")]
-                : [
-                    value(1.3, "mg", "Ages 19–50"),
-                    pair(1.7, 1.5, "mg", "Ages 51+"),
-                    pair(1.3, 1.2, "mg", "Age 18"),
-                  ],
-        source: "b6NIH",
-      };
-    case "Calcium":
-      return {
-        lines:
-          a === 18
-            ? [value(1300, "mg", "Age 18")]
-            : a >= 71
-              ? [value(1200, "mg", "Ages 71+")]
-              : a >= 51
-                ? [pair(1000, 1200, "mg", "Ages 51–70")]
-                : a >= 19
-                  ? [value(1000, "mg", "Ages 19–50")]
-                  : [
-                      value(1000, "mg", "Ages 19–50"),
-                      pair(1000, 1200, "mg", "Ages 51–70"),
-                      value(1200, "mg", "Ages 71+"),
-                      value(1300, "mg", "Age 18"),
-                    ],
-        source: "calciumNIH",
-      };
-    case "Iron":
-      return {
-        lines:
-          a === 18
-            ? [pair(11, 15, "mg", "Age 18")]
-            : a >= 51
-              ? [value(8, "mg", "Ages 51+")]
-              : a >= 19
-                ? [pair(8, 18, "mg", "Ages 19–50")]
-                : [
-                    pair(8, 18, "mg", "Ages 19–50"),
-                    value(8, "mg", "Ages 51+"),
-                    pair(11, 15, "mg", "Age 18"),
-                  ],
-        source: "ironNIH",
-      };
-    case "Zinc":
-      return {
-        lines:
-          a === 18
-            ? [pair(11, 9, "mg", "Age 18")]
-            : [
-                pair(11, 8, "mg", "Ages 19+"),
-                ...(!a ? [pair(11, 9, "mg", "Age 18")] : []),
-              ],
-        source: "zincNIH",
-      };
-    case "Vitamin C":
-      return {
-        lines:
-          a === 18
-            ? [pair(75, 65, "mg", "Age 18")]
-            : [
-                pair(90, 75, "mg", "Ages 19+"),
-                ...(!a ? [pair(75, 65, "mg", "Age 18")] : []),
-                "People who smoke need an additional 35 mg/day.",
-              ],
-        source: "vitaminCNIH",
-      };
-    case "Iodine":
-      return { lines: [value(150, "mcg", "Ages 18+")], source: "iodineNIH" };
-    case "Selenium":
-      return { lines: [value(55, "mcg", "Ages 18+")], source: "seleniumNIH" };
-    default:
-      return null;
-  }
+  const reference = table[nutrient];
+  if (!reference) return null;
+  const known = Number.isInteger(age) && age! >= 18;
+  const ranges = reference.ranges.filter(
+    (r) => !known || (age! >= r.min && (!r.max || age! <= r.max)),
+  );
+  const targets: { amount: number; unit: string; label: string }[] = [];
+  const lines = ranges.map((r) => {
+    const group =
+      r.max === r.min
+        ? `Age ${r.min}`
+        : r.max
+          ? `Ages ${r.min}–${r.max}`
+          : `Ages ${r.min}+`;
+    const amount = (value: number) =>
+      nutrient === "Vitamin D"
+        ? `${value} mcg (${value * 40} IU)`
+        : `${value} ${reference.unit}`;
+    if (r.male === r.female) {
+      targets.push({ amount: r.male, unit: reference.unit, label: group });
+      return `${group}: ${amount(r.male)}/day.`;
+    }
+    if (sex === "male" || sex === "female") {
+      targets.push({
+        amount: r[sex],
+        unit: reference.unit,
+        label: `${group}, ${sex} reference`,
+      });
+      return `${group}: ${sex === "male" ? "Male" : "Female"} reference ${amount(r[sex])}/day.`;
+    }
+    targets.push(
+      {
+        amount: r.male,
+        unit: reference.unit,
+        label: `${group}, male reference`,
+      },
+      {
+        amount: r.female,
+        unit: reference.unit,
+        label: `${group}, female reference`,
+      },
+    );
+    return `${group}: Male ${r.male}; female ${r.female} ${reference.unit}/day.`;
+  });
+  return {
+    lines: [...lines, ...(reference.note ? [reference.note] : [])],
+    source: reference.source,
+    targets,
+  };
 }

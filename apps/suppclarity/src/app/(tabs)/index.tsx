@@ -213,7 +213,7 @@ export default function Home() {
       </Pressable>
       <View style={{ gap: 6 }}>
         <Copy kind="small" style={{ color: C.muted, fontSize: 12 }}>
-          RESEARCH PREVIEW · 0.4
+          RESEARCH PREVIEW · 0.5
         </Copy>
         <Copy kind="small" style={{ color: C.muted }}>
           Common vitamins, minerals and other supplements. General education,

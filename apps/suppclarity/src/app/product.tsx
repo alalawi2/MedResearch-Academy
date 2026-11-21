@@ -20,6 +20,7 @@ import {
   type DraftRow,
   type ReadLabel,
 } from "../labels";
+import { ingredientContext } from "../dose-meaning";
 import { prospectiveNotes } from "../prospective";
 import { scanLabel } from "../api";
 const blankRow = (n: Nutrient): DraftRow => ({
@@ -33,7 +34,8 @@ const blankRow = (n: Nutrient): DraftRow => ({
   labelText: "",
 });
 export default function ProductEntry() {
-  const { products, setProducts, profile, setProfile } = useStore();
+  const { products, setProducts, profile, setProfile, setIngredientPreview } =
+    useStore();
   const { intent } = useLocalSearchParams<{ intent?: string }>();
   const [method, setMethod] = useState("Photo");
   const [searchSeed, setSearchSeed] = useState("");
@@ -642,12 +644,26 @@ export default function ProductEntry() {
                   <Button
                     secondary
                     label="Daily amount & more"
-                    onPress={() =>
+                    onPress={() => {
+                      const use =
+                        taking && Number(serving) > 0 && Number(taken) > 0;
+                      setIngredientPreview(
+                        row.amount.trim()
+                          ? ingredientContext(
+                              row.nutrient,
+                              Number(row.amount),
+                              row.unit,
+                              use ? "use-day" : "label-serving",
+                              use ? Number(serving) : 1,
+                              use ? Number(taken) : 1,
+                            )
+                          : undefined,
+                      );
                       router.push({
                         pathname: "/ingredient",
                         params: { name: row.nutrient },
-                      })
-                    }
+                      });
+                    }}
                   />
                   {label &&
                   row.amount &&

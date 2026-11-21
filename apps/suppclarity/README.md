@@ -1,6 +1,6 @@
 # SuppClarity
 
-Expo SDK 58 / React Native app for iOS, Android and web. US English adults 18+, with no upper age cutoff; beginners and existing supplement users. Version 0.4 adds front-photo identification, automatic online product discovery, optional daily-intake details and a copilot that answers broad questions without assuming a goal. Details stay optional.
+Expo SDK 58 / React Native app for iOS, Android and web. US English adults 18+, with no upper age cutoff; beginners and existing supplement users. Version 0.5 adds front-photo identification, automatic online product discovery, optional daily-intake details and a copilot that answers broad questions without assuming a goal. Details stay optional.
 
 ## Run and check
 
@@ -76,3 +76,5 @@ For a physical iPhone, register it with the Apple team and configure signing wit
 Image manipulation adds native code, so version 0.2 needs a new native build. Android preview is an APK. iOS simulator builds cannot install on physical iPhones. Signed iPhone builds need Apple Developer credentials and registered test devices; store submission remains a separate step. Identifier: `om.medresearchacademy.suppclarity`. The Academy web prefix is set only for web exports, never native assets.
 
 Before clinical/commercial release: held-out real-label evaluation and evidence-rule validation, physical-device and VoiceOver/TalkBack testing, defined intended-use/regulatory assessment, persistent-data rights design if accounts are introduced, and app-store-compliant subscriptions after core value is demonstrated. Claude's earlier interface critique is recorded in `CLAUDE_INTERFACE_REVIEW.md`; AI critique is not clinical validation.
+
+Ingredient details explain what the selected label serving, recorded use-day amount, or daily average means. Ten nutrient reference tables expose structured targets for unit-normalized percentage comparisons. These are contributions to general food-plus-supplement references, not proof that an individual requirement is fulfilled and not a prescription for the remainder. Caffeine is explained as a stimulant with no daily nutritional requirement; the FDA's typical black-tea amount provides optional context. Dose previews remain in memory and are not included in URLs or sent to the copilot.
