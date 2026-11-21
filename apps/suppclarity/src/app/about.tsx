@@ -46,11 +46,14 @@ export default function About() {
           retain temporary photo files.
         </Copy>
         <Copy>
-          Product search terms go to the NIH label database. Prepared questions
-          and guides are read locally. Consensus receives a general research
-          topic, never your answers or photo. We keep keyed hashes for
-          short-lived request allowances, without storing the raw network
-          address. External source links open their own websites.
+          Product terms go to NIH and, when needed, OpenAI web search to locate
+          manufacturer or retailer pages. Prepared questions and guides run
+          locally; other copilot questions and up to two prior question/answer
+          exchanges go to OpenAI with curated guides. Your app profile is not
+          sent. Consensus receives a general research topic, never your answers
+          or photo. We keep keyed hashes for short-lived request allowances,
+          without storing the raw network address. External source links open
+          their own websites.
         </Copy>
       </Card>
       <Button

@@ -45,7 +45,8 @@ test("exact prepared questions return their own answer unless an explicit scope 
   }
 });
 test("ambiguous and unknown questions cannot invent a medical answer", () => {
-  assert.equal(askCopilot("magnesium").kind, "choices");
+  assert.equal(askCopilot("magnesium").kind, "answer");
+  assert(!askCopilot("magensium").answer?.toLowerCase().includes("sleep"));
   const r = askCopilot("quantum teleportation tickets");
   assert.equal(r.kind, "choices");
   assert.equal(r.choices.length, 0);

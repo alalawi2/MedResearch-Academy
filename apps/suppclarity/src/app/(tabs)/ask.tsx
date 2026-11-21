@@ -1,15 +1,19 @@
-import { useState } from "react";
-import { Keyboard, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Keyboard, View, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { Page, Copy, Card, Button, Field, Notice, C, S, Icon } from "../../ui";
 import {
   askCopilot,
+  validSources,
+  nutrientForGuide,
+  localGuides,
   guideTopic,
   faqBank,
   type CopilotReply,
   type Faq,
   type GuideId,
 } from "../../knowledge";
+import { copilotAnswer } from "../../api";
 import { useStore } from "../../store";
 export default function Ask() {
   const { resetKey } = useStore();
@@ -21,15 +25,81 @@ function AskSession() {
   const [reply, setReply] = useState<CopilotReply>();
   const [browse, setBrowse] = useState(false);
   const [limit, setLimit] = useState(20);
-  function submit(value = question) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const history = useRef<{ question: string; answer: string }[]>([]);
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
+  async function submit(value = question) {
     if (!value.trim()) return;
     Keyboard.dismiss();
-    setAsked(value.trim());
-    setReply(askCopilot(value.trim()));
+    const askedQuestion = value.trim();
+    const local = askCopilot(askedQuestion);
+    setAsked(askedQuestion);
+    setReply(local);
+    setError("");
     setQuestion("");
     setBrowse(false);
+    if (local.kind !== "choices") {
+      if (local.answer)
+        history.current = [
+          ...history.current,
+          { question: askedQuestion, answer: local.answer },
+        ].slice(-2);
+      return;
+    }
+    const controller = new AbortController();
+    request.current?.abort();
+    request.current = controller;
+    setBusy(true);
+    const timer = setTimeout(() => controller.abort(), 30000);
+    try {
+      const remote = await copilotAnswer(
+        askedQuestion,
+        history.current,
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      setReply({
+        kind: "answer",
+        answer: remote.answer,
+        choices: [],
+        sourceIds: validSources(remote.sourceIds),
+        nutrient: nutrientForGuide(remote.guide || ""),
+        ...(remote.guide && Object.hasOwn(localGuides, remote.guide)
+          ? { guide: remote.guide as GuideId }
+          : {}),
+      });
+      history.current = [
+        ...history.current,
+        { question: askedQuestion, answer: remote.answer },
+      ].slice(-2);
+    } catch (e) {
+      if (request.current === controller)
+        setError(
+          controller.signal.aborted
+            ? "The answer took too long. Try a shorter question or open the related guide."
+            : e instanceof Error
+              ? e.message
+              : "I could not finish the answer.",
+        );
+    } finally {
+      clearTimeout(timer);
+      if (request.current === controller) {
+        setBusy(false);
+        request.current = null;
+      }
+    }
   }
   function prepared(f: Faq) {
+    request.current?.abort();
+    request.current = null;
+    setBusy(false);
+    setError("");
+    history.current = [
+      ...history.current,
+      { question: f.question, answer: f.answer },
+    ].slice(-2);
     setAsked(f.question);
     setReply({
       kind: "answer",
@@ -63,14 +133,24 @@ function AskSession() {
       <Button
         label="Ask Clarity"
         icon="arrow-up-right"
-        disabled={!question.trim()}
+        disabled={busy || !question.trim()}
         onPress={() => submit()}
       />
       <Copy kind="small" style={{ color: C.muted }}>
         General education. This helper cannot diagnose, prescribe or provide
-        urgent care.
+        urgent care. Questions outside the prepared library go to OpenAI with
+        the guide evidence. Your app profile is not sent.
       </Copy>
-      {reply && (
+      {busy && (
+        <>
+          <ActivityIndicator color={C.teal} />
+          <Copy accessibilityLiveRegion="polite">
+            Checking the guide evidence…
+          </Copy>
+        </>
+      )}
+      {!!error && <Notice>{error}</Notice>}
+      {reply && !busy && (
         <>
           <Card>
             <Copy kind="small" style={{ color: C.muted }}>
@@ -93,6 +173,18 @@ function AskSession() {
                 onPress={() => prepared(f)}
               />
             ))}
+            {reply.nutrient && (
+              <Button
+                secondary
+                label="Daily amount & more"
+                onPress={() =>
+                  router.push({
+                    pathname: "/ingredient",
+                    params: { name: reply.nutrient },
+                  })
+                }
+              />
+            )}
             {reply.guide && (
               <Button
                 secondary

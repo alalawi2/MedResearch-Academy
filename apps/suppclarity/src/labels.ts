@@ -20,6 +20,8 @@ export type ReadLabel = {
   panelComplete: boolean;
   sourcePanelComplete?: boolean;
   database?: Product["database"];
+  web?: Product["web"];
+  brand?: string | null;
   otherIngredients?: string[];
   productName: string | null;
   servingText: string | null;
@@ -109,7 +111,14 @@ export function confirmedProduct({
           (r) => r.nutrient && !selected.some((d) => d.nutrient === r.nutrient),
         )
       : manualOther,
-    source: label?.database ? "database" : label ? "scan" : "manual",
+    source: label?.web
+      ? "web"
+      : label?.database
+        ? "database"
+        : label
+          ? "scan"
+          : "manual",
+    ...(label?.web ? { web: label.web } : {}),
     ...(label?.database ? { database: label.database } : {}),
   };
   return validProduct(p) ? p : null;

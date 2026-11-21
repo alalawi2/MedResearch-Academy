@@ -1,6 +1,6 @@
 import { extraSources } from "./education-data.mjs";
 import { researchTopics } from "./research-topics.mjs";
-export const EVIDENCE_VERSION = "2026-11-21.2";
+export const EVIDENCE_VERSION = "2026-11-21.3";
 export const EVIDENCE_REVIEW_DATE = "2026-11-21";
 export const EVIDENCE_REVIEW_DUE = "2027-02-21";
 export const CONSENSUS_REVIEW_URL =

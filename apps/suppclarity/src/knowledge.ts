@@ -1,3 +1,5 @@
+import { nutrientCatalog, type Nutrient } from "./domain.ts";
+import { dailyReference } from "./daily-references.ts";
 import { faqBank, localGuides } from "./education-data.mjs";
 import { sources, type SourceId, type Topic } from "./evidence.ts";
 import { researchTopics } from "./research-topics.mjs";
@@ -21,6 +23,9 @@ const corrections: Record<string, string> = {
   protien: "protein",
   creatiene: "creatine",
   zink: "zinc",
+  magensium: "magnesium",
+  magensuim: "magnesium",
+  magnesuim: "magnesium",
   magnesum: "magnesium",
   magnisium: "magnesium",
   calicum: "calcium",
@@ -67,6 +72,7 @@ export type CopilotReply = {
   choices: Faq[];
   sourceIds: SourceId[];
   guide?: GuideId;
+  nutrient?: Nutrient;
 };
 export function askCopilot(question: string): CopilotReply {
   const q = question.slice(0, 500);
@@ -124,6 +130,57 @@ export function askCopilot(question: string): CopilotReply {
   const tokens = words(q);
   if (!tokens.length)
     return { kind: "choices", choices: faqBank.slice(0, 3), sourceIds: [] };
+  const exact = faqBank.find((f) => normalized(f.question) === n);
+  if (exact) return fixed(exact.id);
+  const mentioned = Object.entries(nutrientCatalog).filter(([name, info]) =>
+    [name, ...info.aliases].some((alias) => {
+      const terms = words(alias);
+      return terms.length && terms.every((t) => tokens.includes(t));
+    }),
+  );
+  const uniqueGuides = [...new Set(mentioned.map(([, info]) => info.guide))];
+  if (uniqueGuides.length === 1) {
+    const nutrient = mentioned[0][0] as Nutrient;
+    const guide = mentioned[0][1].guide as GuideId;
+    const g = localGuides[guide];
+    const topicTokens = new Set(
+      mentioned.flatMap(([name, info]) =>
+        [name, ...info.aliases].flatMap(words),
+      ),
+    );
+    const general = new Set(
+      "tell about explain information info please benefits benefit uses use good help overview know more everything general all used need want learn".split(
+        " ",
+      ),
+    );
+    if (tokens.every((t) => topicTokens.has(t) || general.has(t)))
+      return {
+        kind: "answer",
+        answer: `${g.summary} ${g.food}`,
+        choices: [],
+        sourceIds: validSources(g.sourceIds),
+        guide,
+        nutrient,
+      };
+    if (
+      /daily|per day|rda|recommended (intake|amount|dose)|how much.*(day|need)/.test(
+        n,
+      )
+    ) {
+      const reference = dailyReference(nutrient);
+      if (reference)
+        return {
+          kind: "answer",
+          answer:
+            reference.lines.join(" ") +
+            " These are general intake references from food and supplements combined, not an extra supplement dose. Food intake and health circumstances determine whether extra is needed.",
+          choices: [],
+          sourceIds: [reference.source],
+          guide,
+          nutrient,
+        };
+    }
+  }
   const scored = faqBank
     .map((f) => {
       const fw = words(f.question + " " + f.tags.join(" "));
@@ -154,4 +211,11 @@ export function askCopilot(question: string): CopilotReply {
     sourceIds: [],
     guide: best.score >= 0.2 ? (best.f.guide as GuideId) : undefined,
   };
+}
+
+export function nutrientForGuide(guide?: string): Nutrient | undefined {
+  const matches = Object.entries(nutrientCatalog).filter(
+    ([, info]) => info.guide === guide,
+  );
+  return matches.length === 1 ? (matches[0][0] as Nutrient) : undefined;
 }

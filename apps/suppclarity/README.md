@@ -1,6 +1,6 @@
 # SuppClarity
 
-Expo SDK 58 / React Native app for iOS, Android and web. US English adults 18+, with no upper age cutoff; beginners and existing supplement users. Version 0.3 adds NIH product lookup, broader ingredient recording, local guides, a prepared-answer copilot and clear starting scenarios. Details stay optional.
+Expo SDK 58 / React Native app for iOS, Android and web. US English adults 18+, with no upper age cutoff; beginners and existing supplement users. Version 0.4 adds front-photo identification, automatic online product discovery, optional daily-intake details and a copilot that answers broad questions without assuming a goal. Details stay optional.
 
 ## Run and check
 
@@ -26,10 +26,12 @@ From the repository root, `npm run test:suppclarity` checks the backend, and `np
 - Multi-ingredient scanned, database and manual products. Paired vitamin D units cannot double-count within a product. Magnesium must be elemental magnesium from Supplement Facts.
 - Current versus prospective products; only current products enter totals. Weekly averages and potential same-day totals are distinguished.
 - 54 ingredient types: common vitamins/minerals, omega-3, protein, creatine, collagen, fiber, probiotics, melatonin and selected botanicals. Catalog coverage means recording/education, not a personal recommendation for every ingredient.
-- 29 in-app guides and 100 authored common questions, with local matching, ambiguity choices and an honest out-of-scope fallback. No user questions go to a language model. Optional primary sources and fixed-topic Consensus reading are available after asking.
+- 29 in-app guides and 100 authored common questions, with local matching, ambiguity choices and an honest out-of-scope fallback. Prepared answers and broad ingredient overviews remain local. Other questions and up to two prior exchanges use OpenAI with curated guide content; profiles and product inventories are not sent. Optional primary sources and fixed-topic Consensus reading are available after asking.
+- Start with a name/brand photo or typed name. NIH lookup automatically falls back to OpenAI web search when no candidate is found or NIH is unavailable. A user can request an online check for an incorrect NIH candidate. Manufacturer pages are preferred over retailer pages; only consulted HTTPS product URLs survive validation. Online quantities stay editable and require bottle confirmation. International quantitative ingredient panels are accepted.
 - Search the NIH Dietary Supplement Label Database by name, brand or typed barcode. Match the exact strength and serving; confirm all quantities before saving. Ranged/multiple servings and obvious quantity/%DV conflicts never supply guessed amounts. This is not NIH product approval.
 - Versioned deterministic guidance preserves age/diet-specific vitamin D and B12 rules, food-first magnesium guidance, relevant guides for recorded ingredients and exercise/gut goals. Nine selected US upper references use age-specific values; staying below a reference never establishes safety. Important limitations remain visible; reasons, sources and other considerations expand on request.
 - Live Consensus related-paper searches on supported general topics. Searches never receive profiles/photos, and returned matches never automatically rewrite the rules.
+- Ingredient names link to optional daily intake references for ten nutrients, including age/sex differences and existing upper references. Values describe total food-plus-supplement intake, not extra pills. Sex-reference selection is optional under Account; the default shows both references. Gender identity is not requested. No extra onboarding step was added.
 - Reading sizes, session export and clearing. Personal entries are memory-only and disappear on reload. No payments, authentication or persistent health records.
 
 The home screen separates four scenarios: new to supplements, checking before buying, reviewing current use and asking a question. If camera access is blocked, the app opens its system settings; Expo Go opens the host app’s settings.
@@ -42,7 +44,7 @@ Existing Vercel project: `med-research-academy`. Server-only environment variabl
 - `CONSENSUS_API_KEY` — current `/v1/search` endpoint, `x-api-key` authentication.
 - `VITE_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — separate durable request counters in the Academy's existing database. Never expose the service role key to Expo or browser code.
 
-NIH product search uses the public DSLD v9 API with no additional key. It is read-only, bounded to 60 upstream hits / 8 displayed candidates, times out after 20 seconds, and caches public label metadata for an hour. No personal profile goes to NIH. Only typed product queries are sent.
+NIH product search uses the public DSLD v9 API with no additional key. It is read-only, bounded to 60 upstream hits / 8 displayed candidates, uses a 10-second NIH timeout, and caches public label metadata for an hour. Online fallback uses existing server-only OPENAI_API_KEY (optional SUPPCLARITY_SEARCH_MODEL, default gpt-4.1-mini), at most two web tool calls, bounded output, and the existing durable evidence allowance shared with live copilot/Consensus (50 global, 20 per network daily). Transient failure and allowance responses are not cached as no-match results. No personal profile goes to NIH. Only typed product queries are sent.
 
 Apply `supabase/migrations/202611210001_suppclarity_scan_quota.sql` to that database. RLS and revoked client privileges restrict counters/RPCs to the server. Default beta caps are 100 scans globally/day, 15 per network/day, 5 per session/day; evidence 50 global/day and 20 per network/day. Identifiers are HMAC hashes with an app-specific namespace. Old counters are removed on requests after seven days. Client session IDs are not authentication; global/network caps remain authoritative. Provider failures still consume an allowance. These are request safeguards, not a paid membership system.
 

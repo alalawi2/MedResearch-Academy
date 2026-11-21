@@ -1,4 +1,6 @@
 export const researchTopics = {
+  magnesium:
+    "Magnesium dietary intake supplementation adults evidence safety systematic review",
   "b12-vegan":
     "Vitamin B12 reliable sources vegan vegetarian adults systematic review",
   "b12-older": "Vitamin B12 absorption fortified foods older adults review",
