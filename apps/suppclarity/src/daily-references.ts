@@ -7,6 +7,8 @@ export function dailyReference(
   age?: number,
   sex: ReferenceSex = "both",
 ): { lines: string[]; source: SourceId } | null {
+  if (typeof age === "number" && Number.isFinite(age) && age > 0 && age < 18)
+    return null;
   const a = Number.isInteger(age) && age! >= 18 ? age! : 0;
   const pair = (male: number, female: number, unit: string, group: string) =>
     `${group}${group ? ": " : ""}${sex === "male" ? `Male reference ${male}` : sex === "female" ? `Female reference ${female}` : `Male ${male}; female ${female}`} ${unit}/day.`;

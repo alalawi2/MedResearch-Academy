@@ -93,7 +93,13 @@ export function createHandler({
                   signal,
                 });
                 onlineStatus = "searched";
-              } catch {
+              } catch (error) {
+                console.error(
+                  "suppclarity_discovery_failed",
+                  error?.name === "TimeoutError" || error?.name === "AbortError"
+                    ? "timeout"
+                    : "provider_or_format",
+                );
                 onlineStatus = "unavailable";
               }
             }

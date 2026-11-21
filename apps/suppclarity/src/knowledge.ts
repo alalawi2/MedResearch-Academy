@@ -167,6 +167,16 @@ export function askCopilot(question: string): CopilotReply {
         n,
       )
     ) {
+      if (/pregnan|breastfeed|breast feed|child|under 18/.test(n))
+        return {
+          kind: "scope",
+          answer:
+            "Pregnancy, breastfeeding and childhood use different intake references. The general adult figures should not be applied automatically, and they do not choose an extra supplement dose. These circumstances need individual context.",
+          choices: [],
+          sourceIds: validSources(g.sourceIds),
+          guide,
+          nutrient,
+        };
       const reference = dailyReference(nutrient);
       if (reference)
         return {
