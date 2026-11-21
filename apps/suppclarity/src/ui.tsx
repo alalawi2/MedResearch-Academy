@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "@expo/vector-icons/Feather";
@@ -112,6 +113,7 @@ export function Button({
 }) {
   return (
     <Pressable
+      testID={`button-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
       accessibilityRole="button"
       accessibilityState={{ disabled }}
       aria-disabled={disabled}
@@ -148,6 +150,7 @@ export function Page({
   back?: boolean;
   right?: React.ReactNode;
 }) {
+  const { storageStatus } = useStore();
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: C.bg }}
@@ -159,6 +162,7 @@ export function Page({
       >
         <ScrollView
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           contentContainerStyle={S.scroll}
         >
           <View style={S.content}>
@@ -181,6 +185,9 @@ export function Page({
                 </Copy>
                 {right}
               </View>
+            )}
+            {storageStatus.startsWith("Could not") && (
+              <Notice>{storageStatus}</Notice>
             )}
             {children}
             <View style={{ height: 24 }} />
@@ -218,10 +225,14 @@ export function Field({
     <View style={{ gap: 7 }}>
       <Copy kind="label">{label}</Copy>
       <TextInput
+        testID={`field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
         accessibilityLabel={label}
         value={value}
         onChangeText={onChange}
         keyboardType={number ? "decimal-pad" : "default"}
+        returnKeyType="done"
+        inputAccessoryViewButtonLabel="Done"
+        onSubmitEditing={Keyboard.dismiss}
         maxLength={maxLength ?? (number ? 12 : 100)}
         style={S.input}
         placeholderTextColor={C.muted}

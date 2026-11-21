@@ -21,7 +21,7 @@ export default function About() {
           Results start with one next step. Reasons, dated sources and related
           Consensus research are available when you ask.
         </Copy>
-        <Copy kind="heading">What remains outside this preview</Copy>
+        <Copy kind="heading">What remains outside this app</Copy>
         <Copy>
           Diagnosis, individual treatment doses, medicine interaction screening,
           complete dietary assessment, secure accounts, payments and wearable
@@ -29,16 +29,18 @@ export default function About() {
         </Copy>
       </Card>
       <Notice>
-        This is a development preview, not a clinically validated service or a
-        recruiting study. No clinical validation or ethics approval is claimed.
+        This app provides general education and is not a medical device. It does
+        not diagnose or prescribe. It is not a recruiting study; no clinical
+        validation or ethics approval is claimed.
       </Notice>
       <Card>
         <Copy kind="heading">Your information</Copy>
         <Copy>
-          Answers and confirmed product records stay in this app session and
-          clear on reload. A selected label photo is sent to OpenAI only when
-          you agree and tap Read my label. Your questionnaire is not sent with
-          it. We do not save the photo or profile in our database.
+          In the installed app, answers and confirmed products are saved in
+          encrypted device storage. The browser preview clears on reload. A
+          selected label photo is sent to OpenAI only when you agree and tap
+          Find my product. Your questionnaire is not sent with it. We do not
+          save the photo or profile in our database.
         </Copy>
         <Copy>
           Provider retention and abuse-monitoring controls apply; turning off
@@ -53,9 +55,29 @@ export default function About() {
           sent. Consensus receives a general research topic, never your answers
           or photo. We keep keyed hashes for short-lived request allowances,
           without storing the raw network address. External source links open
-          their own websites.
+          their own websites. If you choose to report an answer, that answer and
+          your reason are saved privately for up to 31 days; your question and
+          profile are not included.
         </Copy>
       </Card>
+      <Button
+        secondary
+        label="Privacy policy"
+        onPress={() =>
+          Linking.openURL(
+            "https://www.medresearch-academy.om/suppclarity/privacy",
+          )
+        }
+      />
+      <Button
+        secondary
+        label="Help & support"
+        onPress={() =>
+          Linking.openURL(
+            "https://www.medresearch-academy.om/suppclarity/support",
+          )
+        }
+      />
       <Button
         secondary
         label="Visit the research project"

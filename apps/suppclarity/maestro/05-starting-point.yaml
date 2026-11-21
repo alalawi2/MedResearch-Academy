@@ -1,0 +1,51 @@
+appId: om.medresearchacademy.suppclarity
+name: An older adult can start without taking a supplement
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- tapOn:
+    id: button-find-my-starting-point
+- tapOn: "I'm new to supplements"
+- tapOn:
+    id: button-continue
+- tapOn:
+    id: field-age-in-years
+- inputText: '75'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: button-continue
+- tapOn: 'None of these'
+- scrollUntilVisible:
+    element:
+      id: button-continue
+- tapOn:
+    id: button-continue
+- tapOn: 'No special circumstances'
+- tapOn:
+    id: button-continue
+- tapOn: 'Mixed diet'
+- tapOn:
+    id: button-continue
+- tapOn: 'Regular fortified foods'
+- tapOn:
+    id: button-continue
+- scrollUntilVisible:
+    element: 'General wellbeing'
+- tapOn: 'General wellbeing'
+- scrollUntilVisible:
+    element:
+      id: button-see-my-summary
+- tapOn:
+    id: button-see-my-summary
+- assertVisible: 'YOUR NEXT STEP'
+- takeScreenshot: screenshots/10-starting-without-supplements

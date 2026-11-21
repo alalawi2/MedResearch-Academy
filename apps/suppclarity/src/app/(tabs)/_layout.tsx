@@ -1,8 +1,11 @@
 import { useStore } from "../../store";
 import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Icon, C } from "../../ui";
 export default function TabLayout() {
   const { scale } = useStore();
+  const insets = useSafeAreaInsets();
+  const bottom = Math.max(insets.bottom, 8);
   return (
     <Tabs
       screenOptions={{
@@ -12,10 +15,11 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: C.bg,
           borderTopColor: C.line,
-          minHeight: 76 * scale,
-          paddingTop: 10,
-          paddingBottom: 12,
+          height: 64 * scale + bottom,
+          paddingTop: 8,
+          paddingBottom: bottom,
         },
+        tabBarHideOnKeyboard: true,
         tabBarLabelStyle: { fontSize: 14 * scale, marginTop: 4 },
       }}
     >
@@ -23,6 +27,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Guidance",
+          tabBarButtonTestID: "tab-guidance",
           tabBarIcon: ({ color }) => (
             <Icon
               name="sun"
@@ -35,6 +40,7 @@ export default function TabLayout() {
         name="products"
         options={{
           title: "Products",
+          tabBarButtonTestID: "tab-products",
           tabBarIcon: ({ color }) => (
             <Icon
               name="layers"
@@ -47,6 +53,7 @@ export default function TabLayout() {
         name="ask"
         options={{
           title: "Ask",
+          tabBarButtonTestID: "tab-ask",
           tabBarIcon: ({ color }) => (
             <Icon
               name="message-circle"
@@ -59,6 +66,7 @@ export default function TabLayout() {
         name="account"
         options={{
           title: "Account",
+          tabBarButtonTestID: "tab-account",
           tabBarIcon: ({ color }) => (
             <Icon
               name="user"

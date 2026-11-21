@@ -5,7 +5,7 @@ export default function Export() {
   const { profile, products } = useStore();
   const text = JSON.stringify(
     {
-      app: "SuppClarity research preview",
+      app: "SuppClarity",
       exportedAt: new Date().toISOString(),
       profile,
       products,

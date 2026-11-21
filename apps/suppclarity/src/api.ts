@@ -146,3 +146,29 @@ export async function copilotAnswer(
     throw Error("The answer could not be checked.");
   return data;
 }
+export type ReportReason = "incorrect" | "unsafe" | "offensive" | "other";
+export async function reportAnswer(
+  answer: string,
+  category: ReportReason,
+  sourceIds: string[],
+  signal: AbortSignal,
+) {
+  const response = await fetch(`${ORIGIN}/api/suppclarity/feedback`, {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      answer,
+      category,
+      sourceIds,
+      consent: "answer-report-v1",
+    }),
+  });
+  const data = await response.json();
+  if (!response.ok || data.saved !== true)
+    throw new Error(
+      typeof data.error === "string"
+        ? data.error
+        : "The report was not saved. Please try again.",
+    );
+}

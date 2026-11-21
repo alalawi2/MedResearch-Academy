@@ -4,7 +4,16 @@ import { router } from "expo-router";
 import { Page, Copy, Button, Card, Notice, Icon, C, S } from "../../ui";
 import { useStore } from "../../store";
 export default function Account() {
-  const { scale, setScale, reset, profile, setProfile } = useStore();
+  const {
+    scale,
+    setScale,
+    reset,
+    profile,
+    setProfile,
+    storageStatus,
+    onlineAnswers,
+    setOnlineAnswers,
+  } = useStore();
   const [showReference, setShowReference] = useState(false);
   const [confirm, setConfirm] = useState(false);
   return (
@@ -85,11 +94,13 @@ export default function Account() {
         )}
       </Card>
       <Card>
-        <Copy kind="heading">Your session</Copy>
+        <Copy kind="heading">Your data</Copy>
         <Copy style={{ color: C.muted }}>
-          This preview has no sign-in or cloud storage. Answers and product
-          entries disappear on reload. Keep a copy if you need it.
+          In the installed iPhone and Android app, your answers and confirmed
+          products are saved in encrypted device storage. There is no account or
+          cloud sync. The browser preview clears on reload.
         </Copy>
+        <Copy accessibilityLiveRegion="polite">{storageStatus}</Copy>
         <Button
           secondary
           label="View an export of my entries"
@@ -99,11 +110,12 @@ export default function Account() {
         {confirm ? (
           <>
             <Notice>
-              Clear your answers and products from this session? This cannot be
-              undone.
+              Clear your answers and products from this app and its saved device
+              storage? This cannot be undone. Your reading-size preference
+              stays.
             </Notice>
             <Button
-              label="Clear my session"
+              label="Clear my data"
               onPress={() => {
                 reset();
                 setConfirm(false);
@@ -119,24 +131,44 @@ export default function Account() {
         ) : (
           <Button
             secondary
-            label="Clear session"
+            label="Clear my data"
             icon="trash-2"
             onPress={() => setConfirm(true)}
           />
         )}
       </Card>
       <Card>
-        <Copy kind="heading">Clarity first. More later.</Copy>
-        <Copy style={{ color: C.muted }}>
-          Explore the proposed Free and Plus plans. Everything in this research
-          preview is free.
+        <Copy kind="heading">Online answers</Copy>
+        <Copy>
+          {onlineAnswers
+            ? "Online AI answers are allowed for this session."
+            : "We ask before sending a question to OpenAI. In-app guides and prepared answers work without it."}
         </Copy>
-        <Button
-          secondary
-          label="See planned membership"
-          onPress={() => router.push("/plus")}
-        />
+        {onlineAnswers && (
+          <Button
+            secondary
+            label="Turn off online answers"
+            onPress={() => setOnlineAnswers(false)}
+          />
+        )}
       </Card>
+      <Card>
+        <Copy kind="heading">Free to use</Copy>
+        <Copy>
+          All current features are free. There is no subscription or trial
+          charge.
+        </Copy>
+      </Card>
+      <Button
+        secondary
+        label="Privacy"
+        onPress={() => router.push("/privacy")}
+      />
+      <Button
+        secondary
+        label="Help & support"
+        onPress={() => router.push("/support")}
+      />
       <Button
         secondary
         label="About this project"

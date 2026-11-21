@@ -2,28 +2,34 @@
   "expo": {
     "name": "SuppClarity",
     "slug": "suppclarity",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "orientation": "default",
     "icon": "./assets/app-icon-v2.png",
     "scheme": "suppclarity",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "om.medresearchacademy.suppclarity"
+      "bundleIdentifier": "om.medresearchacademy.suppclarity",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "om.medresearchacademy.suppclarity",
       "adaptiveIcon": {
         "foregroundImage": "./assets/app-icon-v2.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/app-icon-v2.png",
       "bundler": "metro",
       "output": "single",
       "name": "SuppClarity",
-      "description": "A clear starting point for your supplement routine. Research preview."
+      "description": "A clear starting point for your supplement routine. General education for adults."
     },
     "plugins": [
       "expo-router",
@@ -33,6 +39,12 @@
           "photosPermission": "Choose a supplement label photo to read and confirm its quantities.",
           "cameraPermission": "Photograph Supplement Facts to read and confirm the label.",
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
         }
       ]
     ],

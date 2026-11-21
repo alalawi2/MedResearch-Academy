@@ -1388,7 +1388,7 @@ export const faqBank = [
     id: "q094",
     question: "How do I enable camera access?",
     answer:
-      "Tap Open camera settings if access is blocked, enable Camera for the app hosting this preview, then return and try Take a photo again. You can also choose an existing photo.",
+      "Tap Open camera settings if access is blocked, enable Camera for the app hosting this app, then return and try Take a photo again. You can also choose an existing photo.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],
@@ -1442,7 +1442,7 @@ export const faqBank = [
     id: "q100",
     question: "Will my entries still be here after I reload?",
     answer:
-      "This preview keeps personal entries in memory and clears them on reload. Export a copy if needed. The preview is free, and payment collection is not enabled.",
+      "The installed iPhone and Android app saves your answers and confirmed products in encrypted device storage. The browser preview clears on reload. Export a copy if needed. All current features are free, with no subscription or trial charges.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],

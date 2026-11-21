@@ -1,0 +1,136 @@
+appId: om.medresearchacademy.suppclarity
+name: Confirm, relaunch, inspect amount and erase a routine
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- tapOn:
+    id: tab-products
+- tapOn: 'Add a product'
+- tapOn: "Manual entry"
+- scrollUntilVisible:
+    element:
+      id: field-product-name
+- tapOn:
+    id: field-product-name
+- inputText: Magnesium label example
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-units-per-serving
+- tapOn:
+    id: field-units-per-serving
+- inputText: '1'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-serving-unit
+- tapOn:
+    id: field-serving-unit
+- inputText: tablet
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-find-an-ingredient
+- tapOn:
+    id: field-find-an-ingredient
+- inputText: Magnesium
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: ingredient-magnesium
+- scrollUntilVisible:
+    element:
+      id: field-magnesium-amount-per-serving
+- tapOn:
+    id: field-magnesium-amount-per-serving
+- inputText: '300'
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: 'Does the label have other active ingredients?'
+- tapOn: 'No'
+- scrollUntilVisible:
+    element: 'Review my entry'
+- tapOn: 'Review my entry'
+- scrollUntilVisible:
+    element: 'These details are correct'
+- tapOn: 'These details are correct'
+- assertVisible: Magnesium label example
+- tapOn:
+    id: tab-account
+- scrollUntilVisible:
+    element: 'Saved on this device.'
+- launchApp
+- tapOn:
+    id: tab-products
+- assertVisible: Magnesium label example
+- takeScreenshot: screenshots/05-saved-routine
+- scrollUntilVisible:
+    element: 'Daily amount and details for Magnesium'
+- tapOn: 'Daily amount and details for Magnesium'
+- assertVisible: '300 mg'
+- takeScreenshot: screenshots/06-dose-context
+- tapOn: 'Go back'
+- tapOn:
+    id: tab-account
+- scrollUntilVisible:
+    element: 'Clear my data'
+- tapOn: 'Clear my data'
+- scrollUntilVisible:
+    element:
+      text: 'Clear my data'
+      index: 0
+- tapOn: 'Clear my data'
+- tapOn:
+    id: tab-account
+- scrollUntilVisible:
+    element: 'Saved on this device.'
+- launchApp
+- tapOn:
+    id: tab-products
+- assertVisible: 'A fresh start'
+- assertNotVisible: Magnesium label example

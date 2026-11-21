@@ -28,7 +28,7 @@ export default function Home() {
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="About this research preview"
+          accessibilityLabel="About SuppClarity"
           onPress={() => router.push("/about")}
           style={[
             S.iconButton,
@@ -96,9 +96,9 @@ export default function Home() {
         </Copy>
         <Copy style={{ color: "#D0CCD8", fontSize: 15 }}>
           {done
-            ? "Review your answers, product entries and the limits of this preview."
+            ? "Review your answers, product entries and the limits of this app."
             : started
-              ? `Continue from question ${step + 1}. Your answers are kept for this session.`
+              ? `Continue from question ${step + 1}. Pick up where you left off.`
               : "Start with your diet and goals. You don’t need a bottle to begin."}
         </Copy>
         <Button
@@ -213,11 +213,11 @@ export default function Home() {
       </Pressable>
       <View style={{ gap: 6 }}>
         <Copy kind="small" style={{ color: C.muted, fontSize: 12 }}>
-          RESEARCH PREVIEW · 0.5
+          SUPPLEMENT EDUCATION · 0.6
         </Copy>
         <Copy kind="small" style={{ color: C.muted }}>
           Common vitamins, minerals and other supplements. General education,
-          not an individual dose. Entries clear on reload.
+          not an individual dose.
         </Copy>
       </View>
     </Page>
