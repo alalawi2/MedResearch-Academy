@@ -120,6 +120,25 @@ test("all rows remain visible while unsupported and uncertain quantities stay un
   assert.equal(x.ingredients[0].supported, false);
   assert.throws(() => validatedLabel({ ...raw, servingUnits: 0 }));
 });
+test("unsupported target units cannot prefill a canonical quantity", () => {
+  const l = validatedLabel({
+    ...raw,
+    ingredients: [
+      {
+        name: "Vitamin B12",
+        amount: 1,
+        unit: "mg",
+        reading: "clear",
+        labelText: "Vitamin B12 1 mg",
+      },
+    ],
+  });
+  assert.equal(l.ingredients[0].unit, "mg");
+  assert.equal(l.ingredients[0].amount, 1); // Preserve transcription without pretending it is 1 mcg.
+  assert.equal(l.ingredients[0].reading, "uncertain");
+  assert.equal(l.panelComplete, false);
+  assert(l.concerns.some((c) => c.includes("converted amount manually")));
+});
 test("unreadable non-label does not become a guessed product", () => {
   assert.equal(
     validatedLabel({ ...raw, hasSupplementFacts: false }).ingredients.length,
