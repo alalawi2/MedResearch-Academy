@@ -79,6 +79,12 @@
     },
     "api/rafiq/assess.mjs": {
       "maxDuration": 60
+    },
+    "api/suppclarity/scan.mjs": {
+      "maxDuration": 60
+    },
+    "api/suppclarity/evidence.mjs": {
+      "maxDuration": 30
     }
   },
   "rewrites": [

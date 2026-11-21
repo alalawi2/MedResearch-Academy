@@ -6,7 +6,7 @@ const STUDIES: StudyCardData[] = [
   {
     slug: 'suppclarity',
     title: 'SuppClarity — Personalized Supplement Guidance',
-    shortDescription: 'An Expo app in development for iPhone, Android and web. Designed for adults of all ages, including beginners and existing supplement users. Explore the working interface for profiles, confirmed label entries and ingredient totals. Personal recommendations and automatic label reading are not yet enabled. Not recruiting participants.',
+    shortDescription: 'An Expo app in development for iPhone, Android and web. Designed for adults of all ages, including beginners and existing supplement users. Try consented label scanning, confirmed ingredient totals and evidence-based educational guidance, with details on request. Not recruiting participants.',
     status: 'development',
     ethicsIds: [],
     pi: 'To be confirmed before evaluation',

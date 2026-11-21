@@ -2,11 +2,11 @@ import { View, Pressable, Image } from "react-native";
 import { router } from "expo-router";
 import { Page, Copy, Button, Icon, C, S } from "../../ui";
 import { useStore } from "../../store";
-import { totals } from "../../domain";
+import { totals, profileComplete } from "../../domain";
 export default function Home() {
   const { profile, step, products } = useStore();
   const started = Object.values(profile).some(Boolean);
-  const done = Object.values(profile).every(Boolean);
+  const done = profileComplete(profile);
   const repeated = totals(products).filter((t) => t.count > 1).length;
   return (
     <Page>
@@ -149,7 +149,7 @@ export default function Home() {
                 Read a label
               </Copy>
               <Copy kind="small" style={{ fontSize: 13, color: "#7A4E43" }}>
-                Enter & confirm
+                Scan & confirm
               </Copy>
             </View>
           </Pressable>
@@ -216,7 +216,7 @@ export default function Home() {
           RESEARCH PREVIEW
         </Copy>
         <Copy kind="small" style={{ color: C.muted }}>
-          No personal medical assessment. Entries clear on reload.
+          Educational guidance covers three nutrients. Entries clear on reload.
         </Copy>
       </View>
     </Page>

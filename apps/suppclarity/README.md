@@ -1,67 +1,63 @@
 # SuppClarity
 
-Expo SDK 58 / React Native application for iOS, Android and web. Development preview under MedResearch Academy. Audience: US English adults 18+, without an upper age limit, both beginners and existing supplement users.
+Expo SDK 58 / React Native app for iOS, Android and web. US English adults 18+, with no upper age cutoff; beginners and existing supplement users. Version 0.2 adds consented label extraction and personalized **educational** next steps, with details on request.
 
-## Run
+## Run and check
 
-Use Node 24 LTS (tested with 24.22.1).
+Use Node 24 LTS (tested 24.22.1).
 
 ```sh
 cd apps/suppclarity
 npm ci
 npm start
-# npm run android / npm run ios / npm run web
 npm run lint
 npm run typecheck
 npm test
+npx expo-doctor
 ```
 
-Expo Router owns navigation. Shared state lives in `src/store.tsx`; calculation and scope logic in `src/domain.ts`; reusable UI in `src/ui.tsx`. The UI supports system text scaling plus three reading sizes, labels on controls, large touch targets and reduced visual complexity. Test on physical devices and with VoiceOver/TalkBack before release.
+From the repository root, `npm run test:suppclarity` checks the backend, and `npm run build:all` exports the app and builds the Academy. Commit the generated `public/suppclarity` export with source changes. CI verifies its source fingerprint before rebuilding. The Academy's existing Vercel project hosts `/suppclarity/` and the research card at `/active-research/suppclarity`.
 
 ## Working features
 
-- Beginner and existing-user questionnaire; pause/resume in the current session.
-- Adults 18+ including older adults, with no upper marketing cutoff.
-- Confirmed manual single-ingredient vitamin D, B12 and magnesium entries.
-- Serving and weekly-use arithmetic, vitamin D IU normalization, overlapping ingredient entries.
-- Optional reference photo via native camera or system library; no OCR or upload.
-- Evidence reference links, optional explanation, planned pricing, export and session clearing.
+- Beginner/existing-user onboarding, adult age, diet, B12-source questions when relevant, health-scope screening, and goals.
+- Camera/library label reading with explicit consent, resizing and server-side structured OpenAI extraction. No questionnaire accompanies the image.
+- Editable confirmation of each supported amount and serving size before saving; missing and uncertain quantities stay blank. Unsupported ingredients stay visible as unassessed.
+- Multi-ingredient scanned products; single supported nutrient per manual entry. Paired vitamin D units cannot double-count within a product. Magnesium must be elemental magnesium from Supplement Facts.
+- Current versus prospective products; only current products enter totals. Weekly averages and potential same-day totals are distinguished.
+- Versioned deterministic guidance for vitamin D, B12 and magnesium, including age-specific populations, source review and overlap/upper-reference flags. Important limitations remain visible; reasons, sources and other considerations expand on request.
+- Live Consensus related-paper searches on supported general topics. Searches never receive profiles/photos, and returned matches never automatically rewrite the rules.
+- Reading sizes, session export and clearing. Personal entries are memory-only and disappear on reload. No payments, authentication or persistent health records.
 
-## Deliberate release boundaries
+## Server setup
 
-This is not a validated clinical product. There is no recommendation engine, diagnosis, treatment dosing, upper-limit assessment, food-intake assessment or medicine interaction screening. Screening marks results incomplete when required. Sources are educational references, not generated personal citations. Consensus and product database integrations are not connected. Photos are transient on the entry screen and are not saved with product entries. Products and profile exist only in memory and clear on reload. There is no authentication, backend, payment collection, persistence or production health-data storage yet. No study recruitment, ethics approval, efficacy or professional review of these clinical rules is claimed.
+Existing Vercel project: `med-research-academy`. Server-only environment variables:
 
-The calculator only accepts one supported ingredient per product entry; multivitamins and mixed products are not supported. Magnesium entries must use elemental magnesium from Supplement Facts. Weekly averages are not recommended doses or a judgment about dosing schedules.
+- `OPENAI_API_KEY` — label reader; optional `SUPPCLARITY_LABEL_MODEL`, default `gpt-4.1-mini`.
+- `CONSENSUS_API_KEY` — current `/v1/search` endpoint, `x-api-key` authentication.
+- `VITE_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` — separate durable request counters in the Academy's existing database. Never expose the service role key to Expo or browser code.
 
-Vitamin D conversion source: NIH ODS, https://ods.od.nih.gov/factsheets/VitaminD-HealthProfessional/ (1 mcg = 40 IU), checked 21 November 2026.
+Apply `supabase/migrations/202611210001_suppclarity_scan_quota.sql` to that database. RLS and revoked client privileges restrict counters/RPCs to the server. Default beta caps are 100 scans globally/day, 15 per network/day, 5 per session/day; evidence 50 global/day and 20 per network/day. Identifiers are HMAC hashes with an app-specific namespace. Old counters are removed on requests after seven days. Client session IDs are not authentication; global/network caps remain authoritative. Provider failures still consume an allowance. These are request safeguards, not a paid membership system.
 
-## Web hosting on the Academy
+Deploy environment changes before testing. Missing keys/counters fail closed and leave manual entry and saved references available. The app calls the fixed production API origin on all platforms; localhost/owned Academy previews are allowed for QA. Scan endpoint accepts only bounded inline JPEG/PNG/WebP image data, requires consent, does not fetch user URLs, and does not log raw photos, profiles or upstream responses. API keys never enter the app bundle.
 
-From the repository root after installing this app's dependencies:
+OpenAI Responses uses `store:false`. This does not promise zero provider retention or eliminate abuse-monitoring retention. Photos are not saved in the app database, but temporary device files and provider controls still apply. External reference pages have their own privacy practices.
 
-```sh
-npm run build:all
-```
+## Evidence and scope
 
-`build:app` exports the app and copies it into `public/suppclarity`. The Academy's existing Vite/Vercel build serves the checked-in export. `/active-research/suppclarity` introduces the project and `/suppclarity/` opens the app. Rebuild and commit the export whenever app source changes; CI checks a source fingerprint for stale exports and rebuilds on Linux; byte-for-byte bundle equality is not assumed across build hosts. Do not add health tracking scripts to the app. The research card has a development status and does not imply an approved research study.
+Read `EVIDENCE_RULES.md`. Research was gathered through Consensus and checked against linked primary sources. This is an implementation review, not independent clinical validation. The evidence snapshot is versioned and personalized suggestions pause after its review date; label totals remain available. Essential quantity flags are not paywalled.
 
-## Native test builds
+No diagnosis, individual supplement dose, treatment plan, comprehensive nutrient adequacy calculation, medicine interaction screening or whole-product safety clearance is provided. Diet categories and label amounts do not establish deficiency, absorbed intake or a numerical gap. Health conditions, medicines, clinician-directed supplements/known deficiency and pregnancy-related circumstances route to individual review rather than automatic personal advice. No participant recruitment, ethics approval or clinical efficacy is claimed.
 
-The Expo project is https://expo.dev/accounts/alalawi2/projects/suppclarity .
+## Native builds
+
+Expo project: https://expo.dev/accounts/alalawi2/projects/suppclarity
 
 ```sh
 npx eas-cli@latest build --platform android --profile preview
 npx eas-cli@latest build --platform ios --profile ios-simulator
 ```
 
-Android preview produces an APK. iOS simulator builds do not install on a physical iPhone. A signed physical-device iOS build requires Apple Developer credentials and registered test devices; App Store and Play submissions are separate later steps. Identifiers: `om.medresearchacademy.suppclarity`.
+Image manipulation adds native code, so version 0.2 needs a new native build. Android preview is an APK. iOS simulator builds cannot install on physical iPhones. Signed iPhone builds need Apple Developer credentials and registered test devices; store submission remains a separate step. Identifier: `om.medresearchacademy.suppclarity`. The Academy web prefix is set only for web exports, never native assets.
 
-## Next implementation work
-
-1. Finish device accessibility testing and usability tests across age groups and both entry paths.
-2. Add a secure, consented backend and ownership-tested export/deletion before persistent personal data.
-3. Implement server-side label extraction and confirm uncertain values; validate it against held-out labels.
-4. Establish intended use, reviewed nutrient rules, licensed interaction coverage, versioned source records and clinical/regulatory validation before personal recommendations.
-5. Add app-store-compliant subscriptions after the core value is demonstrated; keep detected essential warnings free.
-
-Claude's interface critique and the changes adopted are recorded in `CLAUDE_INTERFACE_REVIEW.md`. AI appraisal does not replace clinical or regulatory diligence.
+Before clinical/commercial release: held-out real-label evaluation and evidence-rule validation, physical-device and VoiceOver/TalkBack testing, defined intended-use/regulatory assessment, persistent-data rights design if accounts are introduced, and app-store-compliant subscriptions after core value is demonstrated. Claude's earlier interface critique is recorded in `CLAUDE_INTERFACE_REVIEW.md`; AI critique is not clinical validation.
