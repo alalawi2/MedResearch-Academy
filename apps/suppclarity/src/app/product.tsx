@@ -20,6 +20,7 @@ import {
   type DraftRow,
   type ReadLabel,
 } from "../labels";
+import { ingredientContext } from "../dose-meaning";
 import { prospectiveNotes } from "../prospective";
 import { scanLabel } from "../api";
 const blankRow = (n: Nutrient): DraftRow => ({
@@ -33,7 +34,8 @@ const blankRow = (n: Nutrient): DraftRow => ({
   labelText: "",
 });
 export default function ProductEntry() {
-  const { products, setProducts, profile, setProfile } = useStore();
+  const { products, setProducts, profile, setProfile, setIngredientPreview } =
+    useStore();
   const { intent } = useLocalSearchParams<{ intent?: string }>();
   const [method, setMethod] = useState("Photo");
   const [searchSeed, setSearchSeed] = useState("");
@@ -57,6 +59,7 @@ export default function ProductEntry() {
   const [busy, setBusy] = useState(false);
   const [cameraBlocked, setCameraBlocked] = useState(false);
   const [error, setError] = useState("");
+  const [showAllRows, setShowAllRows] = useState(false);
   const [editRows, setEditRows] = useState<string[]>([]);
   const [confirm, setConfirm] = useState(false);
   const request = useRef<AbortController | null>(null);
@@ -73,6 +76,16 @@ export default function ProductEntry() {
     manualOther: manualOther !== "No",
   });
   const ready = Boolean(product && (label || manualOther));
+  const displayRows =
+    label && !showAllRows
+      ? rows.filter(
+          (row, index) =>
+            index < 3 ||
+            row.reading !== "clear" ||
+            !row.amount.trim() ||
+            !row.unit,
+        )
+      : rows;
   const notes = product
     ? prospectiveNotes(product, products, Number(profile.age))
     : [];
@@ -113,6 +126,7 @@ export default function ProductEntry() {
     setServing(result.servingUnits === null ? "" : String(result.servingUnits));
     setServingUnit(result.servingUnit || "");
     setRows(draftRows(result));
+    setShowAllRows(false);
     setEditRows([]);
     setManualOther("");
     setConfirm(false);
@@ -566,6 +580,24 @@ export default function ProductEntry() {
                 onChange={setServingUnit}
                 hint="For example capsule, tablet, scoop or mL."
               />
+              {taking && (
+                <>
+                  <Field
+                    label="Units you actually take on a use day"
+                    value={taken}
+                    onChange={setTaken}
+                    number
+                    hint="Use the same unit as serving size. This is not asking what dose you should take."
+                  />
+                  <Field
+                    label="Days per week you take it"
+                    value={days}
+                    onChange={setDays}
+                    number
+                    hint="A whole number from 1 to 7."
+                  />
+                </>
+              )}
               {!label && (
                 <>
                   <Copy kind="label">Add ingredients from the label</Copy>
@@ -609,7 +641,7 @@ export default function ProductEntry() {
                   </View>
                 </>
               )}
-              {rows.map((row) => (
+              {displayRows.map((row) => (
                 <Card key={row.id}>
                   <View style={S.row}>
                     <Copy kind="heading" style={{ flex: 1 }}>
@@ -642,12 +674,26 @@ export default function ProductEntry() {
                   <Button
                     secondary
                     label="Daily amount & more"
-                    onPress={() =>
+                    onPress={() => {
+                      const use =
+                        taking && Number(serving) > 0 && Number(taken) > 0;
+                      setIngredientPreview(
+                        row.amount.trim()
+                          ? ingredientContext(
+                              row.nutrient,
+                              Number(row.amount),
+                              row.unit,
+                              use ? "use-day" : "label-serving",
+                              use ? Number(serving) : 1,
+                              use ? Number(taken) : 1,
+                            )
+                          : undefined,
+                      );
                       router.push({
                         pathname: "/ingredient",
                         params: { name: row.nutrient },
-                      })
-                    }
+                      });
+                    }}
                   />
                   {label &&
                   row.amount &&
@@ -728,6 +774,17 @@ export default function ProductEntry() {
                   )}
                 </Card>
               ))}
+              {label && rows.length > 3 && (
+                <Button
+                  secondary
+                  label={
+                    showAllRows
+                      ? "Show fewer ingredients"
+                      : `Show all ${rows.length} ingredients`
+                  }
+                  onPress={() => setShowAllRows(!showAllRows)}
+                />
+              )}
               {label && label.ingredients.some((r) => !r.nutrient) && (
                 <Card>
                   <Copy kind="heading">Other ingredients</Copy>
@@ -767,24 +824,6 @@ export default function ProductEntry() {
                       </Pressable>
                     ))}
                   </View>
-                </>
-              )}
-              {taking && (
-                <>
-                  <Field
-                    label="Units you actually take on a use day"
-                    value={taken}
-                    onChange={setTaken}
-                    number
-                    hint="Use the same unit as serving size. This is not asking what dose you should take."
-                  />
-                  <Field
-                    label="Days per week you take it"
-                    value={days}
-                    onChange={setDays}
-                    number
-                    hint="A whole number from 1 to 7."
-                  />
                 </>
               )}
               {new Set(rows.filter((r) => r.included).map((r) => r.nutrient))

@@ -271,3 +271,14 @@ test("common goal scenarios select relevant education without inventing a dose",
     "limited",
   );
 });
+
+test("general wellbeing is not treated as a request for sleep guidance", () => {
+  const general = run({ ...profile, goal: "General wellbeing" });
+  const mg = [general.primary, ...general.additional].find(
+    (x) => x.id === "magnesium-food",
+  )!;
+  assert(!mg.title.includes("sleep"));
+  const sleep = run({ ...profile, goal: "Sleep" });
+  assert.equal(sleep.primary.id, "magnesium-food");
+  assert(sleep.primary.title.includes("sleep"));
+});

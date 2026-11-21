@@ -1,4 +1,10 @@
 export const extraSources = {
+  caffeineFDA: {
+    title: "Caffeine: understanding your intake",
+    by: "US Food and Drug Administration",
+    url: "https://www.fda.gov/consumers/consumer-updates/spilling-beans-how-much-caffeine-too-much",
+    note: "Caffeine amounts and sensitivity vary. It has no daily nutritional requirement; all food, drink and supplement sources count.",
+  },
   basicsNIH: {
     title: "Dietary supplements: what you need to know",
     url: "https://ods.od.nih.gov/HealthInformation/DS_WhatYouNeedToKnow.aspx",
@@ -238,7 +244,8 @@ export const localGuides = {
   },
   magnesium: {
     title: "Magnesium",
-    summary: "Magnesium supports normal muscle, nerve and metabolic functions.",
+    summary:
+      "Magnesium helps muscles and nerves work and helps the body use energy.",
     food: "Beans, nuts, seeds and whole grains are useful food sources.",
     evidence:
       "Magnesium is an essential nutrient, but extra supplementation is not automatically beneficial. Need depends on intake and health context. Sleep trials are small and inconsistent; symptoms alone do not identify a deficiency.",
@@ -528,7 +535,7 @@ export const localGuides = {
       "A pre-workout blend\u2019s effects cannot be inferred from caffeine alone. More stimulation is not necessarily better performance.",
     check:
       "Sleep problems, palpitations, medicines and pregnancy change the context. This app does not set a personal stimulant limit.",
-    sourceIds: ["sportsNIH"],
+    sourceIds: ["sportsNIH", "caffeineFDA"],
     topic: "caffeine",
   },
 };

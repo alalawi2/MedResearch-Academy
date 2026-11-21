@@ -20,6 +20,7 @@ export default function Ask() {
   return <AskSession key={resetKey} />;
 }
 function AskSession() {
+  const { setIngredientPreview } = useStore();
   const [question, setQuestion] = useState("");
   const [asked, setAsked] = useState("");
   const [reply, setReply] = useState<CopilotReply>();
@@ -177,12 +178,13 @@ function AskSession() {
               <Button
                 secondary
                 label="Daily amount & more"
-                onPress={() =>
+                onPress={() => {
+                  setIngredientPreview(undefined);
                   router.push({
                     pathname: "/ingredient",
                     params: { name: reply.nutrient },
-                  })
-                }
+                  });
+                }}
               />
             )}
             {reply.guide && (

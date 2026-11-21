@@ -516,7 +516,7 @@ export const nutrientCatalog = {
     units: ["mg", "mcg", "g"],
     group: "Sport & recovery",
     guide: "caffeine",
-    aliases: ["caffeine anhydrous"],
+    aliases: ["caffeine anhydrous", "total caffeine"],
     aggregate: true,
     family: "Caffeine",
   },
