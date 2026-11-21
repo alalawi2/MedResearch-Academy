@@ -16,7 +16,8 @@ name: Local guides, search entry and privacy
     id: field-your-supplement-question
 - inputText: magensium
 - tapOn: "Ask Clarity"
-- assertVisible: ".*muscles.*"
+- scrollUntilVisible:
+    element: ".*muscles.*"
 - assertNotVisible: "Checking the guide evidence…"
 - takeScreenshot: screenshots/03-ask
 - openLink: suppclarity://privacy

@@ -1,0 +1,24 @@
+appId: om.medresearchacademy.suppclarity
+name: Find a real manufacturer product by name
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: suppclarity://product
+- tapOn: 'Search entry'
+- tapOn:
+    id: field-product-name-or-brand
+- inputText: natures own magnesium energy
+- hideKeyboard
+- tapOn: 'Agree & find my product'
+- extendedWaitUntil:
+    notVisible: 'Finding your product…'
+    timeout: 65000
+- scrollUntilVisible:
+    element: 'This is my product'
+- takeScreenshot: screenshots/07-manufacturer-match
+- tapOn: 'This is my product'
+- scrollUntilVisible:
+    element: 'Magnesium'
+- assertVisible: '300 mg per serving'
+- takeScreenshot: screenshots/08-confirm-amounts

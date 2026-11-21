@@ -1,0 +1,21 @@
+appId: om.medresearchacademy.suppclarity
+name: Camera denial has a clear recovery path
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    permissions:
+      all: deny
+- openLink: suppclarity://product
+- scrollUntilVisible:
+    element: 'Take a photo'
+- tapOn: 'Take a photo'
+- scrollUntilVisible:
+    element: 'Open camera settings'
+- assertVisible: 'Open camera settings'
+- takeScreenshot: screenshots/09-camera-recovery
+- scrollUntilVisible:
+    element: 'Search entry'
+    direction: UP
+- tapOn: 'Search entry'
+- assertVisible: 'Agree & find my product'
