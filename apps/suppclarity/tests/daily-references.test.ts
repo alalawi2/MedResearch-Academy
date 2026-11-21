@@ -22,6 +22,7 @@ test("reference boundaries do not invent daily doses for herbs", () => {
   assert(dailyReference("Iron", 18, "female")?.lines[0].includes("15 mg"));
   assert(dailyReference("Iron", 19, "female")?.lines[0].includes("18 mg"));
   assert.equal(dailyReference("Ashwagandha", 35), null);
+  assert.equal(dailyReference("Magnesium", 17), null);
 });
 test("general magnesium questions and common typos never assume a sleep goal", () => {
   for (const q of [
@@ -39,6 +40,7 @@ test("general magnesium questions and common typos never assume a sleep goal", (
   const r = askCopilot("How much magnesium per day?");
   assert(r.answer?.includes("food and supplements combined"));
   assert.equal(askCopilot("How much should I take?").kind, "scope");
+  assert.equal(askCopilot("magnesium daily intake in pregnancy").kind, "scope");
 });
 test("online provenance survives quantity confirmation without pretending to be a scanned bottle", () => {
   const label: ReadLabel = {
