@@ -102,7 +102,8 @@ test("compound or blended amounts cannot be mistaken for elemental target amount
 test("all rows remain visible while unsupported and uncertain quantities stay unassessed", () => {
   const l = validatedLabel(raw);
   assert.equal(l.ingredients.length, 2);
-  assert.equal(l.ingredients[1].supported, false);
+  assert.equal(l.ingredients[1].supported, true);
+  assert.equal(l.ingredients[1].nutrient, "Zinc");
   const x = validatedLabel({
     ...raw,
     panelComplete: false,
@@ -127,13 +128,13 @@ test("unsupported target units cannot prefill a canonical quantity", async () =>
       {
         name: "Vitamin B12",
         amount: 1,
-        unit: "mg",
+        unit: "IU",
         reading: "clear",
-        labelText: "Vitamin B12 1 mg",
+        labelText: "Vitamin B12 1 IU",
       },
     ],
   });
-  assert.equal(l.ingredients[0].unit, "mg");
+  assert.equal(l.ingredients[0].unit, "IU");
   assert.equal(l.ingredients[0].amount, 1); // Preserve transcription without pretending it is 1 mcg.
   assert.equal(l.ingredients[0].reading, "uncertain");
   assert.equal(l.panelComplete, false);

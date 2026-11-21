@@ -11,9 +11,11 @@ export default function About() {
       <Card>
         <Copy kind="heading">What works today</Copy>
         <Copy>
-          Photo label reading with your confirmation, current and prospective
-          product records, ingredient totals and personalized educational
-          guidance for vitamin D, B12 and magnesium.
+          Name, brand and barcode lookup, photo label reading with your
+          confirmation, current and prospective product records, 54 ingredient
+          types, 29 short guides and 100 prepared common questions. Diet and age
+          select relevant educational guidance; the app does not calculate
+          personal supplement needs.
         </Copy>
         <Copy>
           Results start with one next step. Reasons, dated sources and related
@@ -44,10 +46,11 @@ export default function About() {
           retain temporary photo files.
         </Copy>
         <Copy>
-          Consensus receives a general research topic, never your answers or
-          photo. We keep keyed hashes for short-lived request allowances,
-          without storing the raw network address. External source links open
-          their own websites.
+          Product search terms go to the NIH label database. Prepared questions
+          and guides are read locally. Consensus receives a general research
+          topic, never your answers or photo. We keep keyed hashes for
+          short-lived request allowances, without storing the raw network
+          address. External source links open their own websites.
         </Copy>
       </Card>
       <Button

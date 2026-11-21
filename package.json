@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "build:app": "node scripts/build-suppclarity.mjs",
     "build:all": "npm run build:app && npm run build",
-    "test:suppclarity": "node --test tests/suppclarity-api.test.mjs"
+    "test:suppclarity": "node --test tests/suppclarity*.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",

@@ -1,13 +1,13 @@
 import { View, Pressable, Image } from "react-native";
 import { router } from "expo-router";
-import { Page, Copy, Button, Icon, C, S } from "../../ui";
+import { Page, Copy, Button, Card, Icon, C, S } from "../../ui";
 import { useStore } from "../../store";
-import { totals, profileComplete } from "../../domain";
+import { overlappingIngredients, profileComplete } from "../../domain";
 export default function Home() {
   const { profile, step, products } = useStore();
   const started = Object.values(profile).some(Boolean);
   const done = profileComplete(profile);
-  const repeated = totals(products).filter((t) => t.count > 1).length;
+  const repeated = overlappingIngredients(products).length;
   return (
     <Page>
       <View
@@ -118,74 +118,74 @@ export default function Home() {
           Free · No card needed · All adults 18+
         </Copy>
       </View>
-      <View style={{ gap: 14 }}>
-        <View style={[S.row, { justifyContent: "space-between" }]}>
-          <Copy kind="heading" style={{ fontSize: 20 }}>
-            Your toolkit
+      <View style={{ gap: 12 }}>
+        <Copy kind="heading">What brings you here?</Copy>
+        <Card>
+          <Copy kind="heading">I’m new to supplements</Copy>
+          <Copy kind="small">
+            Start with your diet and goals. Taking nothing is a valid starting
+            point.
           </Copy>
-          <Copy kind="small" style={{ color: C.muted }}>
-            Ready when you are
+          <Button
+            secondary
+            label={
+              started ? "Continue my starting check" : "Find my starting point"
+            }
+            onPress={() => router.push(done ? "/result" : "/check")}
+          />
+        </Card>
+        <Card>
+          <Copy kind="heading">I’m checking before buying</Copy>
+          <Copy kind="small">
+            Find or scan the label. Keep it as “Considering” so it stays out of
+            your intake totals.
           </Copy>
-        </View>
-        <View style={{ flexDirection: "row", gap: 12 }}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Enter a supplement label"
-            onPress={() => router.push("/product")}
-            style={({ pressed }) => [
-              {
-                flex: 1,
-                backgroundColor: "#FCECE6",
-                borderRadius: 20,
-                padding: 18,
-                gap: 20,
-                opacity: pressed ? 0.8 : 1,
-              },
-            ]}
-          >
-            <Icon name="maximize" size={26} color="#A43E27" />
-            <View style={{ gap: 5 }}>
-              <Copy kind="label" style={{ fontSize: 16 }}>
-                Read a label
-              </Copy>
-              <Copy kind="small" style={{ fontSize: 13, color: "#7A4E43" }}>
-                Scan & confirm
-              </Copy>
-            </View>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open my product routine"
-            onPress={() => router.push("/products")}
-            style={({ pressed }) => [
-              {
-                flex: 1,
-                backgroundColor: "#ECE9FA",
-                borderRadius: 20,
-                padding: 18,
-                gap: 20,
-                opacity: pressed ? 0.8 : 1,
-              },
-            ]}
-          >
-            <Icon name="layers" size={26} />
-            <View style={{ gap: 5 }}>
-              <Copy kind="label" style={{ fontSize: 16 }}>
-                My routine
-              </Copy>
-              <Copy kind="small" style={{ fontSize: 13, color: "#65558A" }}>
-                {products.length
-                  ? `${products.length} ${products.length === 1 ? "entry" : "entries"} · ${repeated} ${repeated === 1 ? "overlap" : "overlaps"}`
-                  : "See your entries"}
-              </Copy>
-            </View>
-          </Pressable>
-        </View>
+          <Button
+            secondary
+            label="Check a product"
+            onPress={() =>
+              router.push({
+                pathname: "/product",
+                params: { intent: "consider" },
+              })
+            }
+          />
+        </Card>
+        <Card>
+          <Copy kind="heading">I already take supplements</Copy>
+          <Copy kind="small">
+            Record your actual use, compare repeated ingredients and review your
+            routine.
+          </Copy>
+          <Button
+            secondary
+            label={
+              products.length
+                ? `Review ${products.length} ${products.length === 1 ? "entry" : "entries"}${repeated ? ` · ${repeated} overlaps` : ""}`
+                : "Add my first product"
+            }
+            onPress={() =>
+              router.push(products.length ? "/products" : "/product")
+            }
+          />
+        </Card>
+        <Card>
+          <Copy kind="heading">I just have a question</Copy>
+          <Copy kind="small">
+            Get a short prepared answer about sleep, exercise, labels or common
+            supplements.
+          </Copy>
+          <Button
+            secondary
+            label="Ask Clarity"
+            onPress={() => router.push("/ask")}
+          />
+        </Card>
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Explore evidence sources"
-        onPress={() => router.push("/evidence")}
+        accessibilityLabel="Read short supplement guides"
+        onPress={() => router.push("/library")}
         style={[
           S.row,
           {
@@ -203,10 +203,10 @@ export default function Home() {
         </View>
         <View style={{ flex: 1, gap: 4 }}>
           <Copy kind="label" style={{ fontSize: 16 }}>
-            Curious about the evidence?
+            Learn a little, right here.
           </Copy>
           <Copy kind="small" style={{ color: C.muted }}>
-            Trusted sources, at your pace.
+            Short guides. Sources when you want them.
           </Copy>
         </View>
         <Icon name="chevron-right" size={19} color={C.muted} />
@@ -216,7 +216,8 @@ export default function Home() {
           RESEARCH PREVIEW
         </Copy>
         <Copy kind="small" style={{ color: C.muted }}>
-          Educational guidance covers three nutrients. Entries clear on reload.
+          Common vitamins, minerals and other supplements. General education,
+          not an individual dose. Entries clear on reload.
         </Copy>
       </View>
     </Page>

@@ -60,6 +60,8 @@ const baseQuestions: {
       "Ingredient overlap",
       "Understand a label",
       "Sleep or general wellbeing",
+      "Exercise and recovery",
+      "Digestion and gut health",
     ],
   },
 ];

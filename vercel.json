@@ -85,6 +85,9 @@
     },
     "api/suppclarity/evidence.mjs": {
       "maxDuration": 30
+    },
+    "api/suppclarity/products.mjs": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
@@ -97,7 +100,7 @@
       "destination": "/suppclarity/index.html"
     },
     {
-      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account)",
+      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask)",
       "destination": "/suppclarity/index.html"
     },
     {

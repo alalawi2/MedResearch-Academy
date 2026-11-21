@@ -212,3 +212,62 @@ test("uncertain scan quantities stay blank and duplicate unit rows cannot double
     null,
   );
 });
+test("expanded nutrient flags apply the age-specific ceiling on use days", () => {
+  const zinc: Product = {
+    ...product,
+    unitsPerServing: 1,
+    ingredients: [{ nutrient: "Zinc", amount: 35, unit: "mg" }],
+  };
+  assert.equal(
+    run({ ...profile, age: "18" }, [zinc]).primary.id,
+    "reference-Zinc",
+  );
+  assert(
+    ![
+      run({ ...profile, age: "19" }, [zinc]).primary,
+      ...run({ ...profile, age: "19" }, [zinc]).additional,
+    ].some((c) => c.id === "reference-Zinc"),
+  );
+  const calcium: Product = {
+    ...zinc,
+    ingredients: [{ nutrient: "Calcium", amount: 2200, unit: "mg" }],
+  };
+  assert.equal(
+    run({ ...profile, age: "51" }, [calcium]).primary.id,
+    "reference-Calcium",
+  );
+  assert.notEqual(
+    run({ ...profile, age: "50" }, [calcium]).primary.id,
+    "reference-Calcium",
+  );
+});
+test("common goal scenarios select relevant education without inventing a dose", () => {
+  assert.equal(
+    run({ ...profile, goal: "Exercise and recovery" }).primary.topic,
+    "protein",
+  );
+  assert.equal(
+    run({ ...profile, goal: "Digestion and gut health" }).primary.topic,
+    "fiber",
+  );
+  assert.equal(
+    run({ ...profile, goal: "Sleep or general wellbeing" }).primary.id,
+    "magnesium-food",
+  );
+  const herb: Product = {
+    ...product,
+    ingredients: [{ nutrient: "Ashwagandha", amount: 300, unit: "mg" }],
+  };
+  assert.equal(
+    run({ ...profile, use: "Yes" }, [herb]).primary.topic,
+    "ashwagandha",
+  );
+  assert.equal(
+    run({
+      ...profile,
+      screening: "I take medicines",
+      goal: "Exercise and recovery",
+    }).status,
+    "limited",
+  );
+});

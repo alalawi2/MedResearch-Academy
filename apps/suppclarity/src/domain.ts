@@ -1,4 +1,6 @@
-export type Nutrient = "Vitamin D" | "Vitamin B12" | "Magnesium";
+import { nutrientCatalog, normalizeQuantity } from "./catalog.mjs";
+export type Nutrient = keyof typeof nutrientCatalog;
+export { nutrientCatalog };
 export type Ingredient = { nutrient: Nutrient; amount: number; unit: string };
 export type Product = {
   id: string;
@@ -14,7 +16,14 @@ export type Product = {
   incompleteLabel?: boolean;
   servingUnit?: string;
   taking?: boolean;
-  source?: "manual" | "scan";
+  source?: "manual" | "scan" | "database";
+  database?: {
+    id: string;
+    url: string;
+    brand: string;
+    entryDate: string | null;
+    barcode: string | null;
+  };
 };
 export type Profile = {
   use: string;
@@ -34,11 +43,9 @@ export const emptyProfile: Profile = {
   goal: "",
   b12Source: "",
 };
-export const units: Record<Nutrient, string[]> = {
-  "Vitamin D": ["mcg", "IU"],
-  "Vitamin B12": ["mcg"],
-  Magnesium: ["mg"],
-};
+export const units = Object.fromEntries(
+  Object.entries(nutrientCatalog).map(([name, info]) => [name, info.units]),
+) as Record<Nutrient, string[]>;
 export function validAge(age: string) {
   return /^\d{2,3}$/.test(age.trim()) && Number(age) >= 18;
 }
@@ -49,12 +56,16 @@ export function ingredientsOf(p: Product): Ingredient[] {
     : [];
 }
 export function validIngredient(i: Ingredient) {
+  const normalizedValue = i && normalizeQuantity(i.nutrient, i.amount, i.unit);
   return Boolean(
+    normalizedValue &&
+    Number.isFinite(normalizedValue.amount) &&
+    normalizedValue.amount <= (normalizedValue.unit === "CFU" ? 1e15 : 1e9) &&
     i &&
     units[i.nutrient]?.includes(i.unit) &&
     Number.isFinite(i.amount) &&
-    i.amount > 0 &&
-    i.amount <= 1e9,
+    i.amount >= 0 &&
+    i.amount <= (i.unit.includes("CFU") ? 1e15 : 1e9),
   );
 }
 export function validProduct(p: Product) {
@@ -100,13 +111,26 @@ export function validProduct(p: Product) {
   );
 }
 export function normalized(i: Ingredient) {
-  return i.nutrient === "Vitamin D" && i.unit === "IU"
-    ? i.amount / 40
-    : i.amount;
+  return normalizeQuantity(i.nutrient, i.amount, i.unit)?.amount ?? i.amount;
+}
+export function overlappingIngredients(products: Product[]) {
+  const families = new Map<string, number>();
+  for (const p of products.filter((p) => p.taking !== false)) {
+    const present = new Set(
+      ingredientsOf(p)
+        .filter((i) => i.amount > 0)
+        .map((i) => nutrientCatalog[i.nutrient].family),
+    );
+    for (const name of present)
+      families.set(name, (families.get(name) || 0) + 1);
+  }
+  return [...families]
+    .filter(([, count]) => count > 1)
+    .map(([nutrient, count]) => ({ nutrient, count }));
 }
 export function totals(products: Product[]) {
   const groups = new Map<
-    Nutrient,
+    string,
     {
       nutrient: Nutrient;
       amount: number;
@@ -120,13 +144,17 @@ export function totals(products: Product[]) {
       throw Error("Confirm product quantities before calculation.");
     if (p.taking === false) continue;
     for (const i of ingredientsOf(p)) {
-      const onUseDay = (normalized(i) * p.unitsTaken) / p.unitsPerServing;
+      if (!nutrientCatalog[i.nutrient].aggregate) continue;
+      const value = normalizeQuantity(i.nutrient, i.amount, i.unit);
+      if (!value) throw Error("Unsupported quantity unit.");
+      const onUseDay = (value.amount * p.unitsTaken) / p.unitsPerServing;
       const amount = (onUseDay * p.daysPerWeek) / 7;
-      const current = groups.get(i.nutrient) || {
+      const key = i.nutrient + ":" + value.unit;
+      const current = groups.get(key) || {
         nutrient: i.nutrient,
         amount: 0,
         onUseDay: 0,
-        unit: i.nutrient === "Magnesium" ? "mg" : "mcg",
+        unit: value.unit,
         count: 0,
       };
       current.amount += amount;
@@ -137,7 +165,7 @@ export function totals(products: Product[]) {
         !Number.isFinite(current.onUseDay)
       )
         throw Error("Quantity is too large.");
-      groups.set(i.nutrient, current);
+      groups.set(key, current);
     }
   }
   return [...groups.values()];
@@ -184,7 +212,7 @@ export function report(profile: Profile, products: Product[]) {
       action: "Add my first product",
       kind: "products",
     };
-  const overlap = totals(products).filter((t) => t.count > 1);
+  const overlap = overlappingIngredients(products);
   return {
     title: overlap.length
       ? "Some ingredients appear more than once"

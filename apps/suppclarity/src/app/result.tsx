@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Page, Copy, Card, Button, Notice, Icon, S, C } from "../ui";
 import { useStore } from "../store";
 import { guidance, type Consideration } from "../guidance";
+import { guideForTopic } from "../knowledge";
 import { EVIDENCE_REVIEW_DATE } from "../evidence";
 export default function Result() {
   const { profile, products, setStep } = useStore();
@@ -12,7 +13,16 @@ export default function Result() {
   const [more, setMore] = useState(false);
   const act = (c: Consideration) => {
     if (c.route === "/check") setStep(0);
-    if (c.route === "/evidence")
+    if (
+      c.route === "/evidence" &&
+      c.id !== "individual-review" &&
+      c.id !== "stale-evidence"
+    )
+      router.push({
+        pathname: "/library",
+        params: { guide: guideForTopic(c.topic || "") || "starting" },
+      });
+    else if (c.route === "/evidence")
       router.push({
         pathname: "/evidence",
         params: {

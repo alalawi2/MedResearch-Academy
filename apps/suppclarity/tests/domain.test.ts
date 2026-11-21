@@ -52,7 +52,7 @@ test("rejects invalid arithmetic inputs", () => {
     assert(!validProduct({ ...product, unitsPerServing: n }));
   }
   assert(!validProduct({ ...product, daysPerWeek: 8 }));
-  assert.throws(() => totals([{ ...product, unit: "mg" }]));
+  assert.throws(() => totals([{ ...product, unit: "mL" }]));
 });
 test("medicines and unknowns block personal conclusions", () => {
   for (const screening of ["I take medicines", "Not sure"])

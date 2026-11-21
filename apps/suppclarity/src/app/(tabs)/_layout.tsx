@@ -44,6 +44,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="ask"
+        options={{
+          title: "Ask",
+          tabBarIcon: ({ color }) => (
+            <Icon
+              name="message-circle"
+              color={typeof color === "string" ? color : C.teal}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: "Account",

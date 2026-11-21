@@ -10,6 +10,7 @@ type State = {
   scale: number;
   setScale: (n: number) => void;
   reset: () => void;
+  resetKey: number;
 };
 const Context = createContext<State | null>(null);
 export function Store({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,9 @@ export function Store({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [step, setStep] = useState(0);
   const [scale, setScale] = useState(1);
+  const [resetKey, setResetKey] = useState(0);
   const reset = () => {
+    setResetKey((k) => k + 1);
     setProfile({ ...emptyProfile });
     setProducts([]);
     setStep(0);
@@ -34,6 +37,7 @@ export function Store({ children }: { children: React.ReactNode }) {
         scale,
         setScale,
         reset,
+        resetKey,
       }}
     >
       {children}
