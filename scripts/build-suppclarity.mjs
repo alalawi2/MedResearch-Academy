@@ -16,3 +16,6 @@ html=html.replace('<title>SuppClarity</title>','<title>SuppClarity — Research 
 writeFileSync(index,html);
 
 writeFileSync(resolve(destination,'source-manifest.json'),JSON.stringify({sourceSha256:fingerprint(app),webBasePath:'/suppclarity'},null,2)+'\n');
+
+mkdirSync(resolve(destination,'licenses'),{recursive:true});
+cpSync(resolve(app,'node_modules/@expo-google-fonts/manrope/LICENSE_FONT'),resolve(destination,'licenses/Manrope-OFL.txt'));
