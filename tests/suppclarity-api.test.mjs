@@ -120,7 +120,7 @@ test("all rows remain visible while unsupported and uncertain quantities stay un
   assert.equal(x.ingredients[0].supported, false);
   assert.throws(() => validatedLabel({ ...raw, servingUnits: 0 }));
 });
-test("unsupported target units cannot prefill a canonical quantity", () => {
+test("unsupported target units cannot prefill a canonical quantity", async () => {
   const l = validatedLabel({
     ...raw,
     ingredients: [
@@ -138,6 +138,24 @@ test("unsupported target units cannot prefill a canonical quantity", () => {
   assert.equal(l.ingredients[0].reading, "uncertain");
   assert.equal(l.panelComplete, false);
   assert(l.concerns.some((c) => c.includes("converted amount manually")));
+  const { draftRows, confirmedProduct } =
+    await import("../apps/suppclarity/src/labels.ts");
+  const rows = draftRows(l);
+  assert.equal(rows[0].amount, "");
+  assert.equal(rows[0].unit, "");
+  assert.equal(
+    confirmedProduct({
+      name: "Example",
+      serving: "1",
+      servingUnit: "tablet",
+      taken: "1",
+      days: "7",
+      taking: true,
+      rows,
+      label: l,
+    }),
+    null,
+  );
 });
 test("unreadable non-label does not become a guessed product", () => {
   assert.equal(
