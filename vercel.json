@@ -83,6 +83,18 @@
   },
   "rewrites": [
     {
+      "source": "/suppclarity",
+      "destination": "/suppclarity/index.html"
+    },
+    {
+      "source": "/suppclarity/",
+      "destination": "/suppclarity/index.html"
+    },
+    {
+      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account)",
+      "destination": "/suppclarity/index.html"
+    },
+    {
       "source": "/solutions/wardwise/support",
       "destination": "/solutions/wardwise/support/index.html"
     },

@@ -4,6 +4,19 @@ import StudyCard, { StudyCardData } from '../components/StudyCard';
 // Study portfolio — add new studies by appending to this array.
 const STUDIES: StudyCardData[] = [
   {
+    slug: 'suppclarity',
+    title: 'SuppClarity — Personalized Supplement Guidance',
+    shortDescription: 'An Expo app in development for iPhone, Android and web. Designed for adults of all ages, including beginners and existing supplement users. Explore the working interface for profiles, confirmed label entries and ingredient totals. Personal recommendations and automatic label reading are not yet enabled. Not recruiting participants.',
+    status: 'development',
+    ethicsIds: [],
+    pi: 'To be confirmed before evaluation',
+    leadLabel: 'Evaluation lead',
+    actionLabel: 'Explore project and preview',
+    studyType: 'App Development and Usability Evaluation',
+    targetPopulation: 'US adults 18+ with no upper age limit',
+    icon: '🌿',
+  },
+  {
     slug: 'holter',
     title: 'Holter Report Validation',
     shortDescription: 'Private cardiologist review of blinded computer-generated Holter reports against XML measurements and original reports. This research pilot does not provide clinical sign-off.',
@@ -101,7 +114,7 @@ export default function ActiveResearch() {
           </div>
           <h1 style={{fontSize:'clamp(1.8rem,5vw,3rem)',marginBottom:16,fontFamily:'var(--font-serif)'}}>Active Research Studies</h1>
           <p style={{color:'rgba(255,255,255,0.75)',maxWidth:620,margin:'0 auto',fontSize:'1.05rem',lineHeight:1.7}}>
-            Explore research and development projects in Oman. See each study for its scope, ethics information and participation requirements; award submissions are not ethics approvals. Confirm current recruitment availability with the study team.
+            Explore research and development projects through MedResearch Academy. See each study for its scope, ethics information and participation requirements; award submissions are not ethics approvals. Confirm current recruitment availability with the study team.
           </p>
         </div>
       </section>

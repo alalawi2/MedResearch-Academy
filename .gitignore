@@ -30,3 +30,8 @@ supabase/.temp/
 holter-local/private/
 *.sqlite*
 __pycache__/
+
+# Expo workspace
+apps/suppclarity/node_modules/
+apps/suppclarity/.expo/
+apps/suppclarity/dist/
