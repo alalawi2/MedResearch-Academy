@@ -20,6 +20,7 @@ export function ProductSearch({
   initialQuery?: string;
   autoSearch?: boolean;
 }) {
+  const [searchConsent, setSearchConsent] = useState(autoSearch);
   const [query, setQuery] = useState(initialQuery);
   const [result, setResult] = useState<ProductSearchResult>(empty);
   const [busy, setBusy] = useState(autoSearch);
@@ -40,9 +41,11 @@ export function ProductSearch({
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted)
+        if (request.current === controller)
           setError(
-            "Online lookup could not finish. Try again or photograph the ingredient amounts.",
+            controller.signal.aborted
+              ? "Lookup timed out. Try again or photograph the ingredient amounts."
+              : "Online lookup could not finish. Try again or photograph the ingredient amounts.",
           );
       })
       .finally(() => {
@@ -113,11 +116,26 @@ export function ProductSearch({
         }}
         hint="For example Nature’s Own Magnesium Energy. A barcode number works too."
       />
+      {!searchConsent && (
+        <Copy kind="small">
+          Use NIH and OpenAI to find this product. Only your search terms are
+          sent; your profile is not included. Provider retention rules apply.
+        </Copy>
+      )}
       <Button
-        label={busy ? "Finding your product…" : "Find my product"}
+        label={
+          busy
+            ? "Finding your product…"
+            : searchConsent
+              ? "Find my product"
+              : "Agree & find my product"
+        }
         icon="search"
         disabled={busy || query.trim().length < 2}
-        onPress={() => run()}
+        onPress={() => {
+          setSearchConsent(true);
+          void run();
+        }}
       />
       {busy && (
         <>

@@ -1,0 +1,77 @@
+name: SuppClarity release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      upload:
+        type: boolean
+        default: false
+        description: Build store binaries and upload after both native test suites pass
+jobs:
+  verify:
+    name: Check source before native builds
+    tools:
+      node: 24.22.1
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Lint
+        run: npm run lint
+      - name: Types
+        run: npm run typecheck
+      - name: Behavior tests
+        run: npm test
+  android_preview:
+    needs: [verify]
+    type: build
+    params:
+      platform: android
+      profile: preview
+  ios_simulator:
+    needs: [verify]
+    type: build
+    params:
+      platform: ios
+      profile: ios-simulator
+  android_test:
+    needs: [android_preview]
+    type: maestro
+    runs_on: linux-large-nested-virtualization
+    params:
+      build_id: ${{ needs.android_preview.outputs.build_id }}
+      flow_path: ./maestro
+      record_screen: true
+      retries: 0
+  ios_test:
+    needs: [ios_simulator]
+    type: maestro
+    params:
+      build_id: ${{ needs.ios_simulator.outputs.build_id }}
+      flow_path: ./maestro
+      record_screen: true
+      retries: 0
+  android_store:
+    if: ${{ inputs.upload }}
+    needs: [android_test, ios_test]
+    type: build
+    params:
+      platform: android
+      profile: production
+  ios_store:
+    if: ${{ inputs.upload }}
+    needs: [android_test, ios_test]
+    type: build
+    params:
+      platform: ios
+      profile: production
+  android_upload:
+    needs: [android_store]
+    type: submit
+    params:
+      build_id: ${{ needs.android_store.outputs.build_id }}
+      profile: production
+  ios_upload:
+    needs: [ios_store]
+    type: submit
+    params:
+      build_id: ${{ needs.ios_store.outputs.build_id }}
+      profile: production

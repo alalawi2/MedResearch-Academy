@@ -20,7 +20,8 @@ export default function Ask() {
   return <AskSession key={resetKey} />;
 }
 function AskSession() {
-  const { setIngredientPreview } = useStore();
+  const { setIngredientPreview, onlineAnswers, setOnlineAnswers } = useStore();
+  const [pending, setPending] = useState("");
   const [question, setQuestion] = useState("");
   const [asked, setAsked] = useState("");
   const [reply, setReply] = useState<CopilotReply>();
@@ -30,9 +31,23 @@ function AskSession() {
   const [error, setError] = useState("");
   const history = useRef<{ question: string; answer: string }[]>([]);
   const request = useRef<AbortController | null>(null);
+  const matchingQuestions = faqBank.filter((f) =>
+    (f.question + " " + f.tags.join(" "))
+      .toLowerCase()
+      .includes(question.toLowerCase()),
+  );
   useEffect(() => () => request.current?.abort(), []);
-  async function submit(value = question) {
+  useEffect(() => {
+    if (!onlineAnswers) {
+      request.current?.abort();
+    }
+  }, [onlineAnswers]);
+  async function submit(value = question, permitted = onlineAnswers) {
     if (!value.trim()) return;
+    request.current?.abort();
+    request.current = null;
+    setBusy(false);
+    setPending("");
     Keyboard.dismiss();
     const askedQuestion = value.trim();
     const local = askCopilot(askedQuestion);
@@ -49,8 +64,11 @@ function AskSession() {
         ].slice(-2);
       return;
     }
+    if (!permitted) {
+      setPending(askedQuestion);
+      return;
+    }
     const controller = new AbortController();
-    request.current?.abort();
     request.current = controller;
     setBusy(true);
     const timer = setTimeout(() => controller.abort(), 30000);
@@ -96,6 +114,7 @@ function AskSession() {
     request.current?.abort();
     request.current = null;
     setBusy(false);
+    setPending("");
     setError("");
     history.current = [
       ...history.current,
@@ -142,6 +161,32 @@ function AskSession() {
         urgent care. Questions outside the prepared library go to OpenAI with
         the guide evidence. Your app profile is not sent.
       </Copy>
+      {!!pending && (
+        <Card>
+          <Copy kind="heading">Use an online answer?</Copy>
+          <Copy>
+            This question and up to two recent question-and-answer exchanges
+            will be sent to OpenAI with our guide evidence. Your profile and
+            saved products are not sent. Avoid names and private medical
+            details. Provider retention rules apply.
+          </Copy>
+          <Button
+            label="Allow online answers this session"
+            onPress={() => {
+              setOnlineAnswers(true);
+              void submit(pending, true);
+            }}
+          />
+          <Button
+            secondary
+            label="Stay with in-app guides"
+            onPress={() => {
+              setPending("");
+              router.push("/library");
+            }}
+          />
+        </Card>
+      )}
       {busy && (
         <>
           <ActivityIndicator color={C.teal} />
@@ -220,14 +265,16 @@ function AskSession() {
       {!reply && (
         <Card>
           <Copy kind="heading">A few common questions</Copy>
-          {[faqBank[0], faqBank[10], faqBank[50], faqBank[80]].map((f) => (
-            <Button
-              key={f.id}
-              secondary
-              label={f.question}
-              onPress={() => prepared(f)}
-            />
-          ))}
+          {[faqBank[0], faqBank[10], faqBank[50], faqBank[80]]
+            .filter((f): f is Faq => Boolean(f))
+            .map((f) => (
+              <Button
+                key={f.id}
+                secondary
+                label={f.question}
+                onPress={() => prepared(f)}
+              />
+            ))}
         </Card>
       )}
       <Button
@@ -237,22 +284,21 @@ function AskSession() {
       />
       {browse && (
         <>
-          {faqBank
-            .filter((f) =>
-              (f.question + " " + f.tags.join(" "))
-                .toLowerCase()
-                .includes(question.toLowerCase()),
-            )
-            .slice(0, limit)
-            .map((f) => (
-              <Button
-                key={f.id}
-                secondary
-                label={f.question}
-                onPress={() => prepared(f)}
-              />
-            ))}
-          {limit < 100 && (
+          {matchingQuestions.slice(0, limit).map((f) => (
+            <Button
+              key={f.id}
+              secondary
+              label={f.question}
+              onPress={() => prepared(f)}
+            />
+          ))}
+          {!matchingQuestions.length && (
+            <Copy>
+              No prepared question matches those words. Ask Clarity or browse a
+              supplement guide.
+            </Copy>
+          )}
+          {limit < matchingQuestions.length && (
             <Button
               secondary
               label="Show more questions"

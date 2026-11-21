@@ -1,0 +1,24 @@
+appId: om.medresearchacademy.suppclarity
+name: Local guides, search entry and privacy
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- assertVisible: "SuppClarity"
+- takeScreenshot: screenshots/01-guidance
+- openLink: suppclarity://products
+- tapOn: "Add a product"
+- tapOn: "Search entry"
+- assertVisible: "Agree & find my product"
+- takeScreenshot: screenshots/02-search
+- openLink: suppclarity://ask
+- tapOn:
+    id: field-your-supplement-question
+- inputText: magensium
+- tapOn: "Ask Clarity"
+- assertVisible: ".*muscles.*"
+- assertNotVisible: "Checking the guide evidence…"
+- takeScreenshot: screenshots/03-ask
+- openLink: suppclarity://privacy
+- assertVisible: "Your data, explained."
+- takeScreenshot: screenshots/04-privacy

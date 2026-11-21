@@ -103,7 +103,7 @@
       "destination": "/suppclarity/index.html"
     },
     {
-      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask|ingredient)",
+      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask|ingredient|privacy|support)",
       "destination": "/suppclarity/index.html"
     },
     {

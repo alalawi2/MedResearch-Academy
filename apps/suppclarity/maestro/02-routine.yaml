@@ -1,0 +1,80 @@
+appId: om.medresearchacademy.suppclarity
+name: Confirm, relaunch, inspect amount and erase a routine
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- openLink: suppclarity://product
+- tapOn: "Manual entry"
+- scrollUntilVisible:
+    element:
+      id: field-product-name
+- tapOn:
+    id: field-product-name
+- inputText: Magnesium test routine
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-units-per-serving
+- tapOn:
+    id: field-units-per-serving
+- inputText: '1'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-serving-unit
+- tapOn:
+    id: field-serving-unit
+- inputText: tablet
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: field-find-an-ingredient
+- tapOn:
+    id: field-find-an-ingredient
+- inputText: Magnesium
+- hideKeyboard
+- tapOn: Magnesium
+- scrollUntilVisible:
+    element:
+      id: field-magnesium-amount-per-serving
+- tapOn:
+    id: field-magnesium-amount-per-serving
+- inputText: '300'
+- hideKeyboard
+- scrollUntilVisible:
+    element: 'Does the label have other active ingredients?'
+- tapOn: 'No'
+- scrollUntilVisible:
+    element: 'Review my entry'
+- tapOn: 'Review my entry'
+- scrollUntilVisible:
+    element: 'These details are correct'
+- tapOn: 'These details are correct'
+- assertVisible: Magnesium test routine
+- openLink: suppclarity://account
+- scrollUntilVisible:
+    element: 'Saved on this device.'
+- launchApp
+- openLink: suppclarity://products
+- assertVisible: Magnesium test routine
+- takeScreenshot: screenshots/05-saved-routine
+- tapOn: 'Daily amount and details for Magnesium'
+- assertVisible: '300 mg'
+- takeScreenshot: screenshots/06-dose-context
+- openLink: suppclarity://account
+- scrollUntilVisible:
+    element: 'Clear my data'
+- tapOn: 'Clear my data'
+- scrollUntilVisible:
+    element:
+      text: 'Clear my data'
+      index: 0
+- tapOn: 'Clear my data'
+- openLink: suppclarity://account
+- scrollUntilVisible:
+    element: 'Saved on this device.'
+- launchApp
+- openLink: suppclarity://products
+- assertVisible: 'A fresh start'
+- assertNotVisible: Magnesium test routine

@@ -1442,7 +1442,7 @@ export const faqBank = [
     id: "q100",
     question: "Will my entries still be here after I reload?",
     answer:
-      "This preview keeps personal entries in memory and clears them on reload. Export a copy if needed. The preview is free, and payment collection is not enabled.",
+      "The installed iPhone and Android app saves your answers and confirmed products in encrypted device storage. The browser preview clears on reload. Export a copy if needed. The preview is free, and payment collection is not enabled.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],

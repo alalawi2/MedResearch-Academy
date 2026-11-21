@@ -148,6 +148,7 @@ export function Page({
   back?: boolean;
   right?: React.ReactNode;
 }) {
+  const { storageStatus } = useStore();
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: C.bg }}
@@ -181,6 +182,9 @@ export function Page({
                 </Copy>
                 {right}
               </View>
+            )}
+            {storageStatus.startsWith("Could not") && (
+              <Notice>{storageStatus}</Notice>
             )}
             {children}
             <View style={{ height: 24 }} />
@@ -218,6 +222,7 @@ export function Field({
     <View style={{ gap: 7 }}>
       <Copy kind="label">{label}</Copy>
       <TextInput
+        testID={`field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
         accessibilityLabel={label}
         value={value}
         onChangeText={onChange}

@@ -564,6 +564,12 @@ export default function ProductEntry() {
                   </Pressable>
                 ))}
               </View>
+              {!taking && (
+                <Copy kind="small">
+                  Considering keeps this product out of the amounts you
+                  currently take.
+                </Copy>
+              )}
               {label?.servingText && (
                 <Copy kind="small">Label serving: {label.servingText}</Copy>
               )}

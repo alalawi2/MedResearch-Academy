@@ -35,10 +35,11 @@ export default function About() {
       <Card>
         <Copy kind="heading">Your information</Copy>
         <Copy>
-          Answers and confirmed product records stay in this app session and
-          clear on reload. A selected label photo is sent to OpenAI only when
-          you agree and tap Read my label. Your questionnaire is not sent with
-          it. We do not save the photo or profile in our database.
+          In the installed app, answers and confirmed products are saved in
+          encrypted device storage. The browser preview clears on reload. A
+          selected label photo is sent to OpenAI only when you agree and tap
+          Find my product. Your questionnaire is not sent with it. We do not
+          save the photo or profile in our database.
         </Copy>
         <Copy>
           Provider retention and abuse-monitoring controls apply; turning off
@@ -56,6 +57,24 @@ export default function About() {
           their own websites.
         </Copy>
       </Card>
+      <Button
+        secondary
+        label="Privacy policy"
+        onPress={() =>
+          Linking.openURL(
+            "https://www.medresearch-academy.om/suppclarity/privacy",
+          )
+        }
+      />
+      <Button
+        secondary
+        label="Help & support"
+        onPress={() =>
+          Linking.openURL(
+            "https://www.medresearch-academy.om/suppclarity/support",
+          )
+        }
+      />
       <Button
         secondary
         label="Visit the research project"
