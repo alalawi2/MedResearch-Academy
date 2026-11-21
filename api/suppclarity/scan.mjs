@@ -27,11 +27,9 @@ export function createHandler({
     if (req.method !== "POST")
       return res.status(405).json({ error: "Use POST." });
     if (req.headers["x-suppclarity-consent"] !== "label-photo-v1")
-      return res
-        .status(403)
-        .json({
-          error: "Please agree to send the label photo for reading first.",
-        });
+      return res.status(403).json({
+        error: "Please agree to send the label photo for reading first.",
+      });
     const install = String(req.headers["x-suppclarity-install"] || "");
     if (!/^[A-Za-z0-9_-]{32,96}$/.test(install))
       return res
@@ -43,11 +41,9 @@ export function createHandler({
     )
       return res.status(415).json({ error: "Expected an image request." });
     if (!env.OPENAI_API_KEY)
-      return res
-        .status(503)
-        .json({
-          error: "Label scanning is not configured. Manual entry still works.",
-        });
+      return res.status(503).json({
+        error: "Label scanning is not configured. Manual entry still works.",
+      });
     if (Number(req.headers["content-length"]) > 3550000)
       return res
         .status(413)
@@ -70,12 +66,10 @@ export function createHandler({
         const body = JSON.parse(Buffer.concat(chunks).toString());
         image = imageFromDataUrl(body.image);
       } catch {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Please choose a readable JPG, PNG or WebP label photo under 2.5 MB.",
-          });
+        return res.status(400).json({
+          error:
+            "Please choose a readable JPG, PNG or WebP label photo under 2.5 MB.",
+        });
       }
       // Vercel sets this forwarding header. Only a keyed hash is retained for quota.
       const ip = String(
@@ -94,21 +88,18 @@ export function createHandler({
         image,
         signal: controller.signal,
       });
-      return res
-        .status(200)
-        .json({
-          label,
-          provider: "OpenAI",
-          requiresConfirmation: true,
-          coverage: ["Vitamin D", "Vitamin B12", "Magnesium"],
-        });
+      return res.status(200).json({
+        label,
+        provider: "OpenAI",
+        requiresConfirmation: true,
+        coverage:
+          "Confirmed label transcription; ingredient types and units must be checked in the app.",
+      });
     } catch {
-      return res
-        .status(502)
-        .json({
-          error:
-            "We could not read this label reliably. Try a clearer photo or enter it manually.",
-        });
+      return res.status(502).json({
+        error:
+          "We could not read this label reliably. Try a clearer photo or enter it manually.",
+      });
     } finally {
       clearTimeout(timer);
     }

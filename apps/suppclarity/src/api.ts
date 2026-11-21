@@ -59,3 +59,44 @@ export async function liveEvidence(
   if (!Array.isArray(body.papers)) throw Error("Live research is unavailable.");
   return body;
 }
+
+export type ProductMatch = {
+  id: string;
+  name: string;
+  brand: string;
+  form: string;
+  pack: string;
+  entryDate: string | null;
+  offMarket: boolean;
+};
+async function productRequest(params: string, signal: AbortSignal) {
+  const response = await fetch(`${ORIGIN}/api/suppclarity/products?${params}`, {
+    signal,
+  });
+  const data = await response.json();
+  if (!response.ok)
+    throw Error(
+      typeof data.error === "string"
+        ? data.error
+        : "Product search is unavailable. Try a photo or manual entry.",
+    );
+  return data;
+}
+export async function findProducts(
+  query: string,
+  signal: AbortSignal,
+): Promise<ProductMatch[]> {
+  const data = await productRequest(`q=${encodeURIComponent(query)}`, signal);
+  if (!Array.isArray(data.products))
+    throw Error("Product search is unavailable.");
+  return data.products;
+}
+export async function readProduct(
+  id: string,
+  signal: AbortSignal,
+): Promise<ReadLabel> {
+  const data = await productRequest(`id=${encodeURIComponent(id)}`, signal);
+  if (!data.label || !Array.isArray(data.label.ingredients))
+    throw Error("This label could not be loaded. Try a photo instead.");
+  return data.label;
+}

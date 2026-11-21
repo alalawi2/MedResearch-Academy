@@ -1,29 +1,27 @@
-# Build validation — version 0.2
+# Build validation — version 0.3
 
-21 November 2026. These are software checks, not clinical validation, professional approval or a representative real-label accuracy evaluation.
+21 November 2026. Software checks only; no clinical approval, measured real-label accuracy or whole-product safety clearance is claimed.
 
-## Automated and hosted checks
+## Current scope and checks
 
-- 20 app tests and 13 backend tests pass. App lint, TypeScript, Expo doctor (20/20), source/export consistency and the Academy production build pass.
-- Cases include age 18/19/74/75, B12 source/current-product handling, health-scope stops, expired sources, current/prospective separation, weekly dilution versus use-day upper references, unsupported/uncertain rows and paired-unit double counting.
-- Backend tests cover image type/size, consent, allowed origins, quota failure, bounded image-only structured extraction, generic secret-safe errors, fixed research topics and safe paper URLs. Unsupported target units force manual checking instead of prefilling a number into another unit.
-- GitHub checks and Vercel deployment passed for feature PR #7. The source fingerprint verifies that the checked-in web export matches app source. The web base path never enters the default native configuration.
-- Additive request-counter migration applied to the existing Academy database. RLS enabled; anonymous scan RPC denied; service-role scan RPC allowed. No clinical records were accessed for this setup.
+- 29 app tests and 20 backend tests pass. App lint and TypeScript pass. A full Academy and Expo web build succeeds, and the source/export fingerprint matches.
+- New cases cover all 100 distinct FAQs and their sources/guides, all catalog-guide mappings, unknown/ambiguous questions, personal-dose and medication scope, urgent prepared-answer routing, B12 mg-to-mcg and CFU conversions, separate form-specific units, nonaggregated extracts/probiotics, family overlap, age-18 and calcium age-51 boundaries, and the native JSX bare-text regression.
+- NIH lookup cases cover barcode formatting, exact query token matching (a vitamin D query must not match a D inside “Made”), newest-record deduplication, bounded inputs, origin protection, provider failures, ranged/multiple/mismatched servings, paired-unit consistency, nested folic acid and quantity/%DV conflicts. No conflicting quantity is silently corrected.
+- Direct live NIH searches returned candidates for Nature Made vitamin D, Centrum Adults, a 12-digit UPC, creatine monohydrate and probiotics. Live label 179704 returned one-softgel serving and D 2,000 IU normalized to 50 mcg. These check API integration; they do not establish that a candidate matches the user’s bottle.
+- The original D/B12 guidance, limited-health-context handling, current/prospective separation, incomplete inventory and stale personalized-guidance checks remain covered. No clinical need, deficiency or personal dose is inferred.
 
-## Live integration and browser
+The current native iOS manifest and JavaScript bundle also returned HTTP 200 from the Expo Go preview, including the new lookup and FAQ screens. This verifies native compilation, not physical screen interaction.
 
-- Production Consensus API returned five related B12 papers; the browser's on-request search displayed their titles, journals and dates. No profile or photo is sent to Consensus.
-- Production OpenAI label reader transcribed a synthetic multivitamin: two-capsule serving, D 25 mcg (paired 1,000 IU), B12 50 mcg, elemental Mg 120 mg and zinc 11 mg. Zinc remained visible as unassessed. A non-label fixture returned no ingredients instead of guessed values.
-- Missing-consent scan request returned 403; unsupported research topic returned 400.
-- Browser photo selection, explicit consent, image manipulation, extraction, editable fields, confirmation and saving worked end to end. One capsule daily from the two-capsule label produced D 12.5 mcg/day, B12 25 mcg/day and Mg 60 mg/day.
-- Fictional existing-user age 35, vegan diet and recorded B12 product prompted review of the existing entry before adding another. Reasons default collapsed. Optional sources and live research loaded.
-- Fictional beginner age 78, vegan diet and no reliable B12 source prompted source guidance. Secondary vitamin D guidance correctly used the conditional 75+ recommendation. No dose or deficiency was inferred.
-- Proof screenshots are saved in the parent project's `branding/guidance-v02.jpg` and `branding/label-confirmation-v02.jpg`. All QA profiles/products were fictional; the browser was reset to a fresh home screen afterward.
+## Earlier version 0.2 verification
 
-## Native builds
+The previous production release passed browser photo selection, consent, structured extraction, confirmation and saving using a synthetic multivitamin. Optional live Consensus research loaded. The earlier browser and simulator images belong to version 0.2 and are not screenshots of this revision.
 
-- iOS simulator: build `3c9b7a2b-5fa8-4b04-85f7-4ee36cf45921`, version 0.2.0, completed. Downloaded, installed and launched on iPhone 17 Pro / iOS 26.5. Label-entry screen and native photo picker opened. The automation could not select a photo inside the system picker, so end-to-end **native** photo reading is not claimed. The complete photo flow was verified in the browser against production.
-- Android: build `83f997b7-5d31-4af4-ba7c-b4df97ce7b16`, version 0.2.0 / versionCode 2, completed. APK downloaded and installed on the local emulator. Activity launch returned `Status: ok`; the process remained running on the subsequent check. This is a launch smoke test, not a visual or camera-flow audit.
-- iOS simulator artifacts cannot install on physical iPhones. No App Store or Google Play submission has been made.
+Version 0.2 iOS simulator build `3c9b7a2b-5fa8-4b04-85f7-4ee36cf45921` installed and launched. The photo picker opened but automated photo selection did not complete. Android build `83f997b7-5d31-4af4-ba7c-b4df97ce7b16` installed and passed an activity/process launch smoke test. Neither verifies the new version’s physical camera flow. No App Store/Google Play submission has been made.
 
-Still outstanding before a clinical/commercial release: held-out real-label and evidence-rule validation; physical iPhone/Android photo/camera testing; VoiceOver/TalkBack and complete keyboard audits; intended-use/regulatory assessment; and persistent-data rights design if accounts are added. Current guidance covers three nutrients, not complete intake, interactions or whole-product suitability.
+## Physical iPhone
+
+A paired iPhone matched the registered Expo device. Standalone signing was not completed; the user requested an alternative to Apple terminal verification. The SDK 58 Expo Go LAN preview delivered an actual native iOS bundle and the user reported it opened. No phone-installable SuppClarity IPA is claimed.
+
+The preview exposed a native-only explicit-space JSX error, now removed and covered by the static regression check. Full label images are preserved instead of forced square crops. Camera denial now provides an app-settings button and a manual/photo alternative. These changes still need a physical permission-denial/return test and a real bottle comparison by the user.
+
+Outstanding: real-label accuracy evaluation, physical iPhone/Android photo and camera flows, visual and accessibility audits for these new screens, independent evidence-rule validation, and any clinical/commercial intended-use assessment. Profiles and product entries remain session-only; accounts, purchases and wearables are not implemented.

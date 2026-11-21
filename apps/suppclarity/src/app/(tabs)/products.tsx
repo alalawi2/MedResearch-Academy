@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Page, Copy, Button, Card, Notice, Icon, C, S } from "../../ui";
@@ -6,15 +7,17 @@ import { totals, ingredientsOf } from "../../domain";
 export default function Products() {
   const { products, setProducts } = useStore();
   const ts = totals(products);
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const [allTotals, setAllTotals] = useState(false);
   return (
     <Page title="MY PRODUCTS">
       <Copy kind="title">Your routine,{"\n"}in one place.</Copy>
       <Copy style={{ color: C.muted }}>
-        Scan a label or enter it yourself. Confirm the quantities before they
-        are included.
+        Search, scan a label or enter it yourself. Confirm the quantities before
+        they are included.
       </Copy>
       <Button
-        label="Read a label"
+        label="Add a product"
         icon="plus"
         onPress={() => router.push("/product")}
       />
@@ -30,8 +33,8 @@ export default function Products() {
       ) : (
         <>
           <Notice>
-            Known quantities only: vitamin D, B12 and magnesium. Other
-            ingredients, food and medicine interactions remain unassessed.
+            Quantities come from your confirmed entries. Food intake, medicine
+            interactions and whole-product suitability are not assessed.
           </Notice>
           {products.map((p) => (
             <Card key={p.id}>
@@ -50,11 +53,30 @@ export default function Products() {
                   <Icon name="trash-2" />
                 </Pressable>
               </View>
-              {ingredientsOf(p).map((i) => (
-                <Copy key={i.nutrient}>
-                  {i.nutrient} · {i.amount} {i.unit} per serving
-                </Copy>
-              ))}
+              {ingredientsOf(p)
+                .slice(0, expanded.includes(p.id) ? undefined : 3)
+                .map((i) => (
+                  <Copy key={i.nutrient}>
+                    {i.nutrient} · {i.amount} {i.unit} per serving
+                  </Copy>
+                ))}
+              {ingredientsOf(p).length > 3 && (
+                <Button
+                  secondary
+                  label={
+                    expanded.includes(p.id)
+                      ? "Show fewer ingredients"
+                      : `Show all ${ingredientsOf(p).length} ingredients`
+                  }
+                  onPress={() =>
+                    setExpanded((ids) =>
+                      ids.includes(p.id)
+                        ? ids.filter((id) => id !== p.id)
+                        : [...ids, p.id],
+                    )
+                  }
+                />
+              )}
               <Copy kind="small" style={{ color: C.muted }}>
                 Serving: {p.unitsPerServing} {p.servingUnit || "unit(s)"}
               </Copy>
@@ -79,8 +101,8 @@ export default function Products() {
             amount on a day you take it.
           </Copy>
           {ts.length ? (
-            ts.map((t) => (
-              <Card key={t.nutrient}>
+            ts.slice(0, allTotals ? undefined : 6).map((t) => (
+              <Card key={t.nutrient + t.unit}>
                 <View
                   style={[
                     S.row,
@@ -101,7 +123,20 @@ export default function Products() {
               </Card>
             ))
           ) : (
-            <Copy>No current, supported quantities to add up yet.</Copy>
+            <Copy>
+              Some ingredient potencies are kept in their individual product
+              records rather than added together. Considering products stay out
+              of totals.
+            </Copy>
+          )}
+          {ts.length > 6 && (
+            <Button
+              secondary
+              label={
+                allTotals ? "Show fewer totals" : `Show all ${ts.length} totals`
+              }
+              onPress={() => setAllTotals(!allTotals)}
+            />
           )}
           <Button
             label="Review my next step"

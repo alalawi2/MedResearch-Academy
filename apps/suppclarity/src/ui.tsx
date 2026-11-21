@@ -205,12 +205,14 @@ export function Field({
   onChange,
   number = false,
   hint,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   number?: boolean;
   hint?: string;
+  maxLength?: number;
 }) {
   return (
     <View style={{ gap: 7 }}>
@@ -220,7 +222,7 @@ export function Field({
         value={value}
         onChangeText={onChange}
         keyboardType={number ? "decimal-pad" : "default"}
-        maxLength={number ? 12 : 100}
+        maxLength={maxLength ?? (number ? 12 : 100)}
         style={S.input}
         placeholderTextColor={C.muted}
       />

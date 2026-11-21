@@ -1,15 +1,13 @@
-export const EVIDENCE_VERSION = "2026-11-21.1";
+import { extraSources } from "./education-data.mjs";
+import { researchTopics } from "./research-topics.mjs";
+export const EVIDENCE_VERSION = "2026-11-21.2";
 export const EVIDENCE_REVIEW_DATE = "2026-11-21";
 export const EVIDENCE_REVIEW_DUE = "2027-02-21";
 export const CONSENSUS_REVIEW_URL =
-  "https://consensus.app/search/for-implementation-of-suppclarity-a-us-english-adu/yA5bg4ppSE2S-rnhn_Kx_A/";
-export type Topic =
-  | "b12-vegan"
-  | "b12-older"
-  | "vitamin-d-older"
-  | "vitamin-d-adult"
-  | "magnesium-sleep";
+  "https://consensus.app/search/research-brief-for-implementing-suppclarity-a-us-e/i7krcM5iRZqEaUXG8mtQsw/";
+export type Topic = keyof typeof researchTopics;
 export const sources = {
+  ...extraSources,
   dGuideline: {
     title: "Vitamin D for the Prevention of Disease",
     by: "Endocrine Society guideline · 2024",

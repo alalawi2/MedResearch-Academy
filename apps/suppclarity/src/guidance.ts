@@ -1,5 +1,7 @@
 import {
   ingredientsOf,
+  nutrientCatalog,
+  overlappingIngredients,
   profileComplete,
   totals,
   validProduct,
@@ -12,6 +14,7 @@ import {
   type SourceId,
   type Topic,
 } from "./evidence.ts";
+import { upperReference } from "./upper-references.ts";
 export type Consideration = {
   id: string;
   title: string;
@@ -41,7 +44,7 @@ export function guidance(
   const base = {
     version: EVIDENCE_VERSION,
     coverage:
-      "Vitamin D, B12 and magnesium only. Food quantities, absorption and medicine interactions are not assessed.",
+      "Recorded labels and general nutrition evidence. Food quantities, absorption, medicine interactions and individual doses are not assessed.",
   };
   const finish = (status: Guidance["status"]): Guidance => {
     entries.sort((a, b) => a.priority - b.priority);
@@ -84,13 +87,14 @@ export function guidance(
   }
   const ts = totals(products);
   for (const t of ts) {
-    const upper =
-      t.nutrient === "Vitamin D"
-        ? 100
-        : t.nutrient === "Magnesium"
-          ? 350
-          : null;
-    if (upper !== null && t.onUseDay > upper) {
+    const reference = upperReference(t.nutrient, Number(profile.age));
+    const upper = reference?.amount ?? null;
+    if (
+      reference &&
+      upper !== null &&
+      t.unit === reference.unit &&
+      t.onUseDay > upper
+    ) {
       entries.push({
         id: `reference-${t.nutrient}`,
         priority: 0,
@@ -101,10 +105,10 @@ export function guidance(
             ? "If taken on the same day, these entries would exceed the general adult upper reference."
             : "Your recorded amount on a day you take it exceeds the general adult upper reference.",
         action: "Check my quantities",
-        why: `The recorded on-use-day amount is ${Number(t.onUseDay.toFixed(2))} ${t.unit}; the adult upper reference is ${upper} ${t.unit}. Weekly averages can hide larger single-day amounts.`,
+        why: `The recorded on-use-day amount is ${Number(t.onUseDay.toFixed(2))} ${t.unit}; the US age-specific upper reference is ${upper} ${t.unit}, for ${reference.scope}. Weekly averages can hide larger single-day amounts.`,
         limits:
           "This is a reference comparison, not an individual safe dose. Actual days may differ. Clinician-directed treatment can differ; do not change prescribed treatment without the prescriber.",
-        sourceIds: [t.nutrient === "Vitamin D" ? "dNIH" : "magnesiumNIH"],
+        sourceIds: [reference.source],
         route: "/products",
       });
     }
@@ -146,7 +150,9 @@ export function guidance(
   }
   const current = products.filter((p) => p.taking !== false);
   const has = (n: string) =>
-    current.some((p) => ingredientsOf(p).some((i) => i.nutrient === n));
+    current.some((p) =>
+      ingredientsOf(p).some((i) => i.nutrient === n && i.amount > 0),
+    );
   if (profile.use !== "No" && !current.length) {
     entries.push({
       id: "inventory",
@@ -175,7 +181,7 @@ export function guidance(
       route: "/products",
     });
   }
-  const overlaps = ts.filter((t) => t.count > 1);
+  const overlaps = overlappingIngredients(products);
   if (overlaps.length) {
     entries.push({
       id: "overlap",
@@ -188,6 +194,48 @@ export function guidance(
         "Overlap alone does not prove harm. Do not stop a clinician-directed product based on overlap alone.",
       sourceIds: ["dNIH", "magnesiumNIH"],
       route: "/products",
+    });
+  }
+  const relevant = [
+    ...new Set(current.flatMap((p) => ingredientsOf(p).map((i) => i.nutrient))),
+  ];
+  for (const nutrient of relevant) {
+    const item = nutrientCatalog[nutrient];
+    if (["Vitamin D", "Vitamin B12", "Magnesium"].includes(nutrient)) continue;
+    entries.push({
+      id: `learn-${nutrient}`,
+      priority: 6,
+      title: `Understand your ${nutrient.toLowerCase()} entry`,
+      text: "Your label is recorded. Learn what this ingredient can and cannot tell you before adding more.",
+      action: "Read the short guide",
+      why: "Recording an amount does not establish that you need it or that it suits your health circumstances.",
+      limits:
+        "Formulation, other ingredients and your full intake can change the interpretation.",
+      sourceIds: [],
+      topic: item.guide as Topic,
+      route: "/evidence",
+    });
+  }
+  if (
+    profile.goal === "Exercise and recovery" ||
+    profile.goal === "Digestion and gut health"
+  ) {
+    const exercise = profile.goal === "Exercise and recovery";
+    entries.push({
+      id: "goal-guide",
+      priority: 5,
+      title: exercise
+        ? "Start with food, training and recovery"
+        : "Start with your food pattern",
+      text: exercise
+        ? "An exercise goal alone does not establish a supplement need. Protein and creatine have different uses and evidence."
+        : "Fibre and probiotics have different purposes. A gut-health goal does not identify a strain or dose.",
+      action: "Read my quick guide",
+      why: "A goal is a starting point for education, not a diagnosis or a measured nutrient gap.",
+      limits: "No individual product or dose is selected.",
+      sourceIds: [],
+      topic: exercise ? "protein" : "fibre",
+      route: "/evidence",
     });
   }
   const plant = profile.diet === "Vegan" || profile.diet === "Vegetarian";
@@ -284,7 +332,7 @@ export function guidance(
   }
   entries.push({
     id: "magnesium-food",
-    priority: 9,
+    priority: profile.goal === "Sleep or general wellbeing" ? 5 : 9,
     title:
       profile.goal === "Sleep or general wellbeing"
         ? "A sleep goal alone does not establish a need for magnesium"

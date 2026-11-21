@@ -18,6 +18,9 @@ export type ReadRow = {
 export type ReadLabel = {
   hasSupplementFacts: boolean;
   panelComplete: boolean;
+  sourcePanelComplete?: boolean;
+  database?: Product["database"];
+  otherIngredients?: string[];
   productName: string | null;
   servingText: string | null;
   servingUnits: number | null;
@@ -45,7 +48,7 @@ export function draftRows(label: ReadLabel): DraftRow[] {
       name: r.name,
       nutrient: r.nutrient,
       amount:
-        r.reading === "clear" && r.amount !== null && r.amount > 0
+        r.reading === "clear" && r.amount !== null && r.amount >= 0
           ? String(r.amount)
           : "",
       unit: units[r.nutrient].includes(r.unit) ? r.unit : "",
@@ -76,6 +79,7 @@ export function confirmedProduct({
   manualOther?: boolean;
 }): Product | null {
   const selected = rows.filter((r) => r.included);
+  if (selected.some((r) => !r.amount.trim() || !r.unit)) return null;
   const ingredients: Ingredient[] = selected.map((r) => ({
     nutrient: r.nutrient,
     amount: Number(r.amount),
@@ -88,6 +92,7 @@ export function confirmedProduct({
     : manualOther
       ? ["Other label ingredients not entered"]
       : [];
+  if (label?.otherIngredients) unassessed.push(...label.otherIngredients);
   const p: Product = {
     id: "",
     name: name.trim(),
@@ -98,8 +103,14 @@ export function confirmedProduct({
     taking,
     ingredients,
     unassessedIngredients: unassessed,
-    incompleteLabel: label ? !label.panelComplete : manualOther,
-    source: label ? "scan" : "manual",
+    incompleteLabel: label
+      ? !(label.sourcePanelComplete ?? label.panelComplete) ||
+        label.ingredients.some(
+          (r) => r.nutrient && !selected.some((d) => d.nutrient === r.nutrient),
+        )
+      : manualOther,
+    source: label?.database ? "database" : label ? "scan" : "manual",
+    ...(label?.database ? { database: label.database } : {}),
   };
   return validProduct(p) ? p : null;
 }

@@ -1,3 +1,4 @@
+import { researchTopics } from "../research-topics.mjs";
 import { useEffect, useRef, useState } from "react";
 import { Linking, ActivityIndicator } from "react-native";
 import { useLocalSearchParams } from "expo-router";
@@ -10,13 +11,7 @@ import {
   type Topic,
 } from "../evidence";
 import { liveEvidence, type ResearchPaper } from "../api";
-const topics: Topic[] = [
-  "b12-vegan",
-  "b12-older",
-  "vitamin-d-older",
-  "vitamin-d-adult",
-  "magnesium-sleep",
-];
+const topics = Object.keys(researchTopics) as Topic[];
 export default function Evidence() {
   const params = useLocalSearchParams<{
     ids?: string;
@@ -84,18 +79,25 @@ export default function Evidence() {
         guidance is not a diagnosis, treatment dose or whole-product safety
         clearance.
       </Notice>
-      {topic && (
-        <Card>
-          <Copy kind="heading">A practical starting point</Copy>
-          <Copy>
-            {topic.startsWith("b12")
-              ? "Look for B12 on the labels of fortified foods such as some plant milks, breakfast cereals or nutritional yeast. Unfortified plant foods are not a reliable B12 source. Record any B12-containing supplement before considering another. A label amount alone does not prove adequate absorption."
-              : topic === "magnesium-sleep"
-                ? "Review magnesium-rich foods such as beans, nuts and whole grains. Sleep symptoms alone do not establish magnesium deficiency or a need for a supplement."
-                : "Review vitamin D from fortified foods and any current supplements. Food quantities and your full intake have not been measured here; this page does not select an individual dose."}
-          </Copy>
-        </Card>
-      )}
+      {topic &&
+        [
+          "b12-vegan",
+          "b12-older",
+          "vitamin-d-adult",
+          "vitamin-d-older",
+          "magnesium-sleep",
+        ].includes(topic) && (
+          <Card>
+            <Copy kind="heading">A practical starting point</Copy>
+            <Copy>
+              {topic.startsWith("b12")
+                ? "Look for B12 on the labels of fortified foods such as some plant milks, breakfast cereals or nutritional yeast. Unfortified plant foods are not a reliable B12 source. Record any B12-containing supplement before considering another. A label amount alone does not prove adequate absorption."
+                : topic === "magnesium-sleep"
+                  ? "Review magnesium-rich foods such as beans, nuts and whole grains. Sleep symptoms alone do not establish magnesium deficiency or a need for a supplement."
+                  : "Review vitamin D from fortified foods and any current supplements. Food quantities and your full intake have not been measured here; this page does not select an individual dose."}
+            </Copy>
+          </Card>
+        )}
       {ids.map((id) => (
         <Card key={id}>
           <Copy kind="small" style={{ color: C.muted }}>
@@ -130,12 +132,12 @@ export default function Evidence() {
             </>
           ) : (
             <Button label="Find related papers in Consensus" onPress={search} />
-          )}{" "}
+          )}
           {!!error && (
             <Copy accessibilityRole="alert" style={{ color: C.amber }}>
               {error}
             </Copy>
-          )}{" "}
+          )}
           {!!date && (
             <Copy kind="small">
               Retrieved {date.slice(0, 10)} · {papers.length} matches
