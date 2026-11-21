@@ -43,7 +43,7 @@ From the repository root after installing this app's dependencies:
 npm run build:all
 ```
 
-`build:app` exports the app and copies it into `public/suppclarity`. The Academy's existing Vite/Vercel build serves the checked-in export. `/active-research/suppclarity` introduces the project and `/suppclarity/` opens the app. Rebuild and commit the export whenever app source changes; CI checks for stale exports. Do not add health tracking scripts to the app. The research card has a development status and does not imply an approved research study.
+`build:app` exports the app and copies it into `public/suppclarity`. The Academy's existing Vite/Vercel build serves the checked-in export. `/active-research/suppclarity` introduces the project and `/suppclarity/` opens the app. Rebuild and commit the export whenever app source changes; CI checks a source fingerprint for stale exports and rebuilds on Linux; byte-for-byte bundle equality is not assumed across build hosts. Do not add health tracking scripts to the app. The research card has a development status and does not imply an approved research study.
 
 ## Native test builds
 

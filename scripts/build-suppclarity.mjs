@@ -1,3 +1,4 @@
+import { fingerprint } from './suppclarity-fingerprint.mjs';
 import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
@@ -13,3 +14,5 @@ const index=resolve(destination,'index.html');
 let html=readFileSync(index,'utf8');
 html=html.replace('<title>SuppClarity</title>','<title>SuppClarity — Research Preview</title>');
 writeFileSync(index,html);
+
+writeFileSync(resolve(destination,'source-manifest.json'),JSON.stringify({sourceSha256:fingerprint(app),webBasePath:'/suppclarity'},null,2)+'\n');
