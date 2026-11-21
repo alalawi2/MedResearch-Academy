@@ -332,17 +332,17 @@ export function guidance(
       route: "/evidence",
     });
   }
+  const sleepGoal =
+    profile.goal === "Sleep" || profile.goal === "Sleep or general wellbeing";
   entries.push({
     id: "magnesium-food",
-    priority: profile.goal === "Sleep or general wellbeing" ? 5 : 9,
-    title:
-      profile.goal === "Sleep or general wellbeing"
-        ? "A sleep goal alone does not establish a need for magnesium"
-        : "Start with magnesium-rich foods",
-    text:
-      profile.goal === "Sleep or general wellbeing"
-        ? "Supplement evidence for sleep is limited and inconsistent. A symptom or wellness goal cannot identify a personal dose."
-        : "Consider foods such as beans, nuts and whole grains when reviewing magnesium sources.",
+    priority: sleepGoal ? 5 : 9,
+    title: sleepGoal
+      ? "A sleep goal alone does not establish a need for magnesium"
+      : "Start with magnesium-rich foods",
+    text: sleepGoal
+      ? "Supplement evidence for sleep is limited and inconsistent. A symptom or wellness goal cannot identify a personal dose."
+      : "Consider foods such as beans, nuts and whole grains when reviewing magnesium sources.",
     action: "Explore magnesium evidence",
     why: "Food patterns are a useful starting point. Trials of magnesium for sleep are small and do not establish a routine recommendation for everyone.",
     limits:
