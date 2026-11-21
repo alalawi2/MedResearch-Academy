@@ -1,6 +1,6 @@
 # Consumer app benchmark and improvement cycles
 
-Reviewed November 22, 2026 using official feature/help pages and publisher store listings. These are ten established adjacent products, not a verified revenue ranking. Published feature descriptions are not a hands-on usability study. No claim that SuppClarity beats their revenue, clinical quality or retention.
+Reviewed November 22, 2026 using official feature/help pages and publisher store listings. These are ten established direct and adjacent products, not a verified revenue ranking. Published feature descriptions are not a hands-on usability study. No claim that SuppClarity beats their revenue, clinical quality or retention.
 
 | Product | Observed pattern and primary source | Decision for SuppClarity |
 | --- | --- | --- |
@@ -10,10 +10,14 @@ Reviewed November 22, 2026 using official feature/help pages and publisher store
 | Medisafe | [Official app](https://medisafeapp.com/) emphasizes medication reminders | A routine must survive relaunch; encrypted local persistence added. Reminders are not claimed |
 | Apple Health | [Medications](https://support.apple.com/en-us/105064) supports adding/logging scheduled items | Distinguish recorded routine from clinical need; considering products never increase current totals |
 | Calm | [Free vs Premium](https://support.calm.com/hc/en-us/articles/360008536834-Calm-Premium-vs-Free-Features-Content-List-Benefits) describes library access clearly | Concrete free utility; no trial charge or checkout until payments actually exist |
-| Headspace | [App](https://www.headspace.com/headspace-meditation-app) organizes short meditation/sleep content | Short local guides and optional deeper sources, without requiring chat |
-| Noom | [Photo/voice/text logging](https://www.noom.com/support/faqs/using-the-app/logging-and-tracking/food-and-water/2025/10/how-to-log-meals-using-photo-voice-or-text/) supports correcting identification | Treat machine readings as editable drafts; user confirms amounts and serving basis |
+| SuppCo | [Publisher listing](https://apps.apple.com/us/app/suppco-supplement-scanner/id6504838951) describes stack analysis, product search, reminders and quality scores | Compete through clear source confirmation and understandable amounts; no unsupported universal quality/safety grade |
+| SuppTrack | [Publisher listing](https://apps.apple.com/us/app/supptrack-supplement-tracker/id6502848329) describes a searchable supplement database, AI stack analysis and annual subscription/trial | Keep a useful free entry path; do not advertise unlimited AI or a live trial without billing and reliable allowances |
 | Lifesum | [Publisher listing](https://apps.apple.com/us/app/lifesum-ai-calorie-counter/id286906691) offers photo, typed and barcode entry | Multiple entry methods stay on the same product flow; no mandatory wearable |
-| Eat This Much | [Meal planner](https://www.eatthismuch.com/meal-planner/) adapts plans to preferences | Respect diet context but do not translate a short questionnaire into an unsupported deficiency diagnosis |
+| CareClinic | [Official site](https://careclinic.io/) combines symptom, medication and supplement tracking | Keep the first release focused on labels and education instead of adding a complex medical diary |
+
+Supplement-specific listings and website product counts differ over time and between platforms; they are publisher claims, not independently audited database coverage. We have not verified competitor revenue and do not call these the ten highest-grossing apps. Features described here may also exist elsewhere; no exclusivity claim is made.
+
+Additional UX references: [Headspace short content](https://www.headspace.com/headspace-meditation-app), [Noom correction after photo identification](https://www.noom.com/support/faqs/using-the-app/logging-and-tracking/food-and-water/2025/10/how-to-log-meals-using-photo-voice-or-text/), and [Eat This Much preference-based planning](https://www.eatthismuch.com/meal-planner/). The app does not copy their medical or subscription claims.
 
 ## Cycle 1: product discovery and dose context
 
