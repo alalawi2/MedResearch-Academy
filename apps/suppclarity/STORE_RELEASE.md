@@ -52,4 +52,8 @@ Never commit service-account JSON, App Store Connect private keys, passwords, ve
 
 Open `release/Connect-Apple-and-build.command` in macOS Terminal to complete Apple verification and create a signed iOS release. Open `release/Connect-Google-Play.command` to connect a Google Play submission key locally. These helpers do not contain credentials and do not send verification codes through chat. Upload alone does not complete review submission or the store declarations.
 
-Final Android production job: `c4022d61-5c9c-42a4-9b13-169db9eef0c3`, app 0.6.0, source `8a8f9111d4992ddff96fa941f12f6c5e173f281b`. This job builds the AAB and a matching test APK together; its final status and native verification must be checked before upload. JavaScript repacks are QA artifacts and must not be submitted.
+Final Android production job: `c4022d61-5c9c-42a4-9b13-169db9eef0c3`, app 0.6.0, source `8a8f9111d4992ddff96fa941f12f6c5e173f281b`. This job builds the AAB and a matching test APK together; it finished successfully with version code 8; final native scenario results are recorded in VALIDATION.md. JavaScript repacks are QA artifacts and must not be submitted.
+
+Android artifacts are stored outside the repository in `build-review/SuppClarity-v06-release.aab` and `build-review/SuppClarity-v06-release.apk`; the APK is an additional output of the same production build. Final manifest inspection confirms target SDK 36 and no overlay permission; all 24 arm64 native libraries have load alignment of at least 16 KiB.
+
+Removed the temporary workflows that repacked JavaScript onto old native builds after the Android repack rendered but ignored taps. Future native verification uses full builds. The manual release-candidate workflow remains available; its hosted Maestro jobs need an Expo paid plan, so local native tests remain the verified free fallback.

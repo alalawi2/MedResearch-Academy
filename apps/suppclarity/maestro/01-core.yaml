@@ -18,6 +18,11 @@ name: Local guides, search entry and privacy
 - tapOn:
     id: field-your-supplement-question
 - inputText: magensium
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn:
     id: button-ask-clarity
 - scrollUntilVisible:
