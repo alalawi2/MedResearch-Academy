@@ -6,13 +6,15 @@ name: Local guides, search entry and privacy
     clearKeychain: true
 - assertVisible: "SuppClarity"
 - takeScreenshot: screenshots/01-guidance
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - tapOn: "Add a product"
 - tapOn: "Search entry"
 - assertVisible: "Agree & find my product"
 - takeScreenshot: screenshots/02-search
 - tapOn: 'Go back'
-- tapOn: 'Ask(, tab.*)?'
+- tapOn:
+    id: tab-ask
 - tapOn:
     id: field-your-supplement-question
 - inputText: magensium
@@ -32,7 +34,8 @@ name: Local guides, search entry and privacy
     element: 'Cancel report'
     direction: UP
 - tapOn: 'Cancel report'
-- tapOn: 'Account(, tab.*)?'
+- tapOn:
+    id: tab-account
 - scrollUntilVisible:
     element: 'Privacy'
 - tapOn: 'Privacy'

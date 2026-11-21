@@ -4,7 +4,8 @@ name: Find a real manufacturer product by name
 - launchApp:
     clearState: true
     clearKeychain: true
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - tapOn: 'Add a product'
 - tapOn: 'Search entry'
 - tapOn:

@@ -6,7 +6,8 @@ name: Camera denial has a clear recovery path
     clearKeychain: true
     permissions:
       all: deny
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - tapOn: 'Add a product'
 - scrollUntilVisible:
     element: 'Take a photo'

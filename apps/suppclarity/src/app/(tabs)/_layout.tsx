@@ -27,6 +27,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Guidance",
+          tabBarButtonTestID: "tab-guidance",
           tabBarIcon: ({ color }) => (
             <Icon
               name="sun"
@@ -39,6 +40,7 @@ export default function TabLayout() {
         name="products"
         options={{
           title: "Products",
+          tabBarButtonTestID: "tab-products",
           tabBarIcon: ({ color }) => (
             <Icon
               name="layers"
@@ -51,6 +53,7 @@ export default function TabLayout() {
         name="ask"
         options={{
           title: "Ask",
+          tabBarButtonTestID: "tab-ask",
           tabBarIcon: ({ color }) => (
             <Icon
               name="message-circle"
@@ -63,6 +66,7 @@ export default function TabLayout() {
         name="account"
         options={{
           title: "Account",
+          tabBarButtonTestID: "tab-account",
           tabBarIcon: ({ color }) => (
             <Icon
               name="user"

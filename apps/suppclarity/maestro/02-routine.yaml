@@ -4,7 +4,8 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - launchApp:
     clearState: true
     clearKeychain: true
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - tapOn: 'Add a product'
 - tapOn: "Manual entry"
 - scrollUntilVisible:
@@ -99,11 +100,13 @@ name: Confirm, relaunch, inspect amount and erase a routine
     element: 'These details are correct'
 - tapOn: 'These details are correct'
 - assertVisible: Magnesium label example
-- tapOn: 'Account(, tab.*)?'
+- tapOn:
+    id: tab-account
 - scrollUntilVisible:
     element: 'Saved on this device.'
 - launchApp
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - assertVisible: Magnesium label example
 - takeScreenshot: screenshots/05-saved-routine
 - scrollUntilVisible:
@@ -112,7 +115,8 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - assertVisible: '300 mg'
 - takeScreenshot: screenshots/06-dose-context
 - tapOn: 'Go back'
-- tapOn: 'Account(, tab.*)?'
+- tapOn:
+    id: tab-account
 - scrollUntilVisible:
     element: 'Clear my data'
 - tapOn: 'Clear my data'
@@ -121,10 +125,12 @@ name: Confirm, relaunch, inspect amount and erase a routine
       text: 'Clear my data'
       index: 0
 - tapOn: 'Clear my data'
-- tapOn: 'Account(, tab.*)?'
+- tapOn:
+    id: tab-account
 - scrollUntilVisible:
     element: 'Saved on this device.'
 - launchApp
-- tapOn: 'Products(, tab.*)?'
+- tapOn:
+    id: tab-products
 - assertVisible: 'A fresh start'
 - assertNotVisible: Magnesium label example
