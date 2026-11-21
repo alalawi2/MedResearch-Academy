@@ -12,29 +12,65 @@ name: Confirm, relaunch, inspect amount and erase a routine
       id: field-product-name
 - tapOn:
     id: field-product-name
-- inputText: Magnesium test routine
-- hideKeyboard
+- inputText: Magnesium label example
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element:
       id: field-units-per-serving
 - tapOn:
     id: field-units-per-serving
 - inputText: '1'
-- hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element:
       id: field-serving-unit
 - tapOn:
     id: field-serving-unit
 - inputText: tablet
-- hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element:
       id: field-find-an-ingredient
 - tapOn:
     id: field-find-an-ingredient
 - inputText: Magnesium
-- hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn:
     id: ingredient-magnesium
 - scrollUntilVisible:
@@ -43,7 +79,16 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - tapOn:
     id: field-magnesium-amount-per-serving
 - inputText: '300'
-- hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element: 'Does the label have other active ingredients?'
 - tapOn: 'No'
@@ -53,14 +98,16 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - scrollUntilVisible:
     element: 'These details are correct'
 - tapOn: 'These details are correct'
-- assertVisible: Magnesium test routine
+- assertVisible: Magnesium label example
 - tapOn: 'Account(, tab.*)?'
 - scrollUntilVisible:
     element: 'Saved on this device.'
 - launchApp
 - tapOn: 'Products(, tab.*)?'
-- assertVisible: Magnesium test routine
+- assertVisible: Magnesium label example
 - takeScreenshot: screenshots/05-saved-routine
+- scrollUntilVisible:
+    element: 'Daily amount and details for Magnesium'
 - tapOn: 'Daily amount and details for Magnesium'
 - assertVisible: '300 mg'
 - takeScreenshot: screenshots/06-dose-context
@@ -80,4 +127,4 @@ name: Confirm, relaunch, inspect amount and erase a routine
 - launchApp
 - tapOn: 'Products(, tab.*)?'
 - assertVisible: 'A fresh start'
-- assertNotVisible: Magnesium test routine
+- assertNotVisible: Magnesium label example

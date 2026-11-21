@@ -45,3 +45,12 @@ Source-transcription follow-up: web search now identifies product pages without 
 ## Release 0.6 candidate
 
 Local checks: 46 app tests and 34 API tests pass, including encrypted-storage failure/recovery cases. Lint, TypeScript, Academy/Expo export build and source fingerprint pass. The hosted automated native workflow requires a paid Expo plan; no subscription was purchased. A local Maestro suite covers offline lookup entry, broad ingredient questions, manual confirmation, persistence across relaunch, optional dose context and erasure. Executed results will be recorded separately. An initial simulator candidate installed/launched on iOS 26.5 and its home screenshot was inspected. This is not a physical-camera accuracy test. Apple production signing and Play submission credentials remain missing.
+
+### Additional release checks
+
+- 46 app and 38 backend tests (84 total), lint, TypeScript, combined builds and source-export verification pass after optional in-app answer reports.
+- Feedback SQL migration applied only to the suppclarity_content_reports namespace. Transactional fixture writes tested acceptance and per-network limits, then rolled back. Separate checks confirm anonymous reads and direct authenticated writes are blocked, fixture rows are absent and the named daily expiry job is active.
+- iOS manufacturer-name search and denied-camera recovery passed as native scenarios. The first full suite also found the numeric keyboard lacked a Done action; shared inputs now request the native Done toolbar. A test had tapped the uppercase page title instead of the Ask button; stable button identifiers correct the harness.
+- A real manufacturer front image was selected through the iOS photo picker with explicit AI consent. Name recognition, automatic source lookup and magnesium 300 mg confirmation passed (Maestro JUnit, one test, no failures; build-review/gallery-qa/results.xml). It was a manufacturer stock image on a simulator, not the user's physical bottle or camera.
+- App text distinguishes installed encrypted storage from browser session storage. Search/photo entry controls disappear after label selection. Release text describes supplement education rather than an unfinished beta or a clinically validated service.
+- Final native suite results and final store binaries are still pending in this candidate document. Do not treat early partial passes as a complete release sign-off.

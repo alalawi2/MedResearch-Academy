@@ -10,7 +10,16 @@ name: Find a real manufacturer product by name
 - tapOn:
     id: field-product-name-or-brand
 - inputText: natures own magnesium energy
-- hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: 'Done'
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - tapOn: 'Agree & find my product'
 - extendedWaitUntil:
     notVisible: 'Finding your product…'

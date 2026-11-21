@@ -103,6 +103,14 @@
       "destination": "/suppclarity/index.html"
     },
     {
+      "source": "/suppclarity/privacy",
+      "destination": "/suppclarity/privacy/index.html"
+    },
+    {
+      "source": "/suppclarity/support",
+      "destination": "/suppclarity/support/index.html"
+    },
+    {
       "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask|ingredient|privacy|support)",
       "destination": "/suppclarity/index.html"
     },

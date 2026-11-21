@@ -1,3 +1,4 @@
+import { publicContentPages } from './suppclarity-public-pages.mjs';
 import { fingerprint } from './suppclarity-fingerprint.mjs';
 import { cpSync, mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -19,3 +20,5 @@ writeFileSync(resolve(destination,'source-manifest.json'),JSON.stringify({source
 
 mkdirSync(resolve(destination,'licenses'),{recursive:true});
 cpSync(resolve(app,'node_modules/@expo-google-fonts/manrope/LICENSE_FONT'),resolve(destination,'licenses/Manrope-OFL.txt'));
+
+publicContentPages(app,destination);

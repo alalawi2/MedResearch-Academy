@@ -16,7 +16,7 @@ See what an ingredient does, understand the amount on your label and compare sup
 
 Your confirmed routine is saved in encrypted storage on your phone. No account is needed. Comfortable reading sizes, manual entry, export and clear-data controls are included.
 
-SuppClarity provides general education for adults. It does not diagnose deficiencies, prescribe individual doses, assess your complete diet, or check all medicine interactions. Product formulas and online sources can change: always confirm your bottle. AI label reading and answers can make mistakes. No clinical validation is claimed. All current features are free; there are no subscriptions or trial charges.
+SuppClarity provides general education for adults. It does not diagnose deficiencies, prescribe individual doses, assess your complete diet, or check all medicine interactions. Product formulas and online sources can change: always confirm your bottle. AI label reading and answers can make mistakes. No clinical validation is claimed. All current features are free; there are no subscriptions or trial charges. Online scans, research and answers have daily allowances; local guides and manual entry remain available.
 
 Privacy: https://www.medresearch-academy.om/suppclarity/privacy
 Support: https://www.medresearch-academy.om/suppclarity/support
