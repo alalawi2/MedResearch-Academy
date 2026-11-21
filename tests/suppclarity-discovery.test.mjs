@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
-import { validatedLabel } from "../lib/suppclarity/label.mjs";
+import {
+  validatedLabel,
+  declaredCaffeineTotal,
+} from "../lib/suppclarity/label.mjs";
 import {
   discoverProducts,
   discoveredMatches,
@@ -85,6 +88,15 @@ test("only consulted HTTPS product sources survive discovery and blank evidence 
     300,
   );
   assert(matchesQuery("natures own magnesium energy", match));
+  assert.equal(
+    discoveredMatches(
+      provider(
+        [{ ...match, url: url.slice(0, -1) }],
+        [url + "?utm_source=chatgpt.com"],
+      ),
+    ).length,
+    1,
+  );
   assert(!matchesQuery("natures own magnesium sleep", match));
   assert(
     !matchesQuery("vitamin D", { name: "Vitamin C", brand: "Nature Made" }),
@@ -304,4 +316,43 @@ test("live-answer endpoint validates before quota, rejects foreign origins and h
   await handler(req({ question: "How much should I take?" }), safety);
   assert.equal(safety.code, 200);
   assert.equal(calls, 1);
+});
+
+test("explicit same-serving caffeine total includes botanical caffeine without summing extract mass", () => {
+  const panel = {
+    ...label,
+    ingredients: [
+      {
+        name: "Caffeine",
+        amount: 69,
+        unit: "mg",
+        reading: "clear",
+        labelText: "Caffeine 69mg",
+      },
+      {
+        name: "Guarana",
+        amount: 27.27,
+        unit: "mg",
+        reading: "clear",
+        labelText: "extract 27.27mg equivalent caffeine 6mg",
+      },
+    ],
+    concerns: ["Contains caffeine (75mg per tablet)."],
+  };
+  const total = declaredCaffeineTotal(validatedLabel(panel));
+  assert.equal(total.ingredients[0].amount, 75);
+  assert(total.ingredients[0].labelText.includes("75mg"));
+  assert.equal(total.ingredients[1].nutrient, null);
+  const two = declaredCaffeineTotal(
+    validatedLabel({ ...panel, servingUnits: 2 }),
+  );
+  assert.equal(two.ingredients[0].amount, 69);
+  const lower = declaredCaffeineTotal(
+    validatedLabel({
+      ...panel,
+      concerns: ["Contains caffeine (50mg per tablet)."],
+    }),
+  );
+  assert.equal(lower.ingredients[0].amount, null);
+  assert.equal(lower.ingredients[0].reading, "uncertain");
 });
