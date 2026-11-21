@@ -248,7 +248,7 @@ test("common goal scenarios select relevant education without inventing a dose",
   );
   assert.equal(
     run({ ...profile, goal: "Digestion and gut health" }).primary.topic,
-    "fibre",
+    "fiber",
   );
   assert.equal(
     run({ ...profile, goal: "Sleep or general wellbeing" }).primary.id,

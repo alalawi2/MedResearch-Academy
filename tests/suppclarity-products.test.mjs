@@ -79,6 +79,8 @@ test("database unit and Daily Value inconsistencies are blank, never silently co
   assert.equal(l.ingredients[0].reading, "uncertain");
   assert.equal(l.panelComplete, false);
   assert(l.concerns.some((c) => c.includes("%DV")));
+  r.ingredientRows[0].quantity = [quantity(90, "mg", 10)];
+  assert.equal(databaseLabel(r).ingredients[0].amount, null); // 10x is also material, not rounding.
 });
 test("ranged, multiple and mismatched serving records never supply guessed quantities", () => {
   for (const change of [

@@ -20,6 +20,7 @@ import {
   type DraftRow,
   type ReadLabel,
 } from "../labels";
+import { prospectiveNotes } from "../prospective";
 import { scanLabel } from "../api";
 const blankRow = (n: Nutrient): DraftRow => ({
   id: `manual-${n}`,
@@ -32,7 +33,7 @@ const blankRow = (n: Nutrient): DraftRow => ({
   labelText: "",
 });
 export default function ProductEntry() {
-  const { setProducts, profile, setProfile } = useStore();
+  const { products, setProducts, profile, setProfile } = useStore();
   const { intent } = useLocalSearchParams<{ intent?: string }>();
   const [method, setMethod] = useState("Search");
   const [ingredientQuery, setIngredientQuery] = useState("");
@@ -68,6 +69,38 @@ export default function ProductEntry() {
     manualOther: manualOther !== "No",
   });
   const ready = Boolean(product && (label || manualOther));
+  const notes = product
+    ? prospectiveNotes(product, products, Number(profile.age))
+    : [];
+  const missing = !name.trim()
+    ? "Enter the product name."
+    : !serving.trim() ||
+        !Number.isFinite(Number(serving)) ||
+        Number(serving) <= 0
+      ? "Enter a positive number of units per serving."
+      : rows.some(
+            (r) =>
+              r.included &&
+              (!r.amount.trim() ||
+                !r.unit ||
+                !Number.isFinite(Number(r.amount)) ||
+                Number(r.amount) < 0),
+          )
+        ? "Check every included ingredient’s amount and unit, or leave it unassessed."
+        : taking &&
+            (!taken.trim() ||
+              !Number.isFinite(Number(taken)) ||
+              Number(taken) <= 0)
+          ? "Enter the units you actually take on a use day."
+          : taking &&
+              (!days.trim() ||
+                !Number.isInteger(Number(days)) ||
+                Number(days) < 1 ||
+                Number(days) > 7)
+            ? "Enter a whole number of days per week from 1 to 7."
+            : !label && !manualOther
+              ? "Confirm whether the label has other active ingredients."
+              : "Check the quantities and units above.";
   const update = (id: string, patch: Partial<DraftRow>) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
   function applyLabel(result: ReadLabel) {
@@ -212,6 +245,9 @@ export default function ProductEntry() {
               </Notice>
             )}
           </Card>
+          {notes.map((note) => (
+            <Notice key={note}>{note}</Notice>
+          ))}
           <Notice>
             Check amounts, units and serving size against the label. This is
             your recorded use, not a recommended dose.
@@ -420,7 +456,11 @@ export default function ProductEntry() {
             <>
               <Field label="Product name" value={name} onChange={setName} />
               <Copy kind="label">Are you currently taking it?</Copy>
-              <View style={S.row}>
+              <View
+                style={S.row}
+                accessibilityRole="radiogroup"
+                accessibilityLabel="Product status"
+              >
                 {[
                   { title: "Taking it", value: true },
                   { title: "Considering it", value: false },
@@ -585,6 +625,18 @@ export default function ProductEntry() {
                               </Pressable>
                             ))}
                           </View>
+                          {[
+                            "Vitamin A",
+                            "Vitamin E",
+                            "Folate",
+                            "Niacin",
+                          ].includes(row.nutrient) && (
+                            <Copy kind="small">
+                              Use the unit exactly as printed. Form-specific
+                              units stay separate; they are not automatically
+                              checked against an upper reference.
+                            </Copy>
+                          )}
                           {row.nutrient === "Magnesium" && (
                             <Copy kind="small">
                               Use elemental magnesium from Supplement Facts, not
@@ -663,6 +715,7 @@ export default function ProductEntry() {
                   confirmed row for it to avoid double counting paired units.
                 </Notice>
               )}
+              {!ready && (name || label) && <Notice>{missing}</Notice>}
               <Button
                 label="Review my entry"
                 disabled={!ready || busy}

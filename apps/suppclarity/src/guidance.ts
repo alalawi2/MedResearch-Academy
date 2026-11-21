@@ -14,6 +14,7 @@ import {
   type SourceId,
   type Topic,
 } from "./evidence.ts";
+import { localGuides } from "./education-data.mjs";
 import { upperReference } from "./upper-references.ts";
 export type Consideration = {
   id: string;
@@ -211,7 +212,8 @@ export function guidance(
       why: "Recording an amount does not establish that you need it or that it suits your health circumstances.",
       limits:
         "Formulation, other ingredients and your full intake can change the interpretation.",
-      sourceIds: [],
+      sourceIds: localGuides[item.guide as keyof typeof localGuides]
+        .sourceIds as SourceId[],
       topic: item.guide as Topic,
       route: "/evidence",
     });
@@ -229,12 +231,12 @@ export function guidance(
         : "Start with your food pattern",
       text: exercise
         ? "An exercise goal alone does not establish a supplement need. Protein and creatine have different uses and evidence."
-        : "Fibre and probiotics have different purposes. A gut-health goal does not identify a strain or dose.",
+        : "Fiber and probiotics have different purposes. A gut-health goal does not identify a strain or dose.",
       action: "Read my quick guide",
       why: "A goal is a starting point for education, not a diagnosis or a measured nutrient gap.",
       limits: "No individual product or dose is selected.",
-      sourceIds: [],
-      topic: exercise ? "protein" : "fibre",
+      sourceIds: [exercise ? "sportsNIH" : "fiberNIDDK"],
+      topic: exercise ? "protein" : "fiber",
       route: "/evidence",
     });
   }

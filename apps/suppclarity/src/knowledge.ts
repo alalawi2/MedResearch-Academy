@@ -17,6 +17,10 @@ export function guideTopic(id: GuideId): Topic | undefined {
   return Object.hasOwn(researchTopics, t) ? (t as Topic) : undefined;
 }
 const corrections: Record<string, string> = {
+  vitamine: "vitamin",
+  protien: "protein",
+  creatiene: "creatine",
+  zink: "zinc",
   magnesum: "magnesium",
   magnisium: "magnesium",
   calicum: "calcium",
@@ -78,8 +82,16 @@ export function askCopilot(question: string): CopilotReply {
       guide: f.guide as GuideId,
     };
   };
+  if (/kill myself|want to die|hurt myself|end my life/.test(n))
+    return {
+      kind: "scope",
+      answer:
+        "Please reach out now to someone you trust and a local crisis support service. If you might act on these thoughts or have taken something to harm yourself, contact your local emergency service immediately. This supplement helper cannot provide crisis care.",
+      choices: [],
+      sourceIds: [],
+    };
   if (
-    /trouble breathing|cannot breathe|can t breathe|severe reaction|chest pain|kill myself|want to die/.test(
+    /trouble breathing|cannot breathe|can t breathe|severe reaction|chest pain/.test(
       n,
     )
   )

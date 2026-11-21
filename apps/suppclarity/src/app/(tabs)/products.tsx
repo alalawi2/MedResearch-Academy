@@ -35,6 +35,9 @@ export default function Products() {
           <Notice>
             Quantities come from your confirmed entries. Food intake, medicine
             interactions and whole-product suitability are not assessed.
+            Upper-reference checks cover nine selected nutrients; other
+            ingredients can have limits too. Absence of a flag does not
+            establish safety.
           </Notice>
           {products.map((p) => (
             <Card key={p.id}>

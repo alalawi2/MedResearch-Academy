@@ -37,8 +37,8 @@ export const researchTopics = {
     "Creatine dietary supplements adults systematic review guideline benefits harms evidence",
   collagen:
     "Collagen dietary supplements adults systematic review guideline benefits harms evidence",
-  fibre:
-    "Fibre and psyllium dietary supplements adults systematic review guideline benefits harms evidence",
+  fiber:
+    "Fiber and psyllium dietary supplements adults systematic review guideline benefits harms evidence",
   probiotics:
     "Probiotics dietary supplements adults systematic review guideline benefits harms evidence",
   melatonin:

@@ -4,7 +4,7 @@
 
 ## Current scope and checks
 
-- 29 app tests and 20 backend tests pass. App lint and TypeScript pass. A full Academy and Expo web build succeeds, and the source/export fingerprint matches.
+- 31 app tests and 20 backend tests pass. App lint and TypeScript pass. A full Academy and Expo web build succeeds, and the source/export fingerprint matches.
 - New cases cover all 100 distinct FAQs and their sources/guides, all catalog-guide mappings, unknown/ambiguous questions, personal-dose and medication scope, urgent prepared-answer routing, B12 mg-to-mcg and CFU conversions, separate form-specific units, nonaggregated extracts/probiotics, family overlap, age-18 and calcium age-51 boundaries, and the native JSX bare-text regression.
 - NIH lookup cases cover barcode formatting, exact query token matching (a vitamin D query must not match a D inside “Made”), newest-record deduplication, bounded inputs, origin protection, provider failures, ranged/multiple/mismatched servings, paired-unit consistency, nested folic acid and quantity/%DV conflicts. No conflicting quantity is silently corrected.
 - Direct live NIH searches returned candidates for Nature Made vitamin D, Centrum Adults, a 12-digit UPC, creatine monohydrate and probiotics. Live label 179704 returned one-softgel serving and D 2,000 IU normalized to 50 mcg. These check API integration; they do not establish that a candidate matches the user’s bottle.
@@ -25,3 +25,5 @@ A paired iPhone matched the registered Expo device. Standalone signing was not c
 The preview exposed a native-only explicit-space JSX error, now removed and covered by the static regression check. Full label images are preserved instead of forced square crops. Camera denial now provides an app-settings button and a manual/photo alternative. These changes still need a physical permission-denial/return test and a real bottle comparison by the user.
 
 Outstanding: real-label accuracy evaluation, physical iPhone/Android photo and camera flows, visual and accessibility audits for these new screens, independent evidence-rule validation, and any clinical/commercial intended-use assessment. Profiles and product entries remain session-only; accounts, purchases and wearables are not implemented.
+
+Independent Claude Opus 4.6 review completed on the public implementation before final follow-up edits. See `CLAUDE_COMMON_SUPPLEMENTS_REVIEW.md` for adjudicated findings and the verbatim response. It is a software/content critique, not clinical validation. Prospective-only label warnings and overlap checks are tested without changing intake totals.

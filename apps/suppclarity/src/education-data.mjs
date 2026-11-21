@@ -155,8 +155,8 @@ export const extraSources = {
     by: "NIH National Center for Complementary and Integrative Health",
     note: "General educational information; individual circumstances can change its application.",
   },
-  fibreNIDDK: {
-    title: "Constipation: treatment and dietary fibre",
+  fiberNIDDK: {
+    title: "Treatment for Constipation",
     url: "https://www.niddk.nih.gov/health-information/digestive-diseases/constipation/treatment",
     by: "NIH National Institute of Diabetes and Digestive and Kidney Diseases",
     note: "General educational information; individual circumstances can change its application.",
@@ -184,7 +184,7 @@ export const extraSources = {
     title: "Poison Help",
     url: "https://poisonhelp.hrsa.gov/",
     by: "US Health Resources and Services Administration",
-    note: "Urgent exposure questions need a poison centre or emergency service, not an educational chatbot.",
+    note: "Urgent exposure questions need a poison center or emergency service, not an educational chatbot.",
   },
 };
 export const localGuides = {
@@ -192,7 +192,7 @@ export const localGuides = {
     title: "Starting without supplements",
     summary:
       "You can use the app without taking anything. Start with your eating pattern, goals and any established clinical plan.",
-    food: "A varied diet can provide nutrients plus fibre and other food components that a pill does not replace.",
+    food: "A varied diet can provide nutrients plus fiber and other food components that a pill does not replace.",
     evidence:
       "A supplement can address a specific intake gap or indication. A short quiz cannot diagnose a deficiency or prove that everyone needs a product.",
     check:
@@ -412,17 +412,17 @@ export const localGuides = {
     sourceIds: ["collagenReview", "collagenRecent"],
     topic: "collagen",
   },
-  fibre: {
-    title: "Fibre and psyllium",
+  fiber: {
+    title: "Fiber and psyllium",
     summary:
-      "Fibre products differ. A psyllium amount is not automatically the same as its dietary-fibre content.",
-    food: "Food sources such as whole grains, legumes, fruit and vegetables can contribute varied fibres.",
+      "Fiber products differ. A psyllium amount is not automatically the same as its dietary-fiber content.",
+    food: "Food sources such as whole grains, legumes, fruit and vegetables can contribute varied fibers.",
     evidence:
-      "Some fibre products can help selected bowel problems, but their effects and tolerability vary.",
+      "Some fiber products can help selected bowel problems, but their effects and tolerability vary.",
     check:
       "Follow product instructions, including fluid precautions. Swallowing difficulties, bowel symptoms and medicines can require individual assessment.",
-    sourceIds: ["fibreNIDDK"],
-    topic: "fibre",
+    sourceIds: ["fiberNIDDK"],
+    topic: "fiber",
   },
   probiotics: {
     title: "Probiotics",
@@ -564,7 +564,7 @@ export const faqBank = [
     id: "q004",
     question: "Can supplements replace a balanced diet?",
     answer:
-      "They cannot replace all the nutrients, fibre and other components of a varied eating pattern. A product can have a specific role, but adding more pills does not reconstruct a complete diet.",
+      "They cannot replace all the nutrients, fiber and other components of a varied eating pattern. A product can have a specific role, but adding more pills does not reconstruct a complete diet.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],
@@ -1149,20 +1149,20 @@ export const faqBank = [
   },
   {
     id: "q069",
-    question: "Is psyllium weight the same as dietary fibre?",
+    question: "Is psyllium weight the same as dietary fiber?",
     answer:
-      "Not necessarily. Record the separately declared dietary-fibre value if present, and keep the psyllium ingredient amount separate. Follow relevant product instructions and precautions.",
-    guide: "fibre",
-    sourceIds: ["fibreNIDDK"],
+      "Not necessarily. Record the separately declared dietary-fiber value if present, and keep the psyllium ingredient amount separate. Follow relevant product instructions and precautions.",
+    guide: "fiber",
+    sourceIds: ["fiberNIDDK"],
     tags: [],
   },
   {
     id: "q070",
-    question: "Can I use fibre supplements if I have swallowing problems?",
+    question: "Can I use fiber supplements if I have swallowing problems?",
     answer:
-      "Swallowing difficulties need individual advice. Some fibre products require specific fluid and administration precautions; do not rely on this app to clear their use.",
-    guide: "fibre",
-    sourceIds: ["fibreNIDDK"],
+      "Swallowing difficulties need individual advice. Some fiber products require specific fluid and administration precautions; do not rely on this app to clear their use.",
+    guide: "fiber",
+    sourceIds: ["fiberNIDDK"],
     tags: [],
   },
   {
@@ -1318,7 +1318,7 @@ export const faqBank = [
     id: "q087",
     question: "What should I do after accidentally taking too much?",
     answer:
-      "Do not wait for this educational helper to assess an overdose. Contact a poison centre or emergency medical service promptly, especially with symptoms or a child\u2019s exposure. Have the product and amount available for them.",
+      "Do not wait for this educational helper to assess an overdose. Contact a poison center or emergency medical service promptly, especially with symptoms or a child\u2019s exposure. Have the product and amount available for them.",
     guide: "starting",
     sourceIds: ["poisonHelp"],
     tags: ["urgent-overdose accidental swallowed too many whole bottle"],
