@@ -1,3 +1,5 @@
+import { discoverProducts } from "../../lib/suppclarity/discovery.mjs";
+import { reserveEvidence } from "../../lib/suppclarity/quota.mjs";
 import { allowedOrigin } from "../../lib/suppclarity/http.mjs";
 import {
   productQuery,
@@ -7,6 +9,9 @@ import {
 export function createHandler({
   search = searchProducts,
   read = getProductLabel,
+  discover = discoverProducts,
+  reserve = reserveEvidence,
+  env = process.env,
 } = {}) {
   return async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
@@ -23,10 +28,14 @@ export function createHandler({
       return res.status(403).json({ error: "Origin not allowed." });
     if (req.method !== "GET")
       return res.status(405).json({ error: "Use GET." });
-    const { q, id } = req.query || {};
+    const { q, id, web } = req.query || {};
     if (
-      Object.keys(req.query || {}).some((k) => !["q", "id"].includes(k)) ||
-      !!q === !!id
+      Object.keys(req.query || {}).some(
+        (k) => !["q", "id", "web"].includes(k),
+      ) ||
+      !!q === !!id ||
+      (web !== undefined && web !== "1") ||
+      (web && !q)
     )
       return res
         .status(400)
@@ -41,17 +50,67 @@ export function createHandler({
         .json({ error: "Enter a product name, brand or complete barcode." });
     }
     try {
-      const signal = AbortSignal.timeout(20000);
-      const data = id
-        ? { label: await read({ id, signal }), requiresConfirmation: true }
-        : { products: await search({ query: q, signal }) };
-      res.setHeader(
-        "Cache-Control",
-        "public, max-age=0, s-maxage=3600, stale-while-revalidate=3600",
-      );
+      const signal = AbortSignal.timeout(45000);
+      let data;
+      if (id)
+        data = {
+          label: await read({ id, signal }),
+          requiresConfirmation: true,
+        };
+      else {
+        let products = [];
+        let databaseAvailable = true;
+        try {
+          products = await search({
+            query: q,
+            signal: AbortSignal.timeout(10000),
+          });
+        } catch {
+          databaseAvailable = false;
+        }
+        let webMatches = [];
+        let onlineStatus = "not-needed";
+        if (!products.length || web) {
+          onlineStatus = "unavailable";
+          if (env.OPENAI_API_KEY) {
+            const ip = String(
+              req.headers["x-vercel-forwarded-for"] ||
+                req.socket?.remoteAddress ||
+                "unknown",
+            )
+              .split(",")[0]
+              .trim();
+            const blocked = await reserve(ip, env);
+            if (blocked)
+              onlineStatus =
+                blocked.status === 429 ? "allowance-reached" : "unavailable";
+            else {
+              try {
+                webMatches = await discover({
+                  query: q,
+                  apiKey: env.OPENAI_API_KEY,
+                  model: env.SUPPCLARITY_SEARCH_MODEL || "gpt-4.1-mini",
+                  signal,
+                });
+                onlineStatus = "searched";
+              } catch {
+                onlineStatus = "unavailable";
+              }
+            }
+          }
+        }
+        if (!databaseAvailable && onlineStatus === "unavailable")
+          throw Error("Sources unavailable");
+        data = { products, webMatches, onlineStatus, databaseAvailable };
+      }
+      if (id || data.products?.length || data.webMatches?.length)
+        res.setHeader(
+          "Cache-Control",
+          "public, max-age=0, s-maxage=3600, stale-while-revalidate=3600",
+        );
       return res.status(200).json({
         ...data,
-        provider: "NIH DSLD",
+        provider: "NIH DSLD and online sources",
         retrievedAt: new Date().toISOString(),
       });
     } catch {

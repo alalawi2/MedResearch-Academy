@@ -87,6 +87,9 @@
       "maxDuration": 30
     },
     "api/suppclarity/products.mjs": {
+      "maxDuration": 60
+    },
+    "api/suppclarity/copilot.mjs": {
       "maxDuration": 30
     }
   },
@@ -100,7 +103,7 @@
       "destination": "/suppclarity/index.html"
     },
     {
-      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask)",
+      "source": "/suppclarity/:screen(check|product|result|evidence|calculation|export|plus|about|products|account|library|ask|ingredient)",
       "destination": "/suppclarity/index.html"
     },
     {

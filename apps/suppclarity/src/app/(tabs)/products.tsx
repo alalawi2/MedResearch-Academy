@@ -59,9 +59,21 @@ export default function Products() {
               {ingredientsOf(p)
                 .slice(0, expanded.includes(p.id) ? undefined : 3)
                 .map((i) => (
-                  <Copy key={i.nutrient}>
-                    {i.nutrient} · {i.amount} {i.unit} per serving
-                  </Copy>
+                  <Pressable
+                    key={i.nutrient}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Daily amount and details for ${i.nutrient}`}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/ingredient",
+                        params: { name: i.nutrient },
+                      })
+                    }
+                  >
+                    <Copy style={{ textDecorationLine: "underline" }}>
+                      {i.nutrient} · {i.amount} {i.unit} per serving
+                    </Copy>
+                  </Pressable>
                 ))}
               {ingredientsOf(p).length > 3 && (
                 <Button
@@ -112,7 +124,20 @@ export default function Products() {
                     { justifyContent: "space-between", flexWrap: "wrap" },
                   ]}
                 >
-                  <Copy>{t.nutrient}</Copy>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Daily amount and details for ${t.nutrient}`}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/ingredient",
+                        params: { name: t.nutrient },
+                      })
+                    }
+                  >
+                    <Copy style={{ textDecorationLine: "underline" }}>
+                      {t.nutrient}
+                    </Copy>
+                  </Pressable>
                   <Copy kind="heading">
                     {Number(t.amount.toFixed(2))} {t.unit}
                   </Copy>

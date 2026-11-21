@@ -1,4 +1,14 @@
-# Build validation — version 0.3
+# Build validation — version 0.4
+
+21 November 2026. This revision adds minimal-photo product identification, sourced online fallback, optional ingredient intake references, and improved general/follow-up copilot answers.
+
+- 35 app and 28 backend cases pass locally, plus lint, TypeScript, Academy/Expo web builds and the source/export fingerprint. New cases cover front-only identity preservation, consulted-source URL validation, missing evidence excerpts, NIH/online failure distinctions, shared allowance failures, schema/request boundaries, copilot scope and curated source filtering, generic magnesium misspellings without a sleep assumption, RDA age/sex boundaries, and web provenance surviving confirmation.
+- No additional native modules are added. The existing SDK 58 Expo Go camera and image modules support this source update.
+- Final hosted integration results are recorded separately after deployment. A real manufacturer's front image can test recognition but does not replace the user's physical iPhone camera/real bottle comparison. A comprehensive visual/accessibility audit is not claimed.
+- Evidence references remain general education. No personal extra dose, complete interaction screen, clinical approval or measured label accuracy is claimed.
+
+## Previous version 0.3 baseline (historical)
+
 
 21 November 2026. Software checks only; no clinical approval, measured real-label accuracy or whole-product safety clearance is claimed.
 

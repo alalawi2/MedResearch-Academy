@@ -1,48 +1,90 @@
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, Linking } from "react-native";
 import { Button, Card, Copy, Field, Notice, C } from "./ui";
-import { findProducts, readProduct, type ProductMatch } from "./api";
+import { findProducts, readProduct, type ProductSearchResult } from "./api";
 import type { ReadLabel } from "./labels";
+const empty: ProductSearchResult = {
+  products: [],
+  webMatches: [],
+  onlineStatus: "not-started",
+  databaseAvailable: true,
+};
 export function ProductSearch({
   onSelect,
+  onIdentityOnly,
+  initialQuery = "",
+  autoSearch = false,
 }: {
   onSelect: (label: ReadLabel) => void;
+  onIdentityOnly: (query: string) => void;
+  initialQuery?: string;
+  autoSearch?: boolean;
 }) {
-  const [query, setQuery] = useState("");
-  const [matches, setMatches] = useState<ProductMatch[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState(initialQuery);
+  const [result, setResult] = useState<ProductSearchResult>(empty);
+  const [busy, setBusy] = useState(autoSearch);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
+  const [more, setMore] = useState(false);
   const request = useRef<AbortController | null>(null);
+  useEffect(() => {
+    if (!autoSearch) return;
+    const controller = new AbortController();
+    request.current = controller;
+    const timer = setTimeout(() => controller.abort(), 55000);
+    findProducts(initialQuery, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setResult(data);
+          setSearched(true);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setError(
+            "Online lookup could not finish. Try again or photograph the ingredient amounts.",
+          );
+      })
+      .finally(() => {
+        clearTimeout(timer);
+        if (request.current === controller) {
+          setBusy(false);
+          request.current = null;
+        }
+      });
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [autoSearch, initialQuery]);
   useEffect(() => () => request.current?.abort(), []);
-  async function run(id?: string) {
+  async function run(id?: string, web = false) {
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
-    const timer = setTimeout(() => controller.abort(), 25000);
+    const timer = setTimeout(() => controller.abort(), 55000);
     setBusy(true);
     setError("");
     try {
       if (id) {
-        const result = await readProduct(id, controller.signal);
-        if (!controller.signal.aborted) onSelect(result);
+        const label = await readProduct(id, controller.signal);
+        if (!controller.signal.aborted) onSelect(label);
       } else {
-        setMatches([]);
-        setSearched(false);
-        const result = await findProducts(query, controller.signal);
+        const data = await findProducts(query, controller.signal, web);
         if (!controller.signal.aborted) {
-          setMatches(result);
+          setResult(data);
           setSearched(true);
+          setMore(false);
         }
       }
     } catch (e) {
       if (request.current === controller)
         setError(
           controller.signal.aborted
-            ? "Search timed out. Try again, use a photo or enter the label manually."
+            ? "Lookup timed out. Try again or use an ingredient photo."
             : e instanceof Error
               ? e.message
-              : "Product search is unavailable.",
+              : "Product lookup is unavailable.",
         );
     } finally {
       clearTimeout(timer);
@@ -52,11 +94,12 @@ export function ProductSearch({
       }
     }
   }
+  const webItems = result.webMatches.slice(0, more ? 3 : 1);
   return (
     <Card>
-      <Copy kind="heading">Find the exact bottle</Copy>
+      <Copy kind="heading">Find your product</Copy>
       <Field
-        label="Name, brand or barcode number"
+        label="Product name or brand"
         value={query}
         maxLength={120}
         onChange={(v) => {
@@ -64,52 +107,105 @@ export function ProductSearch({
           request.current = null;
           setBusy(false);
           setQuery(v);
-          setMatches([]);
+          setResult(empty);
           setSearched(false);
           setError("");
         }}
-        hint="Try Nature Made vitamin D, Centrum Adults, or type the full barcode."
+        hint="For example Nature’s Own Magnesium Energy. A barcode number works too."
       />
       <Button
-        label="Search products"
+        label={busy ? "Finding your product…" : "Find my product"}
         icon="search"
         disabled={busy || query.trim().length < 2}
         onPress={() => run()}
       />
       {busy && (
-        <ActivityIndicator
-          color={C.teal}
-          accessibilityLabel="Looking up product labels"
-        />
+        <>
+          <ActivityIndicator color={C.teal} />
+          <Copy kind="small" accessibilityLiveRegion="polite">
+            Checking label records and online product information…
+          </Copy>
+        </>
       )}
       {!!error && <Notice>{error}</Notice>}
-      {searched && !matches.length && (
-        <Notice>
-          No matching label found. Try fewer words or the full barcode. You can
-          also choose Photo or Manual above.
-        </Notice>
-      )}
-      {matches.map((m) => (
+      {webItems.map((m) => (
+        <Card key={m.url}>
+          <Copy kind="small" style={{ color: C.muted }}>
+            POSSIBLE MATCH
+          </Copy>
+          <Copy kind="heading">{m.name}</Copy>
+          <Copy>
+            {m.brand}
+            {m.market ? ` · ${m.market}` : ""}
+          </Copy>
+          <Copy kind="small">
+            Compare the name, strength and form with your bottle.
+          </Copy>
+          <Copy
+            accessibilityRole="link"
+            onPress={() => Linking.openURL(m.url)}
+            style={{ textDecorationLine: "underline", color: C.teal }}
+          >
+            Source: {new URL(m.url).hostname}
+          </Copy>
+          <Button
+            label={
+              m.label ? "This is my product" : "Read ingredients from my bottle"
+            }
+            disabled={busy}
+            onPress={() =>
+              m.label
+                ? onSelect(m.label)
+                : onIdentityOnly(`${m.brand} ${m.name}`)
+            }
+          />
+        </Card>
+      ))}
+      {result.products.slice(0, more ? 8 : 3).map((m) => (
         <Card key={m.id}>
           <Copy kind="heading">{m.name}</Copy>
           <Copy kind="small">
             {[m.brand, m.form, m.pack].filter(Boolean).join(" · ")}
           </Copy>
-          <Copy kind="small" style={{ color: C.muted }}>
-            {m.entryDate ? `Record dated ${m.entryDate}. ` : ""}Compare the
-            strength and serving with your bottle.
+          <Copy kind="small">
+            Match the strength and serving with your bottle.
           </Copy>
           <Button
             secondary
-            label="Check this label"
+            label="Check this product"
             disabled={busy}
             onPress={() => run(m.id)}
           />
         </Card>
       ))}
+      {!more &&
+        (result.webMatches.length > 1 || result.products.length > 3) && (
+          <Button
+            secondary
+            label="Other possible matches"
+            onPress={() => setMore(true)}
+          />
+        )}
+      {searched && !result.products.length && !result.webMatches.length && (
+        <Notice>
+          {result.onlineStatus === "searched"
+            ? "We checked label records and the web but could not confirm your exact product. A photo of the name and brand or ingredient amounts can help."
+            : result.onlineStatus === "allowance-reached"
+              ? "Online lookup has reached its preview allowance. You can still photograph the ingredients or enter them."
+              : "Online search could not finish, so we have not ruled out your product. Try again or use an ingredient photo."}
+        </Notice>
+      )}
+      {searched && result.onlineStatus === "not-needed" && (
+        <Button
+          secondary
+          label="Not my bottle — check online"
+          disabled={busy}
+          onPress={() => run(undefined, true)}
+        />
+      )}
       <Copy kind="small" style={{ color: C.muted }}>
-        Search terms go to the NIH Dietary Supplement Label Database. Records
-        can be older or incomplete; your confirmation is required.
+        Product terms are checked with NIH and, when needed, OpenAI web search.
+        Online information still needs your bottle confirmation.
       </Copy>
     </Card>
   );

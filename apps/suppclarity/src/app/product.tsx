@@ -35,7 +35,10 @@ const blankRow = (n: Nutrient): DraftRow => ({
 export default function ProductEntry() {
   const { products, setProducts, profile, setProfile } = useStore();
   const { intent } = useLocalSearchParams<{ intent?: string }>();
-  const [method, setMethod] = useState("Search");
+  const [method, setMethod] = useState("Photo");
+  const [searchSeed, setSearchSeed] = useState("");
+  const [searchKey, setSearchKey] = useState(0);
+  const [identityMessage, setIdentityMessage] = useState("");
   const [ingredientQuery, setIngredientQuery] = useState("");
   const [name, setName] = useState("");
   const [serving, setServing] = useState("");
@@ -44,6 +47,7 @@ export default function ProductEntry() {
   const [days, setDays] = useState("");
   const [photo, setPhoto] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [label, setLabel] = useState<ReadLabel>();
+  const [photoReading, setPhotoReading] = useState<ReadLabel>();
   const [rows, setRows] = useState<DraftRow[]>([blankRow("Vitamin D")]);
   const [taking, setTaking] = useState(
     intent !== "consider" && profile.use === "Yes",
@@ -143,7 +147,10 @@ export default function ProductEntry() {
         request.current?.abort();
         setBusy(false);
         setPhoto(result.assets[0]);
+        setSearchSeed("");
+        setIdentityMessage("");
         setLabel(undefined);
+        setPhotoReading(undefined);
         setRows([blankRow("Vitamin D")]);
         setName("");
         setServing("");
@@ -180,16 +187,33 @@ export default function ProductEntry() {
       });
       if (!resized.base64 || resized.base64.length > 3333332)
         throw Error(
-          "Move closer to Supplement Facts or crop the photo before choosing it.",
+          "Choose a closer photo of the product name or ingredient panel.",
         );
       const result = await scanLabel(
         `data:image/jpeg;base64,${resized.base64}`,
         controller.signal,
       );
       if (controller.signal.aborted) return;
+      if (
+        result.productName &&
+        (!result.hasSupplementFacts || !result.panelComplete)
+      ) {
+        const query = [result.brand, result.productName]
+          .filter(Boolean)
+          .join(" ")
+          .slice(0, 120);
+        setPhotoReading(result.hasSupplementFacts ? result : undefined);
+        setSearchSeed(query);
+        setSearchKey((k) => k + 1);
+        setIdentityMessage(
+          `Found ${query}. Checking the full product details…`,
+        );
+        setMethod("Search");
+        return;
+      }
       if (!result.hasSupplementFacts) {
         setError(
-          "We could not find a readable Supplement Facts panel. Try a closer, straight-on photo.",
+          "We could not read the name or ingredient details. Try a photo showing the name and brand, or type the product name.",
         );
         return;
       }
@@ -215,8 +239,8 @@ export default function ProductEntry() {
     <Page title="ADD A PRODUCT" back>
       <Copy kind="title">Find your product.{"\n"}Check the details.</Copy>
       <Copy style={{ color: C.muted }}>
-        Search by name, brand or barcode, scan the Facts panel, or enter it
-        yourself. Always match the strength and serving size on your bottle.
+        Start with one photo of the name and brand, or type the product name.
+        We’ll find the details and ask for a closer photo only when needed.
       </Copy>
       {confirm && product ? (
         <>
@@ -294,12 +318,39 @@ export default function ProductEntry() {
               </Pressable>
             ))}
           </View>
+          {!!identityMessage && (
+            <Copy kind="small" accessibilityLiveRegion="polite">
+              {identityMessage}
+            </Copy>
+          )}
           {method === "Search" && (
             <ProductSearch
+              key={searchKey}
+              initialQuery={searchSeed}
+              autoSearch={Boolean(searchSeed)}
+              onIdentityOnly={(query) => {
+                setName(query);
+                setMethod("Photo");
+                setIdentityMessage(
+                  "Product found online, but some quantities need a closer look. Photograph the ingredient amounts to finish.",
+                );
+              }}
               onSelect={(result) => {
+                setIdentityMessage("");
+                setPhotoReading(undefined);
                 setPhoto(null);
                 setConsent(false);
                 applyLabel(result);
+              }}
+            />
+          )}
+          {method === "Search" && photoReading && !label && (
+            <Button
+              secondary
+              label="Use the details already read from my photo"
+              onPress={() => {
+                applyLabel(photoReading);
+                setIdentityMessage("");
               }}
             />
           )}
@@ -324,8 +375,9 @@ export default function ProductEntry() {
             <Card>
               <Copy kind="heading">Start with a photo</Copy>
               <Copy kind="small" style={{ color: C.muted }}>
-                Include the full Supplement Facts panel and serving size. Leave
-                out names and personal information.
+                The name and brand are enough to start. If you have the
+                ingredient panel, include it too. Leave out personal
+                information.
               </Copy>
               <Button
                 secondary
@@ -383,8 +435,9 @@ export default function ProductEntry() {
                   >
                     <Icon name={consent ? "check-square" : "square"} />
                     <Copy kind="small" style={{ flex: 1 }}>
-                      Send this label photo to OpenAI to read it. We don’t save
-                      it in your account; provider data controls apply.
+                      Use OpenAI to read this photo and search online by the
+                      product name if needed. Your profile is not sent. Provider
+                      data controls apply.
                     </Copy>
                   </Pressable>
                   {busy ? (
@@ -401,7 +454,7 @@ export default function ProductEntry() {
                     </>
                   ) : (
                     <Button
-                      label={label ? "Read photo again" : "Read my label"}
+                      label={label ? "Read photo again" : "Find my product"}
                       disabled={!consent}
                       onPress={read}
                     />
@@ -430,6 +483,22 @@ export default function ProductEntry() {
               label="Search by name instead"
               onPress={() => setMethod("Search")}
             />
+          )}
+          {label?.web && (
+            <Notice>
+              Found on{" "}
+              {label.web.sourceType === "manufacturer"
+                ? "the manufacturer’s website"
+                : "a retailer’s website"}
+              . Match the product and strength with your bottle before saving.{" "}
+              <Copy
+                onPress={() => Linking.openURL(label.web!.url)}
+                accessibilityRole="link"
+                style={{ textDecorationLine: "underline" }}
+              >
+                View source
+              </Copy>
+            </Notice>
           )}
           {label?.database && (
             <Notice>
@@ -570,6 +639,16 @@ export default function ProductEntry() {
                       </Pressable>
                     )}
                   </View>
+                  <Button
+                    secondary
+                    label="Daily amount & more"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/ingredient",
+                        params: { name: row.nutrient },
+                      })
+                    }
+                  />
                   {label &&
                   row.amount &&
                   row.unit &&

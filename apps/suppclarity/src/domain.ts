@@ -16,7 +16,14 @@ export type Product = {
   incompleteLabel?: boolean;
   servingUnit?: string;
   taking?: boolean;
-  source?: "manual" | "scan" | "database";
+  source?: "manual" | "scan" | "database" | "web";
+  web?: {
+    url: string;
+    brand: string;
+    sourceType: "manufacturer" | "retailer";
+    retrievedAt: string;
+    market: string | null;
+  };
   database?: {
     id: string;
     url: string;
@@ -33,6 +40,7 @@ export type Profile = {
   screening: string;
   goal: string;
   b12Source?: string;
+  sexReference?: "male" | "female" | "both";
 };
 export const emptyProfile: Profile = {
   use: "",

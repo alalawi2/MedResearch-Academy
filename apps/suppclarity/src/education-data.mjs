@@ -241,11 +241,11 @@ export const localGuides = {
     summary: "Magnesium supports normal muscle, nerve and metabolic functions.",
     food: "Beans, nuts, seeds and whole grains are useful food sources.",
     evidence:
-      "Small sleep trials are inconsistent and do not establish a universal supplement recommendation. Symptoms alone do not identify a magnesium deficiency.",
+      "Magnesium is an essential nutrient, but extra supplementation is not automatically beneficial. Need depends on intake and health context. Sleep trials are small and inconsistent; symptoms alone do not identify a deficiency.",
     check:
       "Use elemental magnesium from the panel, not a compound\u2019s weight. The US supplemental upper reference excludes magnesium naturally in food.",
     sourceIds: ["magnesiumNIH", "magnesiumReview"],
-    topic: "magnesium-sleep",
+    topic: "magnesium",
   },
   "vitamin-c": {
     title: "Vitamin C",
@@ -1417,7 +1417,7 @@ export const faqBank = [
     id: "q098",
     question: "Do my answers and photos go to the same place?",
     answer:
-      "No questionnaire is sent with a label photo. Photo reading uses OpenAI after consent; product search sends the entered product query to NIH; optional research uses a general topic with Consensus. Personal entries stay in the app session.",
+      "Your questionnaire is not sent with a photo or copilot question. Photo reading uses OpenAI after consent. Product names go to NIH and, if needed, OpenAI web search. Live copilot answers use your question and up to two prior exchanges with guide evidence. Optional Consensus searches use general topics.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],
@@ -1426,7 +1426,7 @@ export const faqBank = [
     id: "q099",
     question: "Does the copilot send every question to an AI service?",
     answer:
-      "No. These prepared answers and guides are stored in the app. If an exact answer is not available, it offers related questions or trusted evidence rather than inventing an answer. Optional research sends a general topic.",
+      "No. Prepared answers and simple ingredient overviews run locally. Other questions and short follow-up context go to OpenAI with the app’s curated guide evidence. Your questionnaire and product records are not sent. Unsupported claims should be identified as uncertain; sources remain available.",
     guide: "starting",
     sourceIds: ["basicsNIH", "multivitaminNIH"],
     tags: [],

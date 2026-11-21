@@ -82,14 +82,37 @@ async function productRequest(params: string, signal: AbortSignal) {
     );
   return data;
 }
+export type WebMatch = {
+  name: string;
+  brand: string;
+  url: string;
+  sourceType: "manufacturer" | "retailer";
+  market: string | null;
+  label: ReadLabel | null;
+};
+export type ProductSearchResult = {
+  products: ProductMatch[];
+  webMatches: WebMatch[];
+  onlineStatus: string;
+  databaseAvailable: boolean;
+};
 export async function findProducts(
   query: string,
   signal: AbortSignal,
-): Promise<ProductMatch[]> {
-  const data = await productRequest(`q=${encodeURIComponent(query)}`, signal);
+  web = false,
+): Promise<ProductSearchResult> {
+  const data = await productRequest(
+    `q=${encodeURIComponent(query)}${web ? "&web=1" : ""}`,
+    signal,
+  );
   if (!Array.isArray(data.products))
     throw Error("Product search is unavailable.");
-  return data.products;
+  return {
+    products: data.products,
+    webMatches: data.webMatches || [],
+    onlineStatus: data.onlineStatus || "unavailable",
+    databaseAvailable: data.databaseAvailable !== false,
+  };
 }
 export async function readProduct(
   id: string,
@@ -99,4 +122,27 @@ export async function readProduct(
   if (!data.label || !Array.isArray(data.label.ingredients))
     throw Error("This label could not be loaded. Try a photo instead.");
   return data.label;
+}
+
+export async function copilotAnswer(
+  question: string,
+  history: { question: string; answer: string }[],
+  signal: AbortSignal,
+): Promise<{ answer: string; sourceIds: string[]; guide: string | null }> {
+  const response = await fetch(`${ORIGIN}/api/suppclarity/copilot`, {
+    method: "POST",
+    signal,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ question, history: history.slice(-2) }),
+  });
+  const data = await response.json();
+  if (!response.ok)
+    throw Error(
+      typeof data.error === "string"
+        ? data.error
+        : "Live answers are unavailable.",
+    );
+  if (typeof data.answer !== "string" || !Array.isArray(data.sourceIds))
+    throw Error("The answer could not be checked.");
+  return data;
 }
