@@ -148,6 +148,7 @@ export default function ProductEntry() {
                 key={n}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: n === nutrient }}
+ aria-checked={n === nutrient}
                 onPress={() => {
                   setNutrient(n);
                   setUnit(units[n][0]);
@@ -171,6 +172,7 @@ export default function ProductEntry() {
                 key={u}
                 accessibilityRole="radio"
                 accessibilityState={{ checked: unit === u }}
+ aria-checked={unit === u}
                 onPress={() => setUnit(u)}
                 style={[S.choice, { flex: 1 }, unit === u && S.chosen]}
               >

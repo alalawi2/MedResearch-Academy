@@ -92,6 +92,10 @@ export default function Check() {
       </View>
       <View
         accessibilityRole="progressbar"
+ aria-valuemin={1}
+ aria-valuemax={questions.length}
+ aria-valuenow={step+1}
+ aria-valuetext={`Question ${step+1} of ${questions.length}`}
         accessibilityValue={{
           min: 1,
           max: questions.length,
@@ -139,6 +143,7 @@ export default function Check() {
               key={option}
               accessibilityRole="radio"
               accessibilityState={{ checked: value === option }}
+ aria-checked={value === option}
               onPress={() => setProfile((p) => ({ ...p, [q.key]: option }))}
               style={[S.choice, value === option && S.chosen]}
             >

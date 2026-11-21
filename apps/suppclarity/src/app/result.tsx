@@ -40,6 +40,7 @@ export default function Result() {
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ expanded: why }}
+ aria-expanded={why}
           onPress={() => setWhy(!why)}
           style={[S.row, { minHeight: 48 }]}
         >
