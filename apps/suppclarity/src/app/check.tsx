@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useStore } from "../store";
 import { Page, Copy, Button, Field, Notice, Icon, C, S } from "../ui";
 import { validAge, type Profile } from "../domain";
-const questions: {
+const baseQuestions: {
   key: keyof Profile;
   title: string;
   hint: string;
@@ -29,6 +29,7 @@ const questions: {
       "I have a health condition",
       "Both medicines and a condition",
       "None of these",
+      "Clinician-directed supplements or a known deficiency",
       "Not sure",
     ],
   },
@@ -38,6 +39,7 @@ const questions: {
     hint: "This helps us explain the limits of your check.",
     options: [
       "Pregnant or breastfeeding",
+      "Trying to conceive",
       "No special circumstances",
       "Prefer not to say",
     ],
@@ -57,13 +59,35 @@ const questions: {
       "Understand my routine",
       "Ingredient overlap",
       "Understand a label",
+      "Sleep or general wellbeing",
     ],
   },
 ];
 export default function Check() {
-  const { profile, setProfile, step, setStep } = useStore();
+  const { profile, setProfile, step: savedStep, setStep } = useStore();
+  const needsB12 =
+    profile.diet === "Vegan" ||
+    profile.diet === "Vegetarian" ||
+    Number(profile.age) >= 50;
+  const b12Question = {
+    key: "b12Source" as const,
+    title: "Do you have a regular B12 source?",
+    hint: "Fortified foods and supplements can supply B12. A source does not by itself prove adequate intake.",
+    options: [
+      "Regular fortified foods",
+      "I take a B12-containing supplement",
+      "Neither regularly",
+      "Not sure",
+    ],
+  };
+  const questions = [
+    ...baseQuestions.slice(0, 5),
+    ...(needsB12 ? [b12Question] : []),
+    baseQuestions[5],
+  ];
+  const step = Math.min(savedStep, questions.length - 1);
   const q = questions[step] || questions[0];
-  const value = profile[q.key];
+  const value = profile[q.key] || "";
   const valid = q.key === "age" ? validAge(value) : !!value;
   const earlyLimit =
     (q.key === "screening" && value && value !== "None of these") ||
@@ -92,10 +116,10 @@ export default function Check() {
       </View>
       <View
         accessibilityRole="progressbar"
- aria-valuemin={1}
- aria-valuemax={questions.length}
- aria-valuenow={step+1}
- aria-valuetext={`Question ${step+1} of ${questions.length}`}
+        aria-valuemin={1}
+        aria-valuemax={questions.length}
+        aria-valuenow={step + 1}
+        aria-valuetext={`Question ${step + 1} of ${questions.length}`}
         accessibilityValue={{
           min: 1,
           max: questions.length,
@@ -143,8 +167,17 @@ export default function Check() {
               key={option}
               accessibilityRole="radio"
               accessibilityState={{ checked: value === option }}
- aria-checked={value === option}
-              onPress={() => setProfile((p) => ({ ...p, [q.key]: option }))}
+              aria-checked={value === option}
+              onPress={() =>
+                setProfile((p) => ({
+                  ...p,
+                  [q.key]: option,
+                  ...(q.key === "b12Source" &&
+                  option === "I take a B12-containing supplement"
+                    ? { use: "Yes" }
+                    : {}),
+                }))
+              }
               style={[S.choice, value === option && S.chosen]}
             >
               <View style={S.row}>

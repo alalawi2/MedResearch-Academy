@@ -19,9 +19,10 @@ export default function Calculation() {
         1 mcg. Other supported quantities use the units shown on screen.
       </Copy>
       <Notice>
-        An average can hide a large amount taken on a single day. This
-        calculator does not judge dosing schedules, check upper limits, include
-        food intake or tell you what to take.
+        An average can hide a large amount taken on a single day. The guidance
+        compares recorded on-use-day amounts with general adult upper references
+        for vitamin D and supplemental magnesium. It does not determine an
+        individual safe dose, assess food quantities or choose treatment.
       </Notice>
       <Copy>
         Overlapping entries indicate repeated ingredients. They do not by

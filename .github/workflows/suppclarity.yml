@@ -1,10 +1,10 @@
 name: SuppClarity checks
 on:
   pull_request:
-    paths: ['apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
+    paths: ['api/suppclarity/**', 'lib/suppclarity/**', 'tests/suppclarity-api.test.mjs', 'supabase/migrations/*suppclarity*', 'apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
   push:
     branches: [main]
-    paths: ['apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
+    paths: ['api/suppclarity/**', 'lib/suppclarity/**', 'tests/suppclarity-api.test.mjs', 'supabase/migrations/*suppclarity*', 'apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -20,5 +20,6 @@ jobs:
       - run: npm run lint && npm run typecheck && npm test
         working-directory: apps/suppclarity
       - run: npm ci
+      - run: npm run test:suppclarity
       - run: node scripts/verify-suppclarity-export.mjs
       - run: npm run build:all

@@ -5,39 +5,57 @@ export default function About() {
     <Page title="ABOUT SUPPCLARITY" back>
       <Copy kind="title">Clarity for every adult.</Copy>
       <Copy>
-        Built for people starting with no supplements and people reviewing an
-        existing routine, from younger adults to older adults.
+        For adults from 18 onward, including older adults, whether you take
+        nothing yet or already have a routine.
       </Copy>
       <Card>
         <Copy kind="heading">What works today</Copy>
         <Copy>
-          A short questionnaire, confirmed manual product entries, arithmetic
-          totals, repeated-ingredient notices, reference photos, text sizing and
-          session export.
+          Photo label reading with your confirmation, current and prospective
+          product records, ingredient totals and personalized educational
+          guidance for vitamin D, B12 and magnesium.
         </Copy>
-        <Copy kind="heading">What is still being built</Copy>
         <Copy>
-          Automatic label reading, evidence-based personal recommendations,
-          medicine interaction screening, secure accounts, payments and wearable
+          Results start with one next step. Reasons, dated sources and related
+          Consensus research are available when you ask.
+        </Copy>
+        <Copy kind="heading">What remains outside this preview</Copy>
+        <Copy>
+          Diagnosis, individual treatment doses, medicine interaction screening,
+          complete dietary assessment, secure accounts, payments and wearable
           connections.
         </Copy>
       </Card>
       <Notice>
-        This is a development preview, not a validated clinical service or a
-        recruiting research study. No ethics approval or clinical validation is
-        claimed.
+        This is a development preview, not a clinically validated service or a
+        recruiting study. No clinical validation or ethics approval is claimed.
       </Notice>
-      <Copy>
-        Entries are held in app memory. Photos are shown only on the entry
-        screen. No answers or photos are sent to an assessment server. External
-        source links open their own websites.
-      </Copy>
+      <Card>
+        <Copy kind="heading">Your information</Copy>
+        <Copy>
+          Answers and confirmed product records stay in this app session and
+          clear on reload. A selected label photo is sent to OpenAI only when
+          you agree and tap Read my label. Your questionnaire is not sent with
+          it. We do not save the photo or profile in our database.
+        </Copy>
+        <Copy>
+          Provider retention and abuse-monitoring controls apply; turning off
+          response storage does not guarantee zero retention. Your device may
+          retain temporary photo files.
+        </Copy>
+        <Copy>
+          Consensus receives a general research topic, never your answers or
+          photo. We keep keyed hashes for short-lived request allowances,
+          without storing the raw network address. External source links open
+          their own websites.
+        </Copy>
+      </Card>
       <Button
         secondary
         label="Visit the research project"
         onPress={() =>
           Linking.openURL(
-            "https://medresearch-academy.om/active-research/suppclarity",
+            "https://www.medresearch-academy.om/active-research/suppclarity",
           )
         }
       />

@@ -14,7 +14,8 @@
       "android": {
         "buildType": "apk"
       },
-      "node": "24.22.1"
+      "node": "24.22.1",
+      "autoIncrement": true
     },
     "production": {
       "autoIncrement": true,
@@ -25,7 +26,8 @@
       "ios": {
         "simulator": true
       },
-      "node": "24.22.1"
+      "node": "24.22.1",
+      "autoIncrement": true
     }
   }
 }
