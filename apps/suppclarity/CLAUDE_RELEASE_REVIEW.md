@@ -16,3 +16,14 @@ Actual Claude CLI review completed using the public candidate source only, with 
 - Long form suggestion: methods render conditionally; photo, search and manual inputs do not all render simultaneously as the review suggested. Existing compact ingredient review and optional details remain.
 
 A further independent release check found silent timeout handling in the automatic product search and the need for explicit typed-search consent. Both were corrected. No ranking, medical approval or revenue claim is inferred from Claude's review.
+
+## Final source review
+
+A second actual Claude CLI review inspected feedback HTTP/RPC storage, the migration, privacy copy, encrypted state and public-page export. Raw response: build-review/v06-final-claude-review.json. Its two claimed defects were independently rejected:
+
+- `.om` is the correct published Academy domain, not a `.com` typo. DNS MX records were checked and point to Google mail servers. No email was sent and mailbox-level delivery is not claimed as tested.
+- Daily deletion of records older than 30 days produces a normal upper retention bound below 31 days. The UI promise is “up to 31 days.” Changing the interval to 31 days would extend that bound and would be incorrect.
+
+The reviewer also examined and explicitly withdrew a suspected reset race: state batching plus the serialized vault clear/write queue make the empty post-clear snapshot intentional. Its global-lock and absent-Origin observations were non-blocking: report volume is bounded, the lock makes limits atomic, and native requests do not carry browser Origin headers. No clinical approval is inferred from either review.
+
+A compiled Android permission audit found an unused framework overlay permission. The release configuration now blocks SYSTEM_ALERT_WINDOW; the final Android store binary must be rebuilt and checked for its absence. Broad READ_MEDIA_IMAGES/VIDEO and RECORD_AUDIO were already absent in the inspected candidate.

@@ -36,6 +36,11 @@ name: An older adult can start without taking a supplement
 - tapOn: 'Mixed diet'
 - tapOn:
     id: button-continue
+- tapOn: 'Regular fortified foods'
+- tapOn:
+    id: button-continue
+- scrollUntilVisible:
+    element: 'General wellbeing'
 - tapOn: 'General wellbeing'
 - scrollUntilVisible:
     element:

@@ -19,7 +19,10 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/app-icon-v2.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/app-icon-v2.png",
