@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "SuppClarity",
+    "slug": "suppclarity",
+    "version": "0.1.0",
+    "orientation": "default",
+    "icon": "./assets/app-icon-v2.png",
+    "scheme": "suppclarity",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "om.medresearchacademy.suppclarity"
+    },
+    "android": {
+      "package": "om.medresearchacademy.suppclarity",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app-icon-v2.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./assets/app-icon-v2.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "SuppClarity",
+      "description": "A clear starting point for your supplement routine. Research preview."
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Choose a supplement label photo for reference while you enter its quantities.",
+          "cameraPermission": "Photograph a supplement label for reference while you enter its quantities.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "d00f38f9-b750-46a3-88e9-b6a186d8a293"
+      }
+    },
+    "owner": "alalawi2"
+  }
+}

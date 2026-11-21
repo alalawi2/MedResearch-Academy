@@ -1,0 +1,24 @@
+name: SuppClarity checks
+on:
+  pull_request:
+    paths: ['apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
+  push:
+    branches: [main]
+    paths: ['apps/suppclarity/**', 'scripts/*suppclarity*.mjs', 'public/suppclarity/**', '.github/workflows/suppclarity.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/suppclarity/package-lock.json
+      - run: npm ci
+        working-directory: apps/suppclarity
+      - run: npm run lint && npm run typecheck && npm test
+        working-directory: apps/suppclarity
+      - run: npm ci
+      - run: node scripts/verify-suppclarity-export.mjs
+      - run: npm run build:all

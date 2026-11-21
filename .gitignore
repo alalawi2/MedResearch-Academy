@@ -30,3 +30,12 @@ supabase/.temp/
 holter-local/private/
 *.sqlite*
 __pycache__/
+
+# Expo workspace
+apps/suppclarity/node_modules/
+apps/suppclarity/.expo/
+apps/suppclarity/dist/
+
+# Expo exports copy runtime assets under this literal path; these are not dependencies.
+!public/suppclarity/assets/node_modules/
+!public/suppclarity/assets/node_modules/**

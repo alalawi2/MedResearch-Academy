@@ -4,9 +4,11 @@ export interface StudyCardData {
   slug: string;                              // URL slug, e.g. 'resident-burnout'
   title: string;
   shortDescription: string;
-  status: 'recruiting' | 'follow_up' | 'data_analysis' | 'published' | 'closed';
+  status: 'recruiting' | 'follow_up' | 'data_analysis' | 'published' | 'closed' | 'development';
   ethicsIds: string[];                       // e.g. ['MREC #3190', 'SQU-EC297-2023']
   pi: string;
+  leadLabel?: string;
+  actionLabel?: string;
   coPi?: string;
   studyType: string;                         // e.g. 'Multi-center cohort', 'Mixed-methods'
   targetPopulation: string;
@@ -14,6 +16,7 @@ export interface StudyCardData {
 }
 
 const statusStyles: Record<StudyCardData['status'], { label: string; bg: string; color: string; dot: string }> = {
+  development:   { label: 'In Development', bg: 'rgba(20,184,166,0.15)', color: '#115e59', dot: '#5eead4' },
   recruiting:    { label: 'Recruiting Now',   bg: 'rgba(34,197,94,0.15)',  color: '#16a34a', dot: '#22c55e' },
   follow_up:     { label: 'Follow-up Phase',  bg: 'rgba(200,151,42,0.15)', color: '#8a6515', dot: '#c8972a' },
   data_analysis: { label: 'Data Analysis',    bg: 'rgba(59,130,246,0.15)', color: '#1d4ed8', dot: '#3b82f6' },
@@ -103,7 +106,7 @@ export default function StudyCard({ study }: { study: StudyCardData }) {
           marginBottom: 20,
         }}>
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Principal Investigator</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>{study.leadLabel || 'Principal Investigator'}</div>
             <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{study.pi}</div>
           </div>
           {study.coPi && (
@@ -120,7 +123,7 @@ export default function StudyCard({ study }: { study: StudyCardData }) {
 
         <div style={{ marginTop: 'auto', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link to={`/active-research/${study.slug}`} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center', minWidth: 180 }}>
-            View Study Details →
+            {study.actionLabel || 'View Study Details →'}
           </Link>
         </div>
       </div>

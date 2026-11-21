@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:app": "node scripts/build-suppclarity.mjs",
+    "build:all": "npm run build:app && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",

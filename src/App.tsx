@@ -10,6 +10,7 @@ const Lectures = lazy(() => import('./pages/Lectures'));
 const Resources = lazy(() => import('./pages/Resources'));
 const WallOfImpact = lazy(() => import('./pages/WallOfImpact'));
 const HolterReview = lazy(() => import('./pages/studies/HolterReview'));
+const SuppClarity = lazy(() => import('./pages/studies/SuppClarity'));
 const ActiveResearch = lazy(() => import('./pages/ActiveResearch'));
 const ResidentBurnout = lazy(() => import('./pages/studies/ResidentBurnout'));
 const ResidencyParenthood = lazy(() => import('./pages/studies/ResidencyParenthood'));
@@ -85,6 +86,7 @@ export default function App() {
           <Route path="/resources" element={<Resources />} />
           <Route path="/wall-of-impact" element={<WallOfImpact />} />
           <Route path="/active-research/holter" element={<HolterReview />} />
+          <Route path="/active-research/suppclarity" element={<SuppClarity />} />
           <Route path="/active-research" element={<ActiveResearch />} />
           <Route path="/active-research/smartblock" element={<SmartBlock />} />
           <Route path="/active-research/resident-burnout" element={<ResidentBurnout />} />

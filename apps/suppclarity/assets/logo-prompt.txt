@@ -1,0 +1,8 @@
+Tool: built-in image generation
+Date: 21 November 2026
+
+Final transparent logo refinement prompt:
+Refine this logo into a genuinely clean flat vector-style brand mark. Keep the core interlocking C and S silhouette and the single small coral dot. REMOVE EVERY glow, halo, noise, speckle, fringe, shadow, gradient, bevel and lighting effect, including all semi-transparent colored pixels outside the shapes. Use absolutely solid uniform iris #6955DF for the main shape and absolutely solid uniform coral #F66B4E for the dot. Crisp optically smooth antialiased silhouette only on true transparent background. No text, no border. This must look like a restrained professional identity SVG exported to PNG, not a neon object or a rendered product. Center with 15 percent clear space.
+
+Final app icon prompt:
+Create the final App Store icon asset from this exact SuppClarity symbol. Preserve the shape, iris-purple main mark and coral dot. Place the symbol centered, occupying 65 percent of canvas width, on a perfectly flat solid white opaque background. Absolutely no transparency anywhere, no shadows, no glow, no stray pixels, no noise, no gradients, no texture. No text, no rounded-square frame or corner rounding; operating systems apply the corner mask. Exact square 1024x1024 app icon, crisp solid flat vector appearance. Keep the symbol's identity unchanged.
