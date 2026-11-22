@@ -1,5 +1,6 @@
 import type { ReadLabel } from "./labels";
 import type { Topic } from "./evidence";
+import { billingHeaders } from "./billing";
 const ORIGIN = "https://www.medresearch-academy.om";
 // An anonymous session identifier, not a credential. Server IP and global quotas are enforced separately.
 const install = Array.from({ length: 64 }, () =>
@@ -16,6 +17,7 @@ export async function scanLabel(
       "Content-Type": "application/json",
       "X-SuppClarity-Consent": "label-photo-v1",
       "X-SuppClarity-Install": install,
+      ...(await billingHeaders()),
     },
     body: JSON.stringify({ image }),
   });
@@ -132,7 +134,7 @@ export async function copilotAnswer(
   const response = await fetch(`${ORIGIN}/api/suppclarity/copilot`, {
     method: "POST",
     signal,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await billingHeaders()) },
     body: JSON.stringify({ question, history: history.slice(-2) }),
   });
   const data = await response.json();

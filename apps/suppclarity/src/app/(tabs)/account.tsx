@@ -3,7 +3,9 @@ import { View, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Page, Copy, Button, Card, Notice, Icon, C, S } from "../../ui";
 import { useStore } from "../../store";
+import { useMembership } from "../../membership";
 export default function Account() {
+  const membership = useMembership();
   const {
     scale,
     setScale,
@@ -117,9 +119,7 @@ export default function Account() {
             <Button
               label="Clear my data"
               onPress={() => {
-                reset();
-                setConfirm(false);
-                router.replace("/");
+                void reset().then(cleared => { if (cleared) { setConfirm(false); router.replace("/"); } });
               }}
             />
             <Button
@@ -153,11 +153,13 @@ export default function Account() {
         )}
       </Card>
       <Card>
-        <Copy kind="heading">Free to use</Copy>
+        <Copy kind="heading">{membership.active ? "SuppClarity Plus" : "Free, with room for more"}</Copy>
         <Copy>
-          All current features are free. There is no subscription or trial
-          charge.
+          Your guides, product search, basic amount explanations and safety
+          information stay free. Plus adds comparisons, reminders, tracking,
+          PDF summaries and higher online allowances.
         </Copy>
+        <Button secondary label={membership.active ? "Manage my Plus plan" : "Explore SuppClarity Plus"} icon="star" onPress={() => router.push("/plus")} />
       </Card>
       <Button
         secondary

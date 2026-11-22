@@ -3,6 +3,9 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { emptyProfile, type Product, type Profile } from "./domain";
 import { ActivityIndicator, View } from "react-native";
 import { deviceVault } from "./device-vault";
+import { emptyRoutine, type RoutineData } from "./routine-data";
+import { cancelRoutineReminders } from "./reminders";
+import { previewProducts } from "./plus-preview";
 type State = {
   storageStatus: string;
   onlineAnswers: boolean;
@@ -10,12 +13,16 @@ type State = {
   profile: Profile;
   setProfile: React.Dispatch<React.SetStateAction<Profile>>;
   products: Product[];
+  routine: RoutineData;
+  setRoutine: React.Dispatch<React.SetStateAction<RoutineData>>;
+  routineStatus: string;
+  setRoutineStatus: (value: string) => void;
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   step: number;
   setStep: (n: number) => void;
   scale: number;
   setScale: (n: number) => void;
-  reset: () => void;
+  reset: () => Promise<boolean>;
   resetKey: number;
   ingredientPreview?: IngredientContext;
   setIngredientPreview: (value: IngredientContext | undefined) => void;
@@ -31,7 +38,9 @@ export function Store({ children }: { children: React.ReactNode }) {
       : "Browser preview: entries clear on reload.",
   );
   const [profile, setProfile] = useState({ ...emptyProfile });
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>(previewProducts);
+  const [routine, setRoutine] = useState<RoutineData>(emptyRoutine);
+  const [routineStatus, setRoutineStatus] = useState("");
   const [step, setStep] = useState(0);
   const [scale, setScale] = useState(1);
   const [ingredientPreview, setIngredientPreview] =
@@ -47,6 +56,7 @@ export function Store({ children }: { children: React.ReactNode }) {
         if (saved) {
           setProfile(saved.profile);
           setProducts(saved.products);
+          setRoutine(saved.routine || emptyRoutine());
           setStep(saved.step);
           setScale(saved.scale);
         }
@@ -73,7 +83,7 @@ export function Store({ children }: { children: React.ReactNode }) {
     const timer = setTimeout(() => {
       setStorageStatus("Saving on this device…");
       vault
-        .write({ version: 1, profile, products, step, scale })
+        .write({ version: 1, profile, products, step, scale, routine })
         .then(() => {
           if (alive) setStorageStatus("Saved on this device.");
         })
@@ -88,29 +98,32 @@ export function Store({ children }: { children: React.ReactNode }) {
       alive = false;
       clearTimeout(timer);
     };
-  }, [ready, savingEnabled, profile, products, step, scale]);
-  const reset = () => {
+  }, [ready, savingEnabled, profile, products, step, scale, routine]);
+  const reset = async () => {
     setOnlineAnswers(false);
-    if (deviceVault) {
-      setSavingEnabled(false);
-      setStorageStatus("Clearing saved data…");
-      deviceVault
-        .clear()
-        .then(() => {
-          setStorageStatus("Saved data cleared.");
-          setSavingEnabled(true);
-        })
-        .catch(() =>
-          setStorageStatus(
-            "Could not finish clearing saved data. Please try Clear my data again.",
-          ),
-        );
+    setSavingEnabled(false);
+    setStorageStatus("Clearing saved data…");
+    try {
+      await cancelRoutineReminders();
+      if (deviceVault) await deviceVault.clear();
+      setResetKey((k) => k + 1);
+      setIngredientPreview(undefined);
+      setProfile({ ...emptyProfile });
+      setProducts([]);
+      setRoutine(emptyRoutine());
+      setRoutineStatus("");
+      setStep(0);
+      setStorageStatus(
+        deviceVault ? "Saved data cleared." : "Session entries cleared.",
+      );
+      setSavingEnabled(true);
+      return true;
+    } catch {
+      setStorageStatus(
+        "Could not finish clearing entries or reminders. Please try Clear my data again; phone settings can disable alerts.",
+      );
+      return false;
     }
-    setResetKey((k) => k + 1);
-    setIngredientPreview(undefined);
-    setProfile({ ...emptyProfile });
-    setProducts([]);
-    setStep(0);
   };
   if (!ready)
     return (
@@ -127,6 +140,10 @@ export function Store({ children }: { children: React.ReactNode }) {
         profile,
         setProfile,
         products,
+        routine,
+        setRoutine,
+        routineStatus,
+        setRoutineStatus,
         setProducts,
         step,
         setStep,
