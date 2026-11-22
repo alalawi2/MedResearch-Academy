@@ -36,5 +36,13 @@
       "node": "24.22.1",
       "autoIncrement": true
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6837860843",
+        "appleTeamId": "7HSL5J37Z8"
+      }
+    }
   }
 }

@@ -1,0 +1,71 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "version": "0.6.0",
+    "release": {
+      "automaticRelease": false
+    },
+    "info": {
+      "en-US": {
+        "title": "SuppClarity",
+        "subtitle": "Understand your supplements",
+        "description": "Find your supplement with a photo, brand, product name or barcode. SuppClarity checks available label sources and helps you confirm the bottle before adding it to your routine.\n\nSee what an ingredient does, understand the amount on your label and compare supported nutrients with general daily intake references. Keep products you take separate from products you are considering. Explore 29 short guides and 100 common questions, or choose an online answer grounded in the guide evidence. Related Consensus research and original sources are available when you want more detail.\n\nYour confirmed routine is saved in encrypted storage on your phone. No account is needed. Comfortable reading sizes, manual entry, export and clear-data controls are included.\n\nSuppClarity provides general education for adults. It does not diagnose deficiencies, prescribe individual doses, assess your complete diet, or check all medicine interactions. Product formulas and online sources can change: always confirm your bottle. AI label reading and answers can make mistakes. No clinical validation is claimed. All current features are free; there are no subscriptions or trial charges. Online scans, research and answers have daily allowances; local guides and manual entry remain available.\n\nSuppClarity is not a medical device and does not diagnose, treat, cure or prevent medical conditions. Consult a qualified healthcare professional for medical advice.",
+        "keywords": [
+          "supplement",
+          "label",
+          "vitamin",
+          "mineral",
+          "magnesium",
+          "nutrition",
+          "evidence",
+          "ingredient"
+        ],
+        "promoText": "Find a supplement by photo or name. Understand its label, save your routine, and explore the evidence when you want more.",
+        "marketingUrl": "https://www.medresearch-academy.om/active-research/suppclarity",
+        "supportUrl": "https://www.medresearch-academy.om/suppclarity/support",
+        "privacyPolicyUrl": "https://www.medresearch-academy.om/suppclarity/privacy"
+      }
+    },
+    "advisory": {
+      "ageRatingOverride": "NONE",
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gambling": false,
+      "gamblingSimulated": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "kidsAgeBand": null,
+      "koreaAgeRatingOverride": "NONE",
+      "lootBox": false,
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "INFREQUENT_OR_MILD",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "unrestrictedWebAccess": false,
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "advertising": false,
+      "ageAssurance": false,
+      "ageRatingOverrideV2": "EIGHTEEN_PLUS",
+      "developerAgeRatingInfoUrl": null,
+      "gunsOrOtherWeapons": "NONE",
+      "healthOrWellnessTopics": true,
+      "messagingAndChat": false,
+      "parentalControls": false,
+      "userGeneratedContent": false
+    },
+    "copyright": "2026 BAYAN AI TECHNOLOGIES LLC",
+    "categories": [
+      "EDUCATION"
+    ],
+    "review": {
+      "firstName": "Abdullah",
+      "lastName": "Al Alawi",
+      "email": "info@medresearch-academy.om",
+      "phone": "+96872251059",
+      "demoRequired": false,
+      "notes": "No sign-in or payment is required. The main entry points are Find my product, a short questionnaire, and Ask Clarity. You can skip the questionnaire to scan/search. Search Nature\u2019s Own Magnesium + Energy as one example; country/formula confirmation is required before saving. A manual entry path remains available when an external provider is unavailable.\n\nCamera and photo access are requested only for label photos. A separate explicit checkbox precedes sending a photo to OpenAI. Typed search has an explicit Agree & find my product action with NIH/OpenAI disclosure. An explicit first-use prompt precedes sending an unprepared copilot question and up to two recent exchanges to OpenAI. Permission can be revoked in Your space; it resets each session. Prepared answers and guides are local. Profile and saved inventory are not sent to these AI services. External services: NIH DSLD (product search), OpenAI (photo transcription, public-page product discovery and optional copilot), Consensus (optional related research), Vercel (backend hosting) and Supabase (separate request-allowance counters and optional answer reports only).\n\nNo HealthKit/Health Connect, wearable data, advertising SDK, tracking SDK, account creation or in-app purchases. Export opens the OS sharing UI only when chosen. The release uses supplement-education wording and explicitly states its limits. Do not describe it as clinically validated or a recruiting human-subjects study. The browser is identified separately because its storage remains session-only.\n"
+    }
+  }
+}
