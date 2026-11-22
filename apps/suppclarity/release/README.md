@@ -10,13 +10,15 @@ The web preview is https://www.medresearch-academy.om/suppclarity/. Browser stor
 
 Full production build: `c4022d61-5c9c-42a4-9b13-169db9eef0c3`, version 0.6.0, code 8. The AAB and matching installable APK are in the workspace's `build-review` folder, outside Git. Audit results include SHA-256 hashes. Use this exact build for Play upload, not a preview or JavaScript repack.
 
-## What stops store submission
+## Store connection and submission state
 
-- Apple: distribution signing has not been configured; the existing Apple sign-in needs live verification. Open `Connect-Apple-and-build.command` in Terminal. Verification stays in Terminal.
-- Google Play: no Play submission key exists in the connected EAS account. Open `Connect-Google-Play.command` to connect one locally. Do not paste or commit the key.
-- Complete the store app records, privacy/health declarations, ratings and legal/contact information using `../STORE_RELEASE.md`. Store screenshots and graphics are in `build-review/store-assets`.
+Apple signing and App Store Connect access are connected. iOS 0.6.0/build 12 was uploaded successfully and the processed build was attached and verified after reloading. App: https://appstoreconnect.apple.com/apps/6837860843/appstore . EAS submission ID: `e497f77c-1147-408b-8836-bca9726d7751`.
 
-No store upload/review submission has completed. Store approval and review timing cannot be guaranteed. An iOS simulator app cannot be installed on a physical iPhone or submitted as an IPA. Expo Go remains the available iPhone preview until signing is complete.
+Google Play access is connected through the owner's signed-in console. SuppClarity app ID: `4975920705998390942`. The final AAB/code 8 is submitted to US production review; Google's initial checks passed. All required content and privacy declarations are saved. The Education category correction has also been submitted. There is no Google Play submission key on EAS; manual Console upload does not require one.
+
+Apple privacy responses, content rights, screenshots, free US availability, Education category and non-device declaration are saved. Apple review submission completed: **Waiting for Review**, version 0.6.0/build 12. Google shows **Changes in review**, including the Education category correction. Both review submissions completed on November 22, 2026; store approval remains pending. Uploading a binary does not complete review submission or make the app public. The original connect/build helpers are available for later credential repair; they are not needed to repeat the completed uploads.
+
+Apple store copy is maintained in `../store.config.json`. Validate with `eas metadata:lint`. The standard CLI currently drops required Apple age-rating flags, so push through `push-store-metadata.cjs` with the official EAS executable path. See STORE_RELEASE.md for the exact scope and live verification. No credentials belong in Git.
 
 ## Verification
 
