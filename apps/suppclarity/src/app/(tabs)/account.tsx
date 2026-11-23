@@ -161,6 +161,7 @@ export default function Account() {
         </Copy>
         <Button secondary label={membership.active ? "Manage my Plus plan" : "Explore SuppClarity Plus"} icon="star" onPress={() => router.push("/plus")} />
       </Card>
+      <Button secondary label="Ad measurement" onPress={() => router.push("/ad-measurement")} />
       <Button
         secondary
         label="Privacy"

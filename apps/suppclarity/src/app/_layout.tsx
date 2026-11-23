@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Store } from "../store";
+import { MeasurementProvider } from "../ad-measurement";
 import { MembershipProvider, useMembership } from "../membership";
 import { ReminderSync } from "../reminder-sync";
 import { plusPreview } from "../plus-preview";
@@ -43,12 +44,14 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <Store>
+        <MeasurementProvider>
         <MembershipProvider>
           <PreviewBanner />
           <ReminderSync />
           <StatusBar style="dark" />
           <Stack screenOptions={{ headerShown: false }} />
         </MembershipProvider>
+        </MeasurementProvider>
       </Store>
     </SafeAreaProvider>
   );

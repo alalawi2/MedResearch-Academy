@@ -22,7 +22,8 @@
       },
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
-      ]
+      ],
+      "allowBackup": false
     },
     "web": {
       "favicon": "./assets/app-icon-v2.png",

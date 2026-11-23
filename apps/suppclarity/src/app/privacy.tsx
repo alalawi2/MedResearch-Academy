@@ -1,18 +1,19 @@
 import { Linking } from "react-native";
 import { Page, Copy, Card, Button } from "../ui";
+import { MeasurementExplanation } from "../ad-measurement";
 export default function Privacy() {
   return (
     <Page title="PRIVACY" back>
       <Copy kind="title">Your data, explained.</Copy>
-      <Copy>SuppClarity · MedResearch Academy · Updated November 22, 2026</Copy>
+      <Copy>SuppClarity · MedResearch Academy · Updated November 23, 2026</Copy>
       <Card>
         <Copy kind="heading">On your device</Copy>
         <Copy>
           The installed iPhone and Android app saves your questionnaire answers,
           confirmed products, questionnaire progress and reading size in
           encrypted device storage, together with optional reminders and routine
-          history. There is no app account, cloud sync, advertising or tracking
-          SDK. The browser preview keeps entries in memory and clears on reload.
+          history. There is no app account or cloud sync. Optional Android install
+          measurement is described below. The browser preview keeps entries in memory and clears on reload.
           Chat history stays in memory for this session and is not persisted
           with your routine. Selected photos are not saved as routine entries.
         </Copy>
@@ -56,6 +57,7 @@ export default function Privacy() {
           copies retained by recipients or other apps are outside that deletion.
         </Copy>
       </Card>
+      <MeasurementExplanation />
       <Card>
         <Copy kind="heading">When you choose online help</Copy>
         <Copy>
