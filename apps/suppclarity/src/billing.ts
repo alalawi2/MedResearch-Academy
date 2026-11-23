@@ -9,7 +9,7 @@ const identityKey = "suppclarity.billing.identity.v1";
 let identityPromise: Promise<string> | undefined;
 let clientPromise: Promise<typeof Purchases> | undefined;
 export const billingEnabled = process.env.EXPO_PUBLIC_PLUS_ENABLED === "true";
-export function billingIdentity() {
+function fallbackBillingIdentity() {
   if (!identityPromise)
     identityPromise = (async () => {
       if (Platform.OS === "web") return Crypto.randomUUID();
@@ -48,7 +48,8 @@ export async function subscriptionClient() {
       );
       purchases.configure({
         apiKey: key,
-        appUserID: await billingIdentity(),
+        // Let RevenueCat create an anonymous ID. Anonymous restores alias
+        // customer records, preserving the original identity used for quotas.
         automaticDeviceIdentifierCollectionEnabled: false,
       });
       return purchases;
@@ -57,6 +58,10 @@ export async function subscriptionClient() {
       throw error;
     });
   return clientPromise;
+}
+export async function billingIdentity() {
+  const client = await subscriptionClient();
+  return client ? await client.getAppUserID() : fallbackBillingIdentity();
 }
 export async function billingHeaders(): Promise<Record<string, string>> {
   if (!billingEnabled) return {};

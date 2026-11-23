@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { allowedOrigin } from "../../lib/suppclarity/http.mjs";
-import { lookupPlan } from "../../lib/suppclarity/membership.mjs";
+import {
+  lookupPlan,
+  validBillingIdentifier,
+} from "../../lib/suppclarity/membership.mjs";
 export function createHandler({
   env = process.env,
   lookup = lookupPlan,
@@ -22,12 +25,7 @@ export function createHandler({
       return res.status(403).json({ ready: false });
     if (req.method !== "GET") return res.status(405).json({ ready: false });
     const id = req.headers["x-suppclarity-billing"];
-    if (
-      typeof id !== "string" ||
-      !/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(
-        id,
-      )
-    )
+    if (!validBillingIdentifier(id))
       return res.status(400).json({ ready: false });
     if (
       env.SUPPCLARITY_PLUS_ENABLED !== "true" ||

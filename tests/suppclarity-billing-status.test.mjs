@@ -91,3 +91,17 @@ test("Readiness accepts the app-specific public verification key", async () => {
   });
   assert.equal(result.body.ready, true);
 });
+
+test("Checkout readiness recognizes RevenueCat's native anonymous identity", async () => {
+  const result = await call(
+    {},
+    {
+      headers: {
+        "x-suppclarity-billing":
+          "$RCAnonymousID:0123456789abcdef0123456789abcdef",
+      },
+    },
+  );
+  assert.equal(result.statusCode, 200);
+  assert.equal(result.body.ready, true);
+});

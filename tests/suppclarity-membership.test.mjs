@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   verifiedPlan,
+  validBillingIdentifier,
   reserveMembershipAction,
   lookupPlan,
 } from "../lib/suppclarity/membership.mjs";
@@ -201,4 +202,41 @@ test("Sandbox access only accepts verified Apple or Google subscriptions", () =>
       .plus,
     false,
   );
+});
+
+test("Native anonymous identifiers are accepted without accepting arbitrary customer IDs", () => {
+  assert.equal(
+    validBillingIdentifier("$RCAnonymousID:0123456789abcdef0123456789abcdef"),
+    true,
+  );
+  assert.equal(validBillingIdentifier(id), true);
+  for (const invalid of [
+    "$RCAnonymousID:short",
+    "$RCAnonymousID:0123456789abcdef0123456789abcdef/other",
+    "known-customer",
+    [id],
+    undefined,
+  ])
+    assert.equal(validBillingIdentifier(invalid), false);
+});
+test("Restored anonymous aliases share the original customer's online allowance", async () => {
+  const original = "$RCAnonymousID:0123456789abcdef0123456789abcdef";
+  const restored = "$RCAnonymousID:fedcba9876543210fedcba9876543210";
+  const hashes = [];
+  for (const identity of [original, restored]) {
+    const result = await reserveMembershipAction(
+      { headers: { "x-suppclarity-billing": identity } },
+      "scan",
+      env,
+      {
+        lookup: async () => ({ plus: true, subject: original }),
+        rpc: async (params) => {
+          hashes.push(params.p_subject_hash);
+          return { data: true };
+        },
+      },
+    );
+    assert.equal(result.plus, true);
+  }
+  assert.equal(hashes[0], hashes[1]);
 });
