@@ -20,7 +20,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name: config.name ?? "SuppClarity",
     slug: config.slug ?? "suppclarity",
-    plugins: [...(config.plugins || []), "expo-notifications", "expo-sharing"],
+    plugins: [
+      ...(config.plugins || []),
+      // Routine reminders are scheduled on the phone; APNs is not used.
+      ["expo-notifications", { enableRemoteNotifications: false }],
+      "expo-sharing",
+    ],
     experiments: {
       ...config.experiments,
       ...(process.env.SUPPCLARITY_WEB_BASE_PATH
