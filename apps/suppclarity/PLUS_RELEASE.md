@@ -1,6 +1,6 @@
 # SuppClarity Plus — 0.7.0 preparation
 
-Status: implemented on feat/suppclarity-plus; live payments and release are disabled. The published 0.6.0 app remains free. This document is not a claim of store approval or clinical validation.
+Current status (November 23, 2026): Plus is merged and its production service is enabled. Apple and Google credentials are valid in RevenueCat. iOS 0.7.0 (15) is in TestFlight; Android 0.7.0 (11) is in internal testing. The public Plus update has not been submitted. Historical preparation notes below describe earlier states, not current blockers. This is not a claim of clinical validation.
 
 ## Recommended pricing
 
@@ -54,3 +54,14 @@ November 23 store connection: Apple app appa91ab791b2 is now configured in Reven
 The dedicated Google Cloud project suppclarity-payments and service account were created with owner approval. Google Play access is limited to SuppClarity: read app information, automatically included app-quality read access, financial data/Purchases API, and manage orders/subscriptions. No account-wide permissions were granted. Key creation was blocked by inherited iam.disableServiceAccountKeyCreation; a temporary project-only exception requires separate owner approval and has not been applied.
 
 iOS store build d0ca7827-4953-47df-9f05-ee70951298a5 (14) failed because the notifications plugin requested APNs entitlements absent from the existing distribution profile. The SDK 58 plugin supports enableRemoteNotifications:false; this is now explicit because routine reminders are local-only. Generated iOS entitlements were inspected and contain no aps-environment. TypeScript/lint passed. Rebuild required; no paid transaction validation or updated store submission is claimed. Android store build f43fa00f-782a-46b9-ada0-692f0ae9e876 (11) was queued before this local-only configuration correction.
+
+## Current release evidence — November 23, 2026
+
+- Owner confirmed Nature’s Own Magnesium + Energy is identified and ingredients displayed on TestFlight 0.7.0 (15). Quantities have not been independently checked against the printed label.
+- Monthly Apple sandbox purchase unlocked Plus. The actual App Store sandbox receipt was independently verified in RevenueCat and through the production backend entitlement policy. USD 4.99; no real charge. Annual and Google Play purchase flows remain unverified.
+- Owner clarified PDF creation/sharing worked. The earlier failure report was withdrawn; no PDF code change was needed.
+- Restore purchases produced no visible message. The screen now shows “Purchases restored. Your Plus is ready to use.” only when the restore returns an active entitlement; existing no-purchase and error feedback remains. Updated native verification is pending. Reinstall/restore continuity remains unverified; preserve local entries before any destructive test.
+- Production allows App Store/Play sandbox receipts deliberately during TestFlight/App Review and license testing. RevenueCat Test Store receipts remain rejected. Track this setting through review.
+- Google subscription-event test reached RevenueCat. Temporary key-creation and domain-sharing exceptions were restored to inherited restrictions. Apple server notifications are still unconfigured; purchase receipt verification works independently.
+- Owner approved updated store privacy disclosures covering billing IDs, purchase history, functionality and subscription analytics. Preserve existing online-health/photo declarations and Android-only consented install-measurement disclosures. Billing and health records are not sent to Meta.
+- Release remains pending native restore feedback, reminder delivery, comparison and Android payment checks, plus Apple subscription review screenshots and review submission preparation.
