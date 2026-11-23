@@ -8,6 +8,7 @@ export default function Plus() {
   const membership = useMembership();
   const [period, setPeriod] = useState("P1Y");
   const [busy, setBusy] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState("");
   const [details, setDetails] = useState(false);
   const monthly = membership.packages.find(
     (p) => p.product.subscriptionPeriod === "P1M",
@@ -23,6 +24,7 @@ export default function Plus() {
       ? annualSaving(monthly.product.price, annual.product.price)
       : 0;
   const act = async (action: () => Promise<unknown>) => {
+    setRestoreMessage("");
     setBusy(true);
     try {
       await action();
@@ -207,8 +209,19 @@ export default function Plus() {
           secondary
           label={busy ? "Please wait…" : "Restore purchases"}
           disabled={busy}
-          onPress={() => void act(membership.restore)}
+          onPress={() =>
+            void act(async () => {
+              if (await membership.restore()) {
+                setRestoreMessage("Purchases restored. Your Plus is ready to use.");
+              }
+            })
+          }
         />
+      )}
+      {!!restoreMessage && (
+        <View accessibilityLiveRegion="polite">
+          <Notice>{restoreMessage}</Notice>
+        </View>
       )}
       <Button
         secondary
