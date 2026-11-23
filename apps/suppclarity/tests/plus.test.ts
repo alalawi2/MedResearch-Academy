@@ -1,3 +1,4 @@
+import { resolveApiOrigin, DEFAULT_API_ORIGIN } from "../src/api-origin.ts";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { membershipFromInfo, annualSaving } from "../src/plus-policy.ts";
@@ -172,4 +173,17 @@ test("PDF is escaped, local and excludes history until requested", () => {
   );
   assert(html.includes("not a clinical assessment"));
   assert(!html.includes("<script"));
+});
+
+test("Native sandbox backend configuration cannot use credentials or insecure URLs", () => {
+  assert.equal(resolveApiOrigin(), DEFAULT_API_ORIGIN);
+  assert.equal(resolveApiOrigin("https://qa.example/"), "https://qa.example");
+  for (const value of [
+    "http://qa.example",
+    "https://user:password@qa.example",
+    "https://qa.example/path",
+    "https://qa.example/?token=secret",
+    "https://qa.example/#fragment",
+  ])
+    assert.throws(() => resolveApiOrigin(value));
 });

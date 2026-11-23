@@ -17,7 +17,11 @@ const paid = (changes = {}) => ({
       },
     },
     subscriptions: {
-      suppclarity_plus_yearly: { is_sandbox: false, ...changes },
+      suppclarity_plus_yearly: {
+        is_sandbox: false,
+        store: "app_store",
+        ...changes,
+      },
     },
   },
 });
@@ -184,4 +188,17 @@ test("Verification uses an app-specific public SDK key without administrator acc
   );
   assert.equal(authorization, "Bearer goog_public_fixture");
   assert.equal(result.plus, true);
+});
+
+test("Sandbox access only accepts verified Apple or Google subscriptions", () => {
+  assert.equal(
+    verifiedPlan(paid({ is_sandbox: true, store: "play_store" }), now, true)
+      .plus,
+    true,
+  );
+  assert.equal(
+    verifiedPlan(paid({ is_sandbox: true, store: "test_store" }), now, true)
+      .plus,
+    false,
+  );
 });

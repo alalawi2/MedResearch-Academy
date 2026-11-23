@@ -213,7 +213,7 @@ export default function Home() {
       </Pressable>
       <View style={{ gap: 6 }}>
         <Copy kind="small" style={{ color: C.muted, fontSize: 12 }}>
-          SUPPLEMENT EDUCATION · 0.6
+          SUPPLEMENT EDUCATION · 0.7
         </Copy>
         <Copy kind="small" style={{ color: C.muted }}>
           Common vitamins, minerals and other supplements. General education,

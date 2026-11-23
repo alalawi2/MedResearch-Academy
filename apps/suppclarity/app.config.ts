@@ -9,6 +9,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     process.env.EXPO_PUBLIC_PLUS_PREVIEW
   )
     throw new Error("UI preview mode cannot be used in a production build.");
+  if (
+    process.env.EAS_BUILD_PROFILE === "production" &&
+    process.env.EXPO_PUBLIC_SUPPCLARITY_API_ORIGIN &&
+    new URL(process.env.EXPO_PUBLIC_SUPPCLARITY_API_ORIGIN).origin !==
+      "https://www.medresearch-academy.om"
+  )
+    throw new Error("Production builds must use the live SuppClarity backend.");
   return {
     ...config,
     name: config.name ?? "SuppClarity",

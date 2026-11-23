@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
+import { API_ORIGIN } from "./api-origin";
 import * as SecureStore from "expo-secure-store";
 import * as Crypto from "expo-crypto";
 import type Purchases from "react-native-purchases";
@@ -67,7 +68,7 @@ export async function billingReady() {
   const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const response = await fetch(
-      "https://www.medresearch-academy.om/api/suppclarity/billing-status",
+      `${API_ORIGIN}/api/suppclarity/billing-status`,
       { signal: controller.signal, headers: await billingHeaders() },
     );
     return response.ok && (await response.json()).ready === true;
