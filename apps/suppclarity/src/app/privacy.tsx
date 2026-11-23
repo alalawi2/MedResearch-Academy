@@ -11,11 +11,10 @@ export default function Privacy() {
           The installed iPhone and Android app saves your questionnaire answers,
           confirmed products, questionnaire progress and reading size in
           encrypted device storage, together with optional reminders and routine
-          history. There is no app account, cloud sync, advertising
-          or tracking SDK. The browser preview keeps entries in memory and
-          clears on reload. Chat history stays in memory for this session and is
-          not persisted with your routine. Selected photos are not saved as
-          routine entries.
+          history. There is no app account, cloud sync, advertising or tracking
+          SDK. The browser preview keeps entries in memory and clears on reload.
+          Chat history stays in memory for this session and is not persisted
+          with your routine. Selected photos are not saved as routine entries.
         </Copy>
         <Copy>
           Use Your space → Clear my data to remove saved answers and products.
@@ -26,7 +25,37 @@ export default function Privacy() {
           files may remain under the device or photo library’s own controls.
         </Copy>
       </Card>
-      <Card><Copy kind="heading">Optional Plus subscriptions</Copy><Copy>When subscriptions are enabled, RevenueCat and Apple or Google process a separate random billing identifier, purchase and renewal records, product identifiers and operational device or network information to provide purchases, restore access and prevent abuse. We do not send your questionnaire, label photos, routine entries or conversations to RevenueCat. Your payment details are handled by the store. An opaque billing identifier is also sent to our server when you request online help so we can verify your entitlement and allowance. It is kept separate from your local health entries.</Copy><Copy>Monthly usage counters contain keyed hashes and counts, not question or photo contents, and are removed after at most 63 days. Clearing local entries does not cancel a subscription or erase store transaction records. Manage or cancel through your store account; contact us for privacy requests concerning subscription records. Billing providers retain records under their own policies and legal obligations.</Copy><Copy>Reminders are scheduled on your phone only after you choose them and allow notifications. Alerts use generic wording. PDF summaries are generated locally and shared only through the phone sharing screen you open. Temporary generated PDFs are deleted by the app after sharing; copies retained by recipients or other apps are outside that deletion.</Copy></Card>
+      <Card>
+        <Copy kind="heading">Optional Plus subscriptions</Copy>
+        <Copy>
+          When subscriptions are enabled, RevenueCat and Apple or Google process
+          a separate random billing identifier, purchase and renewal records,
+          product identifiers and operational device or network information to
+          provide purchases, restore access, prevent abuse and report
+          subscription activity in the RevenueCat dashboard. We do not send your
+          questionnaire, label photos, routine entries or conversations to
+          RevenueCat. Your payment details are handled by the store. An opaque
+          billing identifier is also sent to our server when you request online
+          help so we can verify your entitlement and allowance. It is kept
+          separate from your local health entries.
+        </Copy>
+        <Copy>
+          Monthly usage counters contain keyed hashes and counts, not question
+          or photo contents, and are removed after at most 63 days. Clearing
+          local entries does not cancel a subscription or erase store
+          transaction records. Manage or cancel through your store account;
+          contact us for privacy requests concerning subscription records.
+          Billing providers retain records under their own policies and legal
+          obligations.
+        </Copy>
+        <Copy>
+          Reminders are scheduled on your phone only after you choose them and
+          allow notifications. Alerts use generic wording. PDF summaries are
+          generated locally and shared only through the phone sharing screen you
+          open. Temporary generated PDFs are deleted by the app after sharing;
+          copies retained by recipients or other apps are outside that deletion.
+        </Copy>
+      </Card>
       <Card>
         <Copy kind="heading">When you choose online help</Copy>
         <Copy>
