@@ -4,7 +4,7 @@ Status: implemented on feat/suppclarity-plus; live payments and release are disa
 
 ## Recommended pricing
 
-US $4.99 monthly or $39.99 yearly (about 33% less than twelve monthly payments). No trial at launch: free features let people try the app without starting a subscription. These are recommended prices pending owner approval; the app displays localized prices returned by each store, never a hard-coded checkout amount.
+US $4.99 monthly or $39.99 yearly (about 33% less than twelve monthly payments). No trial at launch: free features let people try the app without starting a subscription. The owner approved these prices on November 23, 2026; the app displays localized prices returned by each store, never a hard-coded checkout amount.
 
 ## What users receive
 
@@ -15,10 +15,10 @@ US $4.99 monthly or $39.99 yearly (about 33% less than twelve monthly payments).
 
 ## Activation checklist
 
-1. Owner approves prices, subscription wording, privacy updates and purchase-service access.
-2. Connect only SuppClarity Apple/Google apps to its separate RevenueCat project c1a49481. Configure subscription group/base plans with product IDs suppclarity_plus_monthly and suppclarity_plus_yearly; attach both to entitlement suppclarity_plus and a current offering containing monthly and annual packages. Test Store catalog drafts exist but entitlement/offering mapping still needs verification.
-3. Configure app-specific server RevenueCat verification access. Current integration uses the V1 subscriber endpoint; do not use a shared company key. Keep all private credentials server-side. Review key scope before creating or granting it.
-4. Apply supabase/migrations/202611220002_suppclarity_membership_quotas.sql. Server variables: SUPPCLARITY_PLUS_ENABLED=true, SUPPCLARITY_REVENUECAT_SECRET_KEY, VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Sandbox is off in production; enable SUPPCLARITY_ALLOW_SANDBOX only in an isolated test deployment.
+1. Prices and submission approved by owner November 23, 2026. Ask at action time for any new store credential access or binding agreement.
+2. Connect only SuppClarity Apple/Google apps to its separate RevenueCat project c1a49481. Configure subscription group/base plans with product IDs suppclarity_plus_monthly and suppclarity_plus_yearly; attach both to entitlement suppclarity_plus and a current offering containing monthly and annual packages. Test Store monthly/yearly products are attached to the entitlement and default offering ofrnga0cd01659e. Google app entry app6a6c68bdf4 exists with its public SDK key; real store credential validation is still pending.
+3. Configure SUPPCLARITY_REVENUECAT_API_KEY with the app-specific public SDK key. The V1 subscriber endpoint accepts this key; confirmed with an actual synthetic customer request (201, empty entitlements). No administrator verification key is necessary. Existing secret-key configuration remains backward compatible.
+4. Apply supabase/migrations/202611220002_suppclarity_membership_quotas.sql. Server variables: SUPPCLARITY_PLUS_ENABLED=true, SUPPCLARITY_REVENUECAT_API_KEY, VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY. Sandbox is off in production; enable SUPPCLARITY_ALLOW_SANDBOX only in an isolated test deployment.
 5. Build custom native development clients with EXPO_PUBLIC_PLUS_ENABLED=true and platform public SDK keys (see .env.example). Expo Go and the website cannot make real purchases. Backend readiness must succeed before offers/checkout appear.
 6. On actual native store sandboxes verify buy, cancel, restore after reinstall, expiration, grace period, refund/revocation, plan change, localized pricing and exhausted allowance. Test real notification permission/denial, delivery, clear-data cancellation and native PDF sharing. Web design preview is not purchase validation.
 7. Submit a new app version with subscriptions for each store's review; keep the existing Apple 0.6 review intact. Update privacy declarations and subscription metadata before activation. Do not enable live charging until these checks pass.
@@ -30,3 +30,5 @@ The phone-width design preview allows Free/Plus switching with sample entries an
 Automated tests cover membership/refund/expiry/grace, allowance enforcement and rollback, comparisons, routine logs and PDF content escaping. SQL was exercised against isolated PostgreSQL including service-role-only permissions. Phone-width browser flows were exercised for plans, comparison, taken/skipped/undo and optional PDF history. Native purchases, notification delivery and PDF sharing still require device validation.
 
 Final local validation: 55 app tests and 46 backend tests passed (101 total); TypeScript and ESLint passed; Expo dependency compatibility passed; full academy build and final app web export passed. Export fingerprint matched source. These checks do not replace the native device tests above.
+
+November 23 connection progress: database migration 202611220002 was applied transactionally and recorded without altering unrelated migration history. Anonymous RPC execution is denied; service_role execution is allowed. Production verification public key is configured in Vercel; public billing remains disabled. Android bootstrap build 2a56d616-7386-4de3-90e9-cde3b7763de8 (version code 10) and iOS simulator build 19c843c3-9c43-4be6-9ca1-43071b491650 (build 13) were started for native compatibility/internal setup. Apple sign-in and Google Cloud identity confirmation are pending owner action.

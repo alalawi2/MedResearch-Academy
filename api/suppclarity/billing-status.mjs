@@ -31,7 +31,10 @@ export function createHandler({
       return res.status(400).json({ ready: false });
     if (
       env.SUPPCLARITY_PLUS_ENABLED !== "true" ||
-      !env.SUPPCLARITY_REVENUECAT_SECRET_KEY ||
+      !(
+        env.SUPPCLARITY_REVENUECAT_API_KEY ||
+        env.SUPPCLARITY_REVENUECAT_SECRET_KEY
+      ) ||
       !env.SUPABASE_SERVICE_ROLE_KEY ||
       !env.VITE_SUPABASE_URL
     )

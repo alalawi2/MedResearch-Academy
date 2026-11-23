@@ -83,3 +83,11 @@ test("Checkout readiness rejects invalid identities, origins and methods", async
   assert.equal((await call({}, { method: "POST" })).statusCode, 405);
   assert.equal((await call()).headers["Cache-Control"], "no-store");
 });
+
+test("Readiness accepts the app-specific public verification key", async () => {
+  const { SUPPCLARITY_REVENUECAT_SECRET_KEY, ...rest } = env;
+  const result = await call({
+    env: { ...rest, SUPPCLARITY_REVENUECAT_API_KEY: "goog_public_fixture" },
+  });
+  assert.equal(result.body.ready, true);
+});

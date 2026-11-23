@@ -171,3 +171,17 @@ test("Bad IDs, verification outage and exhausted quotas fail closed", async () =
     true,
   );
 });
+test("Verification uses an app-specific public SDK key without administrator access", async () => {
+  let authorization;
+  const result = await lookupPlan(
+    id,
+    { SUPPCLARITY_REVENUECAT_API_KEY: "goog_public_fixture" },
+    async (url, options) => {
+      authorization = options.headers.Authorization;
+      assert.equal(url, "https://api.revenuecat.com/v1/subscribers/" + id);
+      return { status: 200, ok: true, json: async () => paid() };
+    },
+  );
+  assert.equal(authorization, "Bearer goog_public_fixture");
+  assert.equal(result.plus, true);
+});
