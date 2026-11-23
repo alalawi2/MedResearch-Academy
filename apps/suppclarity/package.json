@@ -1,6 +1,6 @@
 {
   "name": "suppclarity",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/manrope": "^0.4.3",

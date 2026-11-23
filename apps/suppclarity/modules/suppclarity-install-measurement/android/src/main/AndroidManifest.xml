@@ -1,0 +1,18 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
+  <!-- No Topics, custom audiences or Privacy Sandbox ad services: install receipts only. -->
+  <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_ADSERVICES_CUSTOM_AUDIENCE" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_ADSERVICES_TOPICS" tools:node="remove" />
+  <application>
+    <provider android:name="com.facebook.internal.FacebookInitProvider" android:authorities="${applicationId}.FacebookInitProvider" tools:node="remove" />
+    <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/suppclarity_meta_app_id" />
+    <!-- Meta client tokens identify a public app; this is not an app secret/access token. -->
+    <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/suppclarity_meta_client_token" />
+    <meta-data android:name="com.facebook.sdk.AutoInitEnabled" android:value="false" />
+    <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="false" />
+    <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="false" />
+    <meta-data android:name="com.facebook.sdk.CodelessDebugLogEnabled" android:value="false" />
+  </application>
+</manifest>

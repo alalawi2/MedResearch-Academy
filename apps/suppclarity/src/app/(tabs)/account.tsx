@@ -159,6 +159,7 @@ export default function Account() {
           charge.
         </Copy>
       </Card>
+      <Button secondary label="Ad measurement" onPress={() => router.push("/ad-measurement")} />
       <Button
         secondary
         label="Privacy"

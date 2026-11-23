@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Store } from "../store";
+import { MeasurementProvider } from "../ad-measurement";
 export default function Root() {
   const [loaded, error] = useFonts({
     Manrope_400Regular,
@@ -34,8 +35,10 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <Store>
+        <MeasurementProvider>
         <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false }} />
+        </MeasurementProvider>
       </Store>
     </SafeAreaProvider>
   );

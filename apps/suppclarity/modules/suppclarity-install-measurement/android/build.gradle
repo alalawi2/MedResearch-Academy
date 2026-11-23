@@ -1,0 +1,23 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'om.medresearchacademy.measurement'
+version = '0.1.0'
+
+android {
+  namespace "om.medresearchacademy.measurement"
+  defaultConfig {
+    versionCode 1
+    versionName "0.1.0"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+  // Pin the audited implementation; no login/share SDKs or automatic purchase logging.
+  implementation 'com.facebook.android:facebook-core:18.3.0'
+}

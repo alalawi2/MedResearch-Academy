@@ -2,7 +2,7 @@
   "expo": {
     "name": "SuppClarity",
     "slug": "suppclarity",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "orientation": "default",
     "icon": "./assets/app-icon-v2.png",
     "scheme": "suppclarity",
@@ -22,7 +22,8 @@
       },
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW"
-      ]
+      ],
+      "allowBackup": false
     },
     "web": {
       "favicon": "./assets/app-icon-v2.png",
