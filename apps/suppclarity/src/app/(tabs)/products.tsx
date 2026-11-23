@@ -22,6 +22,7 @@ export default function Products() {
         icon="plus"
         onPress={() => router.push("/product")}
       />
+      {products.length > 0 && <Card><Copy kind="label">A little more from your routine</Copy><Button secondary label="Compare two labels" icon="columns" onPress={() => router.push("/compare")} /><Button secondary label="My daily routine" icon="sun" onPress={() => router.push("/routine")} /></Card>}
       {!products.length ? (
         <Card>
           <Icon name="layers" size={36} />

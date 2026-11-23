@@ -4,12 +4,14 @@ import {
   type Profile,
   type Product,
 } from "./domain.ts";
+import { validateRoutine, type RoutineData } from "./routine-data.ts";
 export type Snapshot = {
   version: 1;
   profile: Profile;
   products: Product[];
   step: number;
   scale: number;
+  routine?: RoutineData;
 };
 export type VaultStorage = {
   get: (key: string) => Promise<string | null>;
@@ -70,6 +72,7 @@ export function validateSnapshot(value: unknown): Snapshot {
     products: x.products,
     step: x.step,
     scale: x.scale,
+    ...(x.routine !== undefined ? { routine: validateRoutine(x.routine) } : {}),
   };
 }
 // Commit a pointer only after every encrypted chunk is written. A failed save

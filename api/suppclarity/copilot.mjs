@@ -1,5 +1,6 @@
 import { allowedOrigin } from "../../lib/suppclarity/http.mjs";
 import { reserveEvidence } from "../../lib/suppclarity/quota.mjs";
+import { reserveMembershipAction } from "../../lib/suppclarity/membership.mjs";
 import {
   answerQuestion,
   copilotInput,
@@ -10,6 +11,7 @@ export function createHandler({
   env = process.env,
   answer = answerQuestion,
   reserve = reserveEvidence,
+  reserveMembership = reserveMembershipAction,
 } = {}) {
   return async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
@@ -19,7 +21,7 @@ export function createHandler({
       res.setHeader("Access-Control-Allow-Origin", origin);
       res.setHeader("Vary", "Origin");
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-SuppClarity-Billing");
     }
     if (req.method === "OPTIONS")
       return res.status(origin && allowedOrigin(origin) ? 204 : 403).end();
@@ -71,15 +73,16 @@ export function createHandler({
     )
       .split(",")[0]
       .trim();
-    const blocked = await reserve(ip, env);
+    const membership = await reserveMembership(req, "answer", env);
+    const blocked = membership.status ? membership : membership.legacy ? await reserve(ip, env) : null;
     if (blocked)
       return res
         .status(blocked.status)
         .json({
           error:
-            blocked.status === 429
+            blocked.status === 429 && membership.legacy
               ? "The live-answer daily allowance is reached. Prepared answers and guides still work."
-              : "Live answers are temporarily unavailable.",
+              : blocked.error || "Live answers are temporarily unavailable.",
         });
     try {
       return res
