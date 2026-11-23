@@ -1,14 +1,16 @@
 import { TextInput, Share, Platform } from "react-native";
 import { Page, Copy, Button, C, S } from "../ui";
 import { useStore } from "../store";
+import { router } from "expo-router";
 export default function Export() {
-  const { profile, products } = useStore();
+  const { profile, products, routine } = useStore();
   const text = JSON.stringify(
     {
       app: "SuppClarity",
       exportedAt: new Date().toISOString(),
       profile,
       products,
+      routine,
       assessment: "No clinical assessment performed",
     },
     null,
@@ -21,6 +23,7 @@ export default function Export() {
         Copy the text below to keep a record. It contains the personal answers
         you entered.
       </Copy>
+      <Button secondary label="Create a PDF summary · Plus" icon="file-text" onPress={() => router.push("/summary")} />
       <TextInput
         accessibilityLabel="Exported session data"
         multiline

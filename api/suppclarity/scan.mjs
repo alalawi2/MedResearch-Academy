@@ -1,11 +1,13 @@
 import { allowedOrigin } from "../../lib/suppclarity/http.mjs";
 import { imageFromDataUrl, readLabel } from "../../lib/suppclarity/label.mjs";
 import { reserveScan } from "../../lib/suppclarity/quota.mjs";
+import { reserveMembershipAction } from "../../lib/suppclarity/membership.mjs";
 export const config = { api: { bodyParser: false } };
 export function createHandler({
   env = process.env,
   read = readLabel,
   reserve = reserveScan,
+  reserveMembership = reserveMembershipAction,
 } = {}) {
   return async (req, res) => {
     res.setHeader("Cache-Control", "no-store");
@@ -16,7 +18,7 @@ export function createHandler({
       res.setHeader("Vary", "Origin");
       res.setHeader(
         "Access-Control-Allow-Headers",
-        "Content-Type, X-SuppClarity-Consent, X-SuppClarity-Install",
+        "Content-Type, X-SuppClarity-Consent, X-SuppClarity-Install, X-SuppClarity-Billing",
       );
       res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
     }
@@ -79,7 +81,8 @@ export function createHandler({
       )
         .split(",")[0]
         .trim();
-      const blocked = await reserve(install, ip, env);
+      const membership = await reserveMembership(req, "scan", env);
+      const blocked = membership.status ? membership : membership.legacy ? await reserve(install, ip, env) : null;
       if (blocked)
         return res.status(blocked.status).json({ error: blocked.error });
       const label = await read({

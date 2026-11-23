@@ -1,6 +1,6 @@
 # SuppClarity Android 0.6.1 — install measurement
 
-This release is based on the published free 0.6 app. It deliberately excludes the separate 0.7 Plus work. Existing ad budgets and prices are unchanged.
+The signed Android 0.6.1 hotfix artifact is built from commit 1c5ebf7 on the published free 0.6 base; it excludes Plus. This source integration also preserves the separately merged 0.7 Plus work on main and adds the same opt-in measurement there, without changing its prices or release authorization. Do not confuse the 0.6.1 hotfix artifact with a later 0.7 build. Existing ad budgets are unchanged.
 
 - Meta app: 2184159269127361; Google Play package: om.medresearchacademy.suppclarity.
 - Android-only local Expo module, Facebook core SDK pinned to 18.3.0. No Facebook login/share library, account matching fields or arbitrary event API.

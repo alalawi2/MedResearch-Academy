@@ -24,10 +24,11 @@ export default function About() {
         <Copy kind="heading">What remains outside this app</Copy>
         <Copy>
           Diagnosis, individual treatment doses, medicine interaction screening,
-          complete dietary assessment, secure accounts, payments and wearable
+          complete dietary assessment, secure accounts and wearable
           connections.
         </Copy>
       </Card>
+      <Card><Copy kind="heading">Optional Plus membership</Copy><Copy>Plus adds label comparisons, reminders, self-reported routine history, PDF summaries and higher online-use allowances. Purchases and restoration use your Apple or Google account through RevenueCat. Local guides, basic explanations, safety information and your text export remain free. A subscription does not add medical advice or clinical validation.</Copy></Card>
       <Notice>
         This app provides general education and is not a medical device. It does
         not diagnose or prescribe. It is not a recruiting study; no clinical

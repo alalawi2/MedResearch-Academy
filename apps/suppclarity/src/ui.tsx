@@ -144,11 +144,13 @@ export function Page({
   title,
   back = false,
   right,
+  footer,
 }: {
   children: React.ReactNode;
   title?: string;
   back?: boolean;
   right?: React.ReactNode;
+  footer?: React.ReactNode;
 }) {
   const { storageStatus } = useStore();
   return (
@@ -193,6 +195,19 @@ export function Page({
             <View style={{ height: 24 }} />
           </View>
         </ScrollView>
+        {footer && (
+          <View
+            style={{
+              padding: 18,
+              gap: 8,
+              borderTopWidth: 1,
+              borderTopColor: C.line,
+              backgroundColor: C.bg,
+            }}
+          >
+            {footer}
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
